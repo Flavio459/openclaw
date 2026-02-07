@@ -171,7 +171,7 @@ async function startCallbackServer(params: { timeoutMs: number }) {
       reject(err);
     };
     server.once("error", onError);
-    server.listen(port, "127.0.0.1", () => {
+    server.listen(port, "0.0.0.0", () => {
       server.off("error", onError);
       resolve();
     });
