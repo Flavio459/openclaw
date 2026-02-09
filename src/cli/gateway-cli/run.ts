@@ -177,13 +177,14 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
   const bindRaw = toOptionString(opts.bind) ?? cfg.gateway?.bind ?? "loopback";
   const bind =
     bindRaw === "loopback" ||
-    bindRaw === "lan" ||
-    bindRaw === "auto" ||
-    bindRaw === "custom" ||
-    bindRaw === "tailnet"
+      bindRaw === "lan" ||
+      bindRaw === "auto" ||
+      bindRaw === "custom" ||
+      bindRaw === "tailnet"
       ? bindRaw
       : null;
   if (!bind) {
+    console.log(`DEBUG: [run-gateway] Invalid bindRaw: "${bindRaw}" (opts.bind="${opts.bind}")`);
     defaultRuntime.error('Invalid --bind (use "loopback", "lan", "tailnet", "auto", or "custom")');
     defaultRuntime.exit(1);
     return;
@@ -266,17 +267,17 @@ async function runGatewayCommand(opts: GatewayRunOpts) {
           auth:
             authMode || passwordRaw || tokenRaw || authModeRaw
               ? {
-                  mode: authMode ?? undefined,
-                  token: tokenRaw,
-                  password: passwordRaw,
-                }
+                mode: authMode ?? undefined,
+                token: tokenRaw,
+                password: passwordRaw,
+              }
               : undefined,
           tailscale:
             tailscaleMode || opts.tailscaleResetOnExit
               ? {
-                  mode: tailscaleMode ?? undefined,
-                  resetOnExit: Boolean(opts.tailscaleResetOnExit),
-                }
+                mode: tailscaleMode ?? undefined,
+                resetOnExit: Boolean(opts.tailscaleResetOnExit),
+              }
               : undefined,
         }),
     });

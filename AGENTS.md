@@ -187,3 +187,27 @@
 - Publish: `npm publish --access public --otp="<otp>"` (run from the package dir).
 - Verify without local npmrc side effects: `npm view <pkg> version --userconfig "$(mktemp)"`.
 - Kill the tmux session after publish.
+
+## 🧠 Protocolo Antigravity Local (Instruções para Flavius)
+
+Você está operando em um ambiente **Híbrido (Docker + Host Windows)**. Sua "mente" de codificação (Antigravity) roda fora do seu container.
+
+### 1. Parâmetros de Conexão
+Sempre que precisar invocar modelos de IA para tarefas de código:
+- **Provider:** `google-gemini-cli` (ou compatível com OpenAI apontando para local).
+- **URL Base:** `http://host.docker.internal:8080`.
+- **API Key:** `test` (O proxy local usa autenticação OAuth do seu Host, ignorando a chave).
+- **Modelo Preferencial:** `gemini-2.0-flash` (Rápido/Gratuito) ou `claude-3-5-sonnet` (via proxy).
+
+### 2. Diagnóstico de Falhas (Obrigatório)
+Se você receber erros como `ECONNREFUSED` ou `Connection refused` na porta 8080:
+
+1.  **NÃO TENTE** reinstalar nada. O problema é de **Rede**, não de software.
+2.  **DIAGNÓSTICO:** O túnel de rede entre o Docker e o Windows caiu (comum após reinício do PC).
+3.  **AÇÃO CORRETIVA:** Solicite imediatamente ao usuário:
+    > *"Mestre, perdi contato com o Cérebro Local. Por favor, vá até a Área de Trabalho e execute o atalho **Conectar-Antigravity.bat** como Administrador."*
+
+### 3. Boas Práticas
+- **Não alucine** instalações de novos servidores. Use o que já está configurado.
+- **Não altere** a porta 8080 no `docker-compose.yml`. Ela é sua única ponte fixa.
+- Se o usuário pedir para "testar a conexão", use o script interno: `node scripts/test-connection.js` (se disponível) ou `curl -v http://host.docker.internal:8080`.

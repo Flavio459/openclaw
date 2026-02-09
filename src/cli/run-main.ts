@@ -31,6 +31,8 @@ export async function runCli(argv: string[] = process.argv) {
   ensureOpenClawCliOnPath();
 
   // Enforce the minimum supported runtime before doing any work.
+  // Enforce the minimum supported runtime before doing any work.
+  console.log("DEBUG: [run-main] checking runtime");
   assertSupportedRuntime();
 
   if (await tryRouteCli(normalizedArgv)) {
@@ -40,7 +42,9 @@ export async function runCli(argv: string[] = process.argv) {
   // Capture all console output into structured logs while keeping stdout/stderr behavior.
   enableConsoleCapture();
 
+  console.log("DEBUG: [run-main] importing program");
   const { buildProgram } = await import("./program.js");
+  console.log("DEBUG: [run-main] building program");
   const program = buildProgram();
 
   // Global error handlers to prevent silent crashes from unhandled rejections/exceptions.
@@ -56,9 +60,11 @@ export async function runCli(argv: string[] = process.argv) {
   // Register the primary subcommand if one exists (for lazy-loading)
   const primary = getPrimaryCommand(parseArgv);
   if (primary) {
+    console.log(`DEBUG: [run-main] registering primary command: ${primary}`);
     const { registerSubCliByName } = await import("./program/register.subclis.js");
     await registerSubCliByName(program, primary);
   }
+  console.log("DEBUG: [run-main] parsing args");
 
   const shouldSkipPluginRegistration = !primary && hasHelpOrVersion(parseArgv);
   if (!shouldSkipPluginRegistration) {
@@ -128,4 +134,9 @@ function stripWindowsNodeExec(argv: string[]): string[] {
 
 export function isCliMainModule(): boolean {
   return isMainModule({ currentFile: fileURLToPath(import.meta.url) });
+}
+
+if (isCliMainModule()) {
+  console.log("DEBUG: [run-main] Invoking runCli directly");
+  runCli(process.argv);
 }
