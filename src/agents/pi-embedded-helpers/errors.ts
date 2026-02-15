@@ -469,6 +469,13 @@ const ERROR_PATTERNS = {
     /\b402\b/,
     "payment required",
     "insufficient credits",
+    // Common across OpenAI-compatible providers (including DeepSeek/Moonshot-style payloads)
+    // where the message is phrased in terms of "balance" rather than "credits".
+    "insufficient balance",
+    "insufficient_balance",
+    "balance too low",
+    "low balance",
+    "out of credits",
     "credit balance",
     "plans & billing",
   ],
