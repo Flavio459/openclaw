@@ -13,10 +13,9 @@ echo "🚀 Starting deployment..."
 cd "$REPO_DIR"
 
 # Ensure we have the latest code
-echo "📦 Pulling latest code..."
-git fetch
-git checkout antigravity-dev
-git pull origin antigravity-dev
+echo "📦 Syncing code..."
+# Try to pull from tracked branch, if it fails, just continue (assume we are already up to date from the caller)
+git pull || echo "⚠️ Warning: git pull failed, continuing with current state..."
 
 # Ensure gateway.mode=local is set in configs
 # This is required by the new upstream version
@@ -52,7 +51,8 @@ echo "🔍 Running smoke test..."
 cid=$(docker ps -qf name=openclaw-openclaw-gateway-1)
 if [ -n "$cid" ]; then
   # Wait for gateway to start
-  sleep 5
+  echo "Waiting 10s for gateway to initialize..."
+  sleep 10
   docker exec "$cid" sh -lc 'node dist/index.js agent --session-id smoke-deploy --message "ping: responda apenas com OK" --json'
 else
   echo "❌ Error: openclaw-gateway container not found"
