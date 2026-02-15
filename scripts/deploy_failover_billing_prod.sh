@@ -14,23 +14,30 @@ cd "$REPO_DIR"
 
 # Ensure we have the latest code
 echo "📦 Syncing code..."
-# Try to pull from tracked branch, if it fails, just continue (assume we are already up to date from the caller)
 git pull || echo "⚠️ Warning: git pull failed, continuing with current state..."
 
 # Ensure gateway.mode=local is set in configs
-# This is required by the new upstream version
 echo "⚙️ Configuring gateway.mode=local..."
 
 update_config() {
   local conf_file=$1
   if [ -f "$conf_file" ]; then
-    if jq -e '.gateway' "$conf_file" > /dev/null; then
-      echo "Updating $conf_file"
-      jq '.gateway.mode = "local"' "$conf_file" > "${conf_file}.tmp" && mv "${conf_file}.tmp" "$conf_file"
-    else
-      echo "Adding gateway section to $conf_file"
-      jq '. + {gateway: {mode: "local"}}' "$conf_file" > "${conf_file}.tmp" && mv "${conf_file}.tmp" "$conf_file"
-    fi
+    echo "Updating $conf_file using Python..."
+    python3 -c "
+import json, sys
+try:
+    with open('$conf_file', 'r') as f:
+        data = json.load(f)
+    if 'gateway' not in data:
+        data['gateway'] = {}
+    data['gateway']['mode'] = 'local'
+    with open('$conf_file', 'w') as f:
+        json.dump(data, f, indent=2)
+    print(f'Successfully updated {sys.argv[1]}')
+except Exception as e:
+    print(f'Error updating {sys.argv[1]}: {e}')
+    sys.exit(1)
+" "$conf_file"
   else
     echo "⚠️ Warning: $conf_file not found"
   fi
