@@ -1,0 +1,36 @@
+[
+  {
+    "op": "replace",
+    "path": "/agents/defaults/model/primary",
+    "value": "deepseek/deepseek-reasoner"
+  },
+  {
+    "op": "replace",
+    "path": "/agents/defaults/model/fallbacks",
+    "value": [
+      "moonshot/kimi-k2.5",
+      "google/gemini-3-flash-preview",
+      "antigravity/claude-3-5-sonnet-20241022"
+    ]
+  },
+  {
+    "op": "replace",
+    "path": "/agents/defaults/models/deepseek~1deepseek-reasoner/alias",
+    "value": "🧠 DeepSeek Raciocinador"
+  },
+  {
+    "op": "replace",
+    "path": "/agents/defaults/models/moonshot~1kimi-k2.5/alias",
+    "value": "📚 Kimi 256K"
+  },
+  {
+    "op": "replace",
+    "path": "/agents/defaults/models/google~1gemini-3-flash-preview/alias",
+    "value": "⚡ Gemini Rápido"
+  },
+  {
+    "op": "replace",
+    "path": "/agents/defaults/models/antigravity~1claude-3-5-sonnet-20241022/alias",
+    "value": "🎯 Claude Premium"
+  }
+]

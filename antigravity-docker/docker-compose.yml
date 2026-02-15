@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  antigravity-proxy:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: antigravity-proxy
+    hostname: antigravity-proxy
+    
+    # Porta exposta
+    ports:
+      - "8080:8080"
+    
+    # Restart automático
+    restart: unless-stopped
+    
+    # Volumes persistentes
+    volumes:
+      - antigravity-tokens:/app/tokens
+      - antigravity-logs:/app/logs
+      - ./config:/app/config:ro
+    
+    # Healthcheck
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    # Limites de recursos para VPS
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
+    
+    # Configurações de rede
+    networks:
+      - antigravity-net
+    
+    # Variáveis de ambiente
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - LOG_LEVEL=info
+      - TOKEN_PATH=/app/tokens
+    
+    # Logging rotativo
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+        labels: "service_name,environment"
+        env: "OS,CUDA_VERSION"
+    
+    # Labels para identificação
+    labels:
+      - "app=antigravity"
+      - "component=proxy"
+      - "environment=production"
+
+# Volumes persistentes
+volumes:
+  antigravity-tokens:
+    driver: local
+  antigravity-logs:
+    driver: local
+
+# Rede isolada
+networks:
+  antigravity-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

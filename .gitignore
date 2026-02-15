@@ -1,0 +1,186 @@
+# ============================================
+# OPENCLAW WORKSPACE - GITIGNORE
+# Segurança: Nunca commit arquivos sensíveis
+# ============================================
+
+# ====================
+# CONFIGURAÇÕES SENSÍVEIS
+# ====================
+
+# Configurações OpenClaw com credenciais
+antigravity-config.json
+openclaw.json
+openclaw.json.backup
+openclaw.json.bak*
+openclaw.json.bak-*
+test_config.json
+
+# Credenciais OAuth e tokens
+*.token
+*.auth
+*.secret
+*.key
+*.pem
+*.crt
+*.pfx
+*.p12
+
+# Variáveis de ambiente
+.env
+.env.local
+.env.production
+.env.development
+.secrets
+secrets/
+credentials/
+
+# ====================
+# ARQUIVOS DO SISTEMA OPENCLAW
+# ====================
+
+# Aprovações de execução
+exec-approvals.json
+exec-approvals.json.bak*
+
+# Dispositivos e subagentes
+.devices/
+.subagents/
+
+# Sessões e logs de agentes
+agents/main/sessions/*.jsonl
+agents/main/sessions/*.deleted*
+
+# Cron jobs runs
+cron/runs/*.jsonl
+
+# ====================
+# ARQUIVOS TEMPORÁRIOS E LOGS
+# ====================
+
+# Logs
+*.log
+*.log.*
+logs/
+debug.log
+error.log
+
+# Temporários
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# ====================
+# DEPENDÊNCIAS E BUILDS
+# ====================
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-store/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Build outputs
+dist/
+build/
+out/
+*.exe
+*.dll
+*.so
+*.dylib
+
+# ====================
+# IDE E EDITORES
+# ====================
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ
+.idea/
+*.iml
+*.iws
+
+# ====================
+# ARQUIVOS DE TESTE E DEBUG
+# ====================
+
+# Scripts de teste temporários
+test_*.py
+test_*.js
+test_*.sh
+debug_*.py
+debug_*.js
+
+# ====================
+# ARQUIVOS ESPECÍFICOS DO WORKSPACE
+# ====================
+
+# Configurações de proxy OAuth
+oauth_proxy.py
+simple_oauth_server.py
+professional_oauth_server.js
+simple-oauth-server.js
+professional-oauth-server.js
+
+# Tokens OAuth (podem conter refresh tokens)
+exchange-oauth-token.js
+refresh_token.js
+
+# Configurações de autenticação
+auth-solution.md
+create-oauth-credentials.md
+complete_oauth_solution.md
+
+# Diretório seguro para arquivos sensíveis
+secure/
+
+# Arquivos de teste e backup temporários
+archive/
+
+# ====================
+# EXCEÇÕES (arquivos que DEVEM ser commitados)
+# ====================
+
+# !MEMORY.md                    # Memória de longo prazo
+# !memory/                     # Logs diários (sem tokens)
+# !skills/                     # Habilidades do agente
+# !AGENTS.md                   # Documentação do agente
+# !SOUL.md                     # Identidade do agente
+# !USER.md                     # Informações do usuário
+# !IDENTITY.md                 # Identidade
+# !TOOLS.md                    # Ferramentas locais
+# !HEARTBEAT.md                # Checklist de heartbeat
+
+# ====================
+# NOTAS
+# ====================
+
+# Este arquivo deve ser commitado para garantir segurança
+# Atualize conforme necessário quando adicionar novos arquivos sensíveis

@@ -1,0 +1,54 @@
+Relatório de Auditoria de Segurança - OpenClaw
+
+Data: 2026-02-14 09:00 UTC
+Sistema: Debian GNU/Linux 12 (container)
+OpenClaw Version: 2026.2.13 (stable)
+Update Status: Atualizado (latest 2026.2.13)
+
+Findings Críticos: 0
+
+Warnings: 1
+
+1. gateway.trusted_proxies_missing - Reverse proxy headers are not trusted
+   Descrição: O gateway.bind está configurado como loopback e gateway.trustedProxies está vazio. Se você expor a Control UI através de um reverse proxy, configure proxies confiáveis para evitar spoofing de checks de cliente local.
+   Impacto: Possível bypass de verificações de segurança se a UI for exposta via proxy sem configuração adequada.
+   Correção: Defina gateway.trustedProxies com os IPs do seu proxy ou mantenha a Control UI apenas local.
+   Comando sugerido: Editar configuração do OpenClaw (openclaw.json) e adicionar "gateway": { "trustedProxies": ["IP_DO_PROXY"] }.
+
+Informações: 1
+
+1. summary.attack_surface - Attack surface summary
+   Grupos: open=0, allowlist=1
+   tools.elevated: enabled (ferramentas com elevação habilitadas)
+   hooks.webhooks: disabled
+   hooks.internal: disabled
+   browser control: enabled (controle de navegador habilitado)
+
+Recomendações Adicionais:
+
+1. Browser Control: Como o browser control está habilitado, certifique-se de que a extensão do navegador está configurada corretamente e que apenas abas confiáveis são controladas. Recomenda-se habilitar 2FA em contas importantes acessíveis pelo navegador.
+
+2. Variáveis de Ambiente: Foram detectadas variáveis de ambiente com hashes de senha (OPENCLAW_GATEWAY_PASSWORD_LAB, GOG_KEYRING_PASSWORD). Certifique-se de que essas variáveis não são expostas em logs ou compartilhamento de container.
+
+3. Firewall/Network: No container, as portas estão restritas. Se este container for implantado em um host acessível publicamente, considere usar um firewall no host para restringir acesso às portas necessárias.
+
+4. Atualizações Automáticas: Configure atualizações automáticas de segurança do sistema operacional (se aplicável). No container, mantenha a imagem base atualizada.
+
+5. Backup: Verifique se há backups regulares do workspace do OpenClaw (arquivos de configuração, memórias). Use o cron job daily-git-commit já agendado para versionamento.
+
+Conclusão: Nenhuma vulnerabilidade crítica identificada. O sistema está em estado seguro com um warning de configuração que requer atenção apenas se usar reverse proxy. Mantenha monitoramento periódico com o cron job healthcheck:security-audit.
+
+Próximas Ações:
+- Corrigir warning de trusted proxies se aplicável.
+- Revisar configuração de browser control.
+- Agendar auditorias regulares (já configurado).
+
+Cron Jobs de Segurança Ativos:
+- healthcheck:security-audit (diário 09:00 UTC)
+- healthcheck:update-status (segunda 10:00 UTC)
+- daily-git-commit (01:00 UTC)
+- system-heartbeat (09:00 UTC)
+- connectivity-check (a cada 12h)
+- weekly-cleanup (domingo 00:00 UTC)
+
+Assinatura: Flavius Magnus Magnificus ⚙️
