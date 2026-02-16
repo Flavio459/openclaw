@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test OpenClaw UI Auth</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .success { color: green; }
+        .error { color: red; }
+        pre { background: #f5f5f5; padding: 10px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>Test OpenClaw UI Authentication</h1>
+    
+    <div id="status">Testing connection...</div>
+    <pre id="result"></pre>
+    
+    <script>
+        const token = '74246228b0759b995cf34b20b77dc7630251d1014d3d0cffd25024db2852bc56';
+        const gatewayUrl = 'http://localhost:18789';
+        
+        async function testConnection() {
+            try {
+                const response = await fetch(`${gatewayUrl}/api/engine/status`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    document.getElementById('status').innerHTML = 
+                        '<span class="success">✅ Connection successful!</span>';
+                    document.getElementById('result').textContent = 
+                        JSON.stringify(data, null, 2);
+                    
+                    // Test WebSocket connection
+                    testWebSocket();
+                } else {
+                    document.getElementById('status').innerHTML = 
+                        `<span class="error">❌ Connection failed: ${response.status}</span>`;
+                    document.getElementById('result').textContent = 
+                        JSON.stringify(data, null, 2);
+                }
+            } catch (error) {
+                document.getElementById('status').innerHTML = 
+                    `<span class="error">❌ Error: ${error.message}</span>`;
+                document.getElementById('result').textContent = error.stack;
+            }
+        }
+        
+        function testWebSocket() {
+            const ws = new WebSocket(`ws://localhost:18789/ws?token=${token}`);
+            
+            ws.onopen = () => {
+                console.log('WebSocket connected');
+                document.getElementById('status').innerHTML += 
+                    '<br><span class="success">✅ WebSocket connected!</span>';
+                ws.close();
+            };
+            
+            ws.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                document.getElementById('status').innerHTML += 
+                    '<br><span class="error">❌ WebSocket failed</span>';
+            };
+            
+            ws.onclose = () => {
+                console.log('WebSocket closed');
+            };
+        }
+        
+        // Run test
+        testConnection();
+    </script>
+</body>
+</html>

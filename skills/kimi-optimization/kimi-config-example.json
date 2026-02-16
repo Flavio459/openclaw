@@ -1,0 +1,58 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "comment": "Matriz Kimi-Centric com Fallback Resiliente",
+        "primary": "moonshot/kimi-k2.5",
+        "fallbacks": [
+          "deepseek/deepseek-reasoner",
+          "google/gemini-1.5-pro-latest",
+          "openrouter/qwen/qwen-2.5-72b-instruct"
+        ]
+      },
+      "heartbeat": {
+        "model": "google/gemini-1.5-flash-8b",
+        "every": "15m"
+      },
+      "contextPruning": {
+        "mode": "cache-ttl",
+        "ttl": "6h",
+        "comment": "TTL alto maximiza o cache implícito do Kimi (Mooncake)"
+      },
+      "sandbox": {
+        "allowlist": ["bash", "strreplace", "read", "write", "ls"]
+      }
+    }
+  },
+  "models": {
+    "providers": {
+      "moonshot": {
+        "baseUrl": "https://api.moonshot.ai/v1",
+        "api": "chat-completions",
+        "cost": {
+          "input": 0.60,
+          "output": 3.00,
+          "cacheRead": 0.10
+        }
+      },
+      "deepseek": {
+        "baseUrl": "https://api.deepseek.com",
+        "api": "chat-completions",
+        "cost": {
+          "input": 0.14,
+          "output": 0.28,
+          "cacheRead": 0.00
+        }
+      },
+      "google": {
+        "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
+        "api": "gemini",
+        "cost": {
+          "input": 0.125,
+          "output": 0.375,
+          "cacheRead": 0.00
+        }
+      }
+    }
+  }
+}
