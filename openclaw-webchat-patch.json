@@ -1,0 +1,28 @@
+{
+  "_description": "Patch de configuração para resolver duplicação de mensagens no webchat",
+  "_applied_at": "2026-02-17T12:00:00Z",
+  "_issue": "Duplicação de mensagens em sessão webchat",
+  
+  "channels": {
+    "whatsapp": {
+      "dmPolicy": "allowlist",
+      "allowFrom": ["+5519996071531"],
+      "groupPolicy": "allowlist",
+      "mediaMaxMb": 50,
+      "debounceMs": 0
+    },
+    "webchat": {
+      "_comment": "Configuração para prevenir duplicação de mensagens",
+      "debounceMs": 500,
+      "deduplicateWindowMs": 5000,
+      "maxConcurrentMessages": 1
+    }
+  },
+  
+  "messages": {
+    "_comment": "Configurações globais de mensagens",
+    "ackReactionScope": "group-mentions",
+    "deduplicationEnabled": true,
+    "deduplicationWindowMs": 10000
+  }
+}
