@@ -6,6 +6,7 @@ import { WebSocket } from "ws";
 import { emitAgentEvent, registerAgentRunContext } from "../infra/agent-events.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import {
+  agentCommand,
   connectOk,
   getReplyFromConfig,
   installGatewayTestHooks,
@@ -300,6 +301,32 @@ describe("gateway server chat", () => {
       }
       await Promise.all(tempDirs.map((dir) => fs.rm(dir, { recursive: true, force: true })));
     }
+  });
+
+  test("emits chat error when run completes without assistant payload", async () => {
+    const spy = vi.mocked(getReplyFromConfig);
+    spy.mockResolvedValueOnce(undefined);
+
+    const runId = "idem-no-assistant-payload-1";
+    const eventPromise = onceMessage(
+      ws,
+      (o) =>
+        o.type === "event" &&
+        o.event === "chat" &&
+        o.payload?.runId === runId &&
+        o.payload?.state === "error",
+      8000,
+    );
+
+    const res = await rpcReq(ws, "chat.send", {
+      sessionKey: "main",
+      message: "hello",
+      idempotencyKey: runId,
+    });
+    expect(res.ok).toBe(true);
+
+    const evt = await eventPromise;
+    expect(evt.payload?.errorMessage).toBe("no_assistant_payload");
   });
 
   test("routes chat.send slash commands without agent runs", async () => {
