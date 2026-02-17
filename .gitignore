@@ -76,3 +76,9 @@ USER.md
 .agent/*.json
 !.agent/workflows/
 local/
+
+# Local ops archive / backup noise
+.ops-archive/
+*.bak-
+*.bak-*
+*.bak_*
