@@ -31,7 +31,7 @@ def main():
     
     # Teste 2: Verificar configuração
     print("\n2. Verificando configuração...")
-    print("   Client ID: 1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com")
+    print("   Client ID: 970434256582-1b7k31lsf92ujng89bbdiev35mgt307h.apps.googleusercontent.com")
     print("   Redirect URI: http://localhost:51121/oauth-callback")
     print("   Conta: flavius9ia@gmail.com (ambiente Flavius)")
     

@@ -6,7 +6,7 @@ const url = require('url');
 const crypto = require('crypto');
 
 const PORT = 51122;
-const CLIENT_ID = '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com';
+const CLIENT_ID = '970434256582-1b7k31lsf92ujng89bbdiev35mgt307h.apps.googleusercontent.com';
 const REDIRECT_URI = `http://localhost:${PORT}/oauth-callback`;
 
 // Gerar PKCE code verifier e challenge

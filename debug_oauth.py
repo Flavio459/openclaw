@@ -13,7 +13,7 @@ def test_redirect_uri():
     print("🔍 Testando configuração OAuth...")
     print("=" * 50)
     
-    client_id = "1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com"
+    client_id = "970434256582-1b7k31lsf92ujng89bbdiev35mgt307h.apps.googleusercontent.com"
     redirect_uri = "http://localhost:51121/oauth-callback"
     
     print(f"Client ID: {client_id}")
@@ -70,7 +70,7 @@ def simulate_oauth_flow():
     
     # Parâmetros da URL
     params = {
-        'client_id': '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com',
+        'client_id': '970434256582-1b7k31lsf92ujng89bbdiev35mgt307h.apps.googleusercontent.com',
         'redirect_uri': 'http://localhost:51121/oauth-callback',
         'response_type': 'code',
         'scope': 'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/cclog https://www.googleapis.com/auth/experimentsandconfigs',

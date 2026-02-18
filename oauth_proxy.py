@@ -83,7 +83,7 @@ def main():
     print("=" * 50)
     print(f"\n📡 Servidor ouvindo em: http://localhost:{PORT}")
     print("\n🔗 URL de autorização:")
-    print("https://accounts.google.com/o/oauth2/v2/auth?client_id=1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A51121%2Foauth-callback&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcclog+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fexperimentsandconfigs&access_type=offline&prompt=consent&code_challenge=WlcSDQ_zjOby9xyKjiJKSM0jqCos4Yt211QTkV2d-PU&code_challenge_method=S256&state=296827e4f7b74281b5e979d2c152428f")
+    print("https://accounts.google.com/o/oauth2/v2/auth?client_id=970434256582-1b7k31lsf92ujng89bbdiev35mgt307h.apps.googleusercontent.com&redirect_uri=http%3A%2F%2Flocalhost%3A51121%2Foauth-callback&response_type=code&scope=https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcloud-platform+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.email+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fuserinfo.profile+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fcclog+https%3A%2F%2Fwww.googleapis.com%2Fauth%2Fexperimentsandconfigs&access_type=offline&prompt=consent")
     print("\n📋 INSTRUÇÕES:")
     print("1. Abra a URL acima no navegador")
     print("2. Faça login com: flavius9ia@gmail.com")

@@ -2,7 +2,7 @@
 // Controla Chrome no host Windows para fazer OAuth flow
 
 const OAuthConfig = {
-  clientId: '1071006060591-tmhssin2h21lcre235vtolojh4g403ep.apps.googleusercontent.com',
+  clientId: '970434256582-1b7k31lsf92ujng89bbdiev35mgt307h.apps.googleusercontent.com',
   redirectUri: 'http://localhost:51121/oauth-callback',
   scope: 'https://www.googleapis.com/auth/cloud-platform https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/cclog https://www.googleapis.com/auth/experimentsandconfigs',
   authUrl: 'https://accounts.google.com/o/oauth2/v2/auth'
