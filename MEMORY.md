@@ -159,6 +159,9 @@ workspace/
 - **Identidade:** Consolidação na conta `eng.flavio.barros@gmail.com` após bloqueio da conta secundária.
 - **Proatividade:** Atualização dos protocolos SOUL/IDENTITY para modo "Agir Antes de Perguntar" (R0/R1 agressivo).
 
+### 2026-02-18
+- **Antigravity:** Iniciado novo processo de autenticação OAuth via CLI oficial (`models auth login`) para resolver expiração de tokens. Aguardando conclusão do handshake pelo usuário.
+
 ---
 
 ## Preferências / Configurações
