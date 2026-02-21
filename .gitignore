@@ -9,6 +9,8 @@
 
 # Configurações OpenClaw com credenciais
 antigravity-config.json
+antigravity-config-eng.json
+client_secret.json
 openclaw.json
 openclaw.json.backup
 openclaw.json.bak*
