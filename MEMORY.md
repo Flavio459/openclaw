@@ -146,9 +146,11 @@ workspace/
 5. **PKCE OAuth:** Entendimento completo do fluxo PKCE para autenticação Google Antigravity
 6. **Diagnóstico Autônomo:** Capacidade de diagnosticar e resolver problemas de integração sem intervenção humana
 7. **Monitoramento de Saúde:** Implementação de system-heartbeat para verificação contínua de recursos
-8. **Gestão de Quotas:** Identificação e monitoramento de limites de API de modelos
+8. **Gestão de Quotas:** Identificação e monitoramento de limites de API de modelos; fallback automático para provedores alternativos quando quota esgotada
 9. **Plugin Architecture:** Compreensão da arquitetura de plugins OpenClaw e extensibilidade
 10. **Autenticação Alternativa:** Desenvolvimento de soluções alternativas quando plugins falham
+11. **Heartbeat Deduplication:** Processamento idempotente de múltiplos triggers simultâneos; sistema consolida registros mesmo com duplicação de eventos
+12. **Cron Job Resilience:** Monitoramento de falhas consecutivas; healthcheck:update-status apresenta timeout crônico (3+ falhas) e requer atenção
 
 ---
 
@@ -161,6 +163,12 @@ workspace/
 
 ### 2026-02-18
 - **Antigravity:** Iniciado novo processo de autenticação OAuth via CLI oficial (`models auth login`) para resolver expiração de tokens. Aguardando conclusão do handshake pelo usuário.
+
+### 2026-03-03 (Observação)
+- **Cron Healthcheck:** Job `healthcheck:update-status` apresentando falhas consecutivas (timeout). Possível causa: comando `openclaw update status` indisponível ou lento. Em monitoramento.
+
+### 2026-03-05 (Status)
+- **API Quota:** Provedores Gemini e DeepSeek com limitações ativas (429/402). Sistema funcionando em modo de fallback (Moonshot/Kimi primário). Recomenda-se revisão de quotas ou substituição de provedores se persistente.
 
 ---
 
