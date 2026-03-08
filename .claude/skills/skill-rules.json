@@ -61,11 +61,19 @@
       },
       "blockMessage": "⚠️ BLOCKED - Surface Separation Required\n\nBefore editing `{file_path}`:\n1. Use the `surface-separation` skill\n2. Classify the target as `Cortex Command`, `The Forum`, `Cortex Praetorium`, or `OpenClaw Runtime`\n3. State what this file is, and what it is not\n4. Retry the edit\n\nReason: these files define core surface boundaries in Collegium Cortex.",
       "skipConditions": {
-        "sessionSkillUsed": true,
         "fileMarkers": [
           "@skip-validation"
         ],
         "envOverride": "SKIP_SURFACE_SEPARATION_GUARD"
+      },
+      "ack": {
+        "requiredFields": [
+          "surface",
+          "is",
+          "is_not"
+        ],
+        "ttlMinutes": 10,
+        "helpLabel": "classify the surface boundary before editing this file"
       }
     },
     "scope-classifier": {
@@ -108,11 +116,18 @@
       },
       "blockMessage": "⚠️ BLOCKED - Scope Classification Required\n\nBefore editing `{file_path}`:\n1. Use the `scope-classifier` skill\n2. Classify the work as `product`, `engine`, `infra`, or `research`\n3. State whether the actor is a `business_agent` or `engineering_agent`\n4. Retry the edit\n\nReason: this area controls agents, runtime, or system behavior and is prone to product-vs-engine confusion.",
       "skipConditions": {
-        "sessionSkillUsed": true,
         "fileMarkers": [
           "@skip-validation"
         ],
         "envOverride": "SKIP_SCOPE_CLASSIFIER_GUARD"
+      },
+      "ack": {
+        "requiredFields": [
+          "scope",
+          "actor_class"
+        ],
+        "ttlMinutes": 10,
+        "helpLabel": "classify the scope and actor class before editing runtime or agent files"
       }
     },
     "protocol-defensability": {
@@ -153,11 +168,21 @@
       },
       "blockMessage": "⚠️ BLOCKED - Protocol Defensability Check Required\n\nBefore editing `{file_path}`:\n1. Use the `protocol-defensability` skill\n2. State the real economic activity behind the change\n3. State the rule, evidence, review path, and likely narrative/regulatory reading\n4. Retry the edit\n\nReason: this file shapes how Collegium Cortex is defended in narrative, governance, compliance, or protocol design.",
       "skipConditions": {
-        "sessionSkillUsed": true,
         "fileMarkers": [
           "@skip-validation"
         ],
         "envOverride": "SKIP_PROTOCOL_DEFENSABILITY_GUARD"
+      },
+      "ack": {
+        "requiredFields": [
+          "economic_activity",
+          "rule",
+          "evidence",
+          "review_path",
+          "risk"
+        ],
+        "ttlMinutes": 10,
+        "helpLabel": "state the economic activity, rule, evidence, review path, and risk"
       }
     },
     "forum-deliberation": {
@@ -200,11 +225,24 @@
       },
       "blockMessage": "⚠️ BLOCKED - Forum Deliberation Structure Required\n\nBefore editing `{file_path}`:\n1. Use the `forum-deliberation` skill\n2. Structure the work as `topic`, `context`, `participants`, `evidence`, `options`, `risks`, `recommended path`, `chairman action`\n3. Retry the edit\n\nReason: this area belongs to The Forum / Chairman decision flow and should not drift into unstructured chat or generic UI.",
       "skipConditions": {
-        "sessionSkillUsed": true,
         "fileMarkers": [
           "@skip-validation"
         ],
         "envOverride": "SKIP_FORUM_DELIBERATION_GUARD"
+      },
+      "ack": {
+        "requiredFields": [
+          "topic",
+          "context",
+          "participants",
+          "evidence",
+          "options",
+          "risks",
+          "recommended_path",
+          "chairman_action"
+        ],
+        "ttlMinutes": 10,
+        "helpLabel": "structure the deliberation for The Forum and Chairman flow"
       }
     }
   }

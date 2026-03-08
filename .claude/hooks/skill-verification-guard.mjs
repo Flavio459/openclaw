@@ -1,32 +1,14 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import {
+  getValidatedSkill,
+  loadRules,
+  loadSessionState,
+  readStdin,
+} from "./lib/guardrail-state.mjs";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const claudeDir = path.resolve(__dirname, "..");
-const rulesPath = path.join(claudeDir, "skills", "skill-rules.json");
-const stateDir = path.join(__dirname, "state");
-
-function readStdin() {
-  return new Promise((resolve, reject) => {
-    let data = "";
-    process.stdin.setEncoding("utf8");
-    process.stdin.on("data", (chunk) => {
-      data += chunk;
-    });
-    process.stdin.on("end", () => resolve(data));
-    process.stdin.on("error", reject);
-  });
-}
-
-function loadRules() {
-  try {
-    return JSON.parse(fs.readFileSync(rulesPath, "utf8"));
-  } catch {
-    return { version: "1.0", skills: {} };
-  }
-}
 
 function escapeRegex(value) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -44,30 +26,6 @@ function normalizePath(filePath) {
   return filePath.replace(/\\/g, "/");
 }
 
-function ensureStateDir() {
-  fs.mkdirSync(stateDir, { recursive: true });
-}
-
-function loadState(sessionId) {
-  ensureStateDir();
-  const filePath = path.join(stateDir, `skills-used-${sessionId || "default"}.json`);
-  try {
-    return {
-      filePath,
-      data: JSON.parse(fs.readFileSync(filePath, "utf8")),
-    };
-  } catch {
-    return {
-      filePath,
-      data: { skills_used: [] },
-    };
-  }
-}
-
-function saveState(filePath, data) {
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
-}
-
 function fileContainsAnyMarker(filePath, markers) {
   if (!markers?.length || !fs.existsSync(filePath)) {
     return false;
@@ -81,7 +39,7 @@ function fileContainsAnyMarker(filePath, markers) {
   }
 }
 
-function matchesFileRule(relativePath, rule) {
+export function matchesFileRule(relativePath, rule) {
   const fileTriggers = rule?.fileTriggers;
   if (!fileTriggers?.pathPatterns?.length) {
     return false;
@@ -101,7 +59,49 @@ function matchesFileRule(relativePath, rule) {
   return !excluded;
 }
 
-async function main() {
+function buildBlockMessage(relativePath, missingGuardrails) {
+  const lines = [
+    `⚠️ BLOCKED - Guardrail acknowledgement required for ${relativePath}`,
+    "",
+    "Missing guardrails:",
+  ];
+
+  for (const entry of missingGuardrails) {
+    lines.push(`- ${entry.skillName}`);
+    if (entry.helpLabel) {
+      lines.push(`  help: ${entry.helpLabel}`);
+    }
+    lines.push(`  required fields: ${entry.requiredFields.join(", ")}`);
+  }
+
+  lines.push("", "Add one block per missing guardrail before retrying.");
+  for (const entry of missingGuardrails) {
+    lines.push(
+      "",
+      `[guardrail:${entry.skillName}]`,
+      ...entry.requiredFields.map((field) => `${field}: ...`),
+      "[/guardrail]",
+    );
+  }
+
+  const bypasses = [];
+  const envOverrides = missingGuardrails
+    .map((entry) => entry.envOverride)
+    .filter(Boolean);
+  if (missingGuardrails.some((entry) => entry.fileMarkers.length > 0)) {
+    bypasses.push("- add @skip-validation to the file");
+  }
+  for (const envOverride of new Set(envOverrides)) {
+    bypasses.push(`- set ${envOverride}=1`);
+  }
+  if (bypasses.length > 0) {
+    lines.push("", "Explicit bypasses:", ...bypasses);
+  }
+
+  return lines.join("\n");
+}
+
+export async function main() {
   const rawInput = await readStdin();
   if (!rawInput.trim()) {
     process.exit(0);
@@ -128,8 +128,10 @@ async function main() {
   const relativePath = normalizePath(path.relative(cwd, filePath));
   const rules = loadRules();
   const sessionId = input.session_id || "default";
-  const state = loadState(sessionId);
+  const { data: sessionState } = loadSessionState(sessionId, { persistPruned: false });
+  const now = Date.now();
 
+  const missingGuardrails = [];
   for (const [skillName, rule] of Object.entries(rules.skills ?? {})) {
     if (rule.enforcement !== "block" || rule.type !== "guardrail") {
       continue;
@@ -142,30 +144,32 @@ async function main() {
     if (skipConditions.envOverride && process.env[skipConditions.envOverride]) {
       continue;
     }
-    if (
-      skipConditions.sessionSkillUsed &&
-      Array.isArray(state.data.skills_used) &&
-      state.data.skills_used.includes(skillName)
-    ) {
-      continue;
-    }
     if (fileContainsAnyMarker(filePath, skipConditions.fileMarkers ?? [])) {
       continue;
     }
+    if (getValidatedSkill(sessionState, skillName, now)) {
+      continue;
+    }
 
-    state.data.skills_used = Array.from(new Set([...(state.data.skills_used ?? []), skillName]));
-    saveState(state.filePath, state.data);
-
-    const message = String(rule.blockMessage ?? "")
-      .replaceAll("{file_path}", relativePath)
-      .replaceAll("{skill_name}", skillName);
-    process.stderr.write(message || `Use skill ${skillName} before editing ${relativePath}.`);
-    process.exit(2);
+    missingGuardrails.push({
+      skillName,
+      requiredFields: rule.ack?.requiredFields ?? [],
+      helpLabel: rule.ack?.helpLabel ?? null,
+      envOverride: skipConditions.envOverride ?? null,
+      fileMarkers: skipConditions.fileMarkers ?? [],
+    });
   }
 
-  process.exit(0);
+  if (missingGuardrails.length === 0) {
+    process.exit(0);
+  }
+
+  process.stderr.write(buildBlockMessage(relativePath, missingGuardrails));
+  process.exit(2);
 }
 
-main().catch(() => {
-  process.exit(0);
-});
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+  main().catch(() => {
+    process.exit(0);
+  });
+}

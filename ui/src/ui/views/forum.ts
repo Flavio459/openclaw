@@ -1,4 +1,4 @@
-import { html } from "lit";
+import { html, nothing } from "lit";
 import type { EventLogEntry } from "../app-events.ts";
 import {
   COLLEGIUM_FORUM_NAME,

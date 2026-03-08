@@ -329,6 +329,17 @@ export function isCollegiumTab(tab: Tab): boolean {
   return COLLEGIUM_TABS.has(tab);
 }
 
+export function selectCollegiumEventFeed(
+  tab: Tab,
+  eventLog: EventLogEntry[],
+  eventLogBuffer: EventLogEntry[],
+): EventLogEntry[] {
+  if (tab === "forum") {
+    return eventLogBuffer;
+  }
+  return eventLog;
+}
+
 export function brandingForTab(tab: Tab): Branding {
   if (tab === "command") {
     return { title: "COLLEGIUM CORTEX", subtitle: COLLEGIUM_COMMAND_NAME };

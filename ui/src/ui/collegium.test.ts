@@ -5,6 +5,7 @@ import {
   brandingForTab,
   detectRuntimeEnvironment,
   isCollegiumTab,
+  selectCollegiumEventFeed,
 } from "./collegium.ts";
 import type { EventLogEntry } from "./app-events.ts";
 
@@ -41,6 +42,19 @@ describe("detectRuntimeEnvironment", () => {
     expect(detectRuntimeEnvironment("ws://127.0.0.1:18789", null)).toBe("LAB");
     expect(detectRuntimeEnvironment("wss://openclaw-dev.internal/ws", null)).toBe("DEV");
     expect(detectRuntimeEnvironment("wss://openclaw-prod.internal/ws", null)).toBe("PROD");
+  });
+});
+
+describe("selectCollegiumEventFeed", () => {
+  it("uses the live buffer for The Forum and the stable log elsewhere", () => {
+    const eventLog: EventLogEntry[] = [{ ts: 1, event: "agent", payload: { agentId: "main" } }];
+    const eventLogBuffer: EventLogEntry[] = [
+      { ts: 2, event: "chat", payload: { sessionKey: "agent:ceo:main" } },
+    ];
+
+    expect(selectCollegiumEventFeed("forum", eventLog, eventLogBuffer)).toBe(eventLogBuffer);
+    expect(selectCollegiumEventFeed("praetorium", eventLog, eventLogBuffer)).toBe(eventLog);
+    expect(selectCollegiumEventFeed("chat", eventLog, eventLogBuffer)).toBe(eventLog);
   });
 });
 
