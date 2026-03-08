@@ -1,6 +1,7 @@
 import type { IconName } from "./icons.js";
 
 export const TAB_GROUPS = [
+  { label: "Collegium", tabs: ["command", "forum", "praetorium"] },
   { label: "Chat", tabs: ["chat"] },
   {
     label: "Control",
@@ -11,6 +12,9 @@ export const TAB_GROUPS = [
 ] as const;
 
 export type Tab =
+  | "command"
+  | "forum"
+  | "praetorium"
   | "agents"
   | "overview"
   | "channels"
@@ -26,6 +30,9 @@ export type Tab =
   | "logs";
 
 const TAB_PATHS: Record<Tab, string> = {
+  command: "/command",
+  forum: "/command/forum",
+  praetorium: "/praetorium",
   agents: "/agents",
   overview: "/overview",
   channels: "/channels",
@@ -124,6 +131,12 @@ export function inferBasePathFromPathname(pathname: string): string {
 
 export function iconForTab(tab: Tab): IconName {
   switch (tab) {
+    case "command":
+      return "brain";
+    case "forum":
+      return "book";
+    case "praetorium":
+      return "puzzle";
     case "agents":
       return "folder";
     case "chat":
@@ -157,6 +170,12 @@ export function iconForTab(tab: Tab): IconName {
 
 export function titleForTab(tab: Tab) {
   switch (tab) {
+    case "command":
+      return "Cortex Command";
+    case "forum":
+      return "The Forum";
+    case "praetorium":
+      return "Cortex Praetorium";
     case "agents":
       return "Agents";
     case "overview":
@@ -190,6 +209,12 @@ export function titleForTab(tab: Tab) {
 
 export function subtitleForTab(tab: Tab) {
   switch (tab) {
+    case "command":
+      return "Executive surface for Collegium Cortex, The CORE, and The Pilots.";
+    case "forum":
+      return "Strategic room for deliberation, incidents, finance, and Chairman decisions.";
+    case "praetorium":
+      return "Live cockpit for runtime supervision, handoffs, blockers, and evidence.";
     case "agents":
       return "Manage agent workspaces, tools, and identities.";
     case "overview":

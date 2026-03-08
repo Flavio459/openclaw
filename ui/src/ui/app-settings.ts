@@ -182,6 +182,21 @@ export function setTheme(host: SettingsHost, next: ThemeMode, context?: ThemeTra
 }
 
 export async function refreshActiveTab(host: SettingsHost) {
+  if (host.tab === "command" || host.tab === "forum" || host.tab === "praetorium") {
+    await loadAgents(host as unknown as OpenClawApp);
+    const agentIds = host.agentsList?.agents?.map((entry) => entry.id) ?? [];
+    if (agentIds.length > 0) {
+      void loadAgentIdentities(host as unknown as OpenClawApp, agentIds);
+    }
+    await loadPresence(host as unknown as OpenClawApp);
+    await loadChannels(host as unknown as OpenClawApp, false);
+    await loadSessions(host as unknown as OpenClawApp);
+    await loadCron(host);
+    if (host.tab === "praetorium") {
+      await loadDebug(host as unknown as OpenClawApp);
+      host.eventLog = host.eventLogBuffer;
+    }
+  }
   if (host.tab === "overview") {
     await loadOverview(host);
   }
