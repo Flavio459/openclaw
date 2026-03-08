@@ -3,6 +3,7 @@ import type { AppViewState } from "./app-view-state.ts";
 import type { UsageState } from "./controllers/usage.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
+import { brandingForTab, detectRuntimeEnvironment, isCollegiumTab } from "./collegium.ts";
 import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
@@ -53,6 +54,7 @@ import {
 import { loadUsage, loadSessionTimeSeries, loadSessionLogs } from "./controllers/usage.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
+import { refreshActiveTab } from "./app-settings.ts";
 
 // Module-scope debounce for usage date changes (avoids type-unsafe hacks on state object)
 let usageDateDebounceTimeout: number | null = null;
@@ -65,6 +67,7 @@ const debouncedLoadUsage = (state: UsageState) => {
 import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
 import { renderChat } from "./views/chat.ts";
+import { renderCommand } from "./views/command.ts";
 import { renderConfig } from "./views/config.ts";
 import { renderCron } from "./views/cron.ts";
 import { renderDebug } from "./views/debug.ts";
@@ -74,6 +77,8 @@ import { renderInstances } from "./views/instances.ts";
 import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
+import { renderForum } from "./views/forum.ts";
+import { renderPraetorium } from "./views/praetorium.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
 import { renderUsage } from "./views/usage.ts";
@@ -110,6 +115,9 @@ export function renderApp(state: AppViewState) {
   const configValue =
     state.configForm ?? (state.configSnapshot?.config as Record<string, unknown> | null);
   const basePath = normalizeBasePath(state.basePath ?? "");
+  const environment = detectRuntimeEnvironment(state.settings.gatewayUrl, state.hello);
+  const branding = brandingForTab(state.tab);
+  const collegiumMode = isCollegiumTab(state.tab);
   const resolvedAgentId =
     state.agentsSelectedId ??
     state.agentsList?.defaultId ??
@@ -137,12 +145,22 @@ export function renderApp(state: AppViewState) {
               <img src=${basePath ? `${basePath}/favicon.svg` : "/favicon.svg"} alt="OpenClaw" />
             </div>
             <div class="brand-text">
-              <div class="brand-title">OPENCLAW</div>
-              <div class="brand-sub">Gateway Dashboard</div>
+              <div class="brand-title">${branding.title}</div>
+              <div class="brand-sub">${branding.subtitle}</div>
             </div>
           </div>
         </div>
         <div class="topbar-status">
+          ${
+            collegiumMode
+              ? html`
+                  <div class="pill">
+                    <span>Runtime</span>
+                    <span class="mono">${environment}</span>
+                  </div>
+                `
+              : nothing
+          }
           <div class="pill">
             <span class="statusDot ${state.connected ? "ok" : ""}"></span>
             <span>Health</span>
@@ -207,6 +225,57 @@ export function renderApp(state: AppViewState) {
             ${isChat ? renderChatControls(state) : nothing}
           </div>
         </section>
+
+        ${
+          state.tab === "command"
+            ? renderCommand({
+                connected: state.connected,
+                lastError: state.lastError,
+                environment,
+                agentsList: state.agentsList,
+                presenceEntries: state.presenceEntries,
+                channelsSnapshot: state.channelsSnapshot,
+                execApprovalQueue: state.execApprovalQueue,
+                cronStatus: state.cronStatus,
+                sessionsCount,
+                onRefresh: () => void refreshActiveTab(state),
+                onOpenForum: () => state.setTab("forum"),
+                onOpenPraetorium: () => state.setTab("praetorium"),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "forum"
+            ? renderForum({
+                gatewayUrl: state.settings.gatewayUrl,
+                hello: state.hello,
+                environment,
+                agentsList: state.agentsList,
+                eventLog: state.eventLog,
+                execApprovalQueue: state.execApprovalQueue,
+                onRefresh: () => void refreshActiveTab(state),
+                onOpenPraetorium: () => state.setTab("praetorium"),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "praetorium"
+            ? renderPraetorium({
+                connected: state.connected,
+                lastError: state.lastError,
+                gatewayUrl: state.settings.gatewayUrl,
+                hello: state.hello,
+                agentsList: state.agentsList,
+                eventLog: state.eventLog,
+                execApprovalQueue: state.execApprovalQueue,
+                cronJobs: state.cronJobs,
+                onRefresh: () => void refreshActiveTab(state),
+                onOpenCommand: () => state.setTab("command"),
+              })
+            : nothing
+        }
 
         ${
           state.tab === "overview"
