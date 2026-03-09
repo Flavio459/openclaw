@@ -190,7 +190,7 @@ export function renderCommand(props: CommandProps) {
                     </div>
                     <div class="muted">
                       ${node.activeMobilityCount} active mobility · ${node.contestedMobilityCount}
-                      contested · ${node.pressureLevel} pressure
+                      contested · ${node.pressureLevel} pressure · ${node.trend} trend
                     </div>
                   </div>
                   <div class="list-meta mono">${node.activeProductionUnits} U.P.</div>
@@ -261,7 +261,7 @@ export function renderCommand(props: CommandProps) {
                 </div>
                 <div class="list-meta">
                   <div class="mono">${node.pressureLevel}</div>
-                  <div class="muted">${node.contestedMobilityCount} contested</div>
+                  <div class="muted">${node.contestedMobilityCount} contested · ${node.trend}</div>
                 </div>
               </div>
             `,

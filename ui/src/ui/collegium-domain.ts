@@ -112,6 +112,7 @@ export type CommandDomainProjection = {
     activeMobilityCount: number;
     contestedMobilityCount: number;
     pressureLevel: "steady" | "elevated" | "critical";
+    trend: "recovering" | "stressed" | "failing";
   }>;
   governanceWatchlist: Array<{
     id: string;

@@ -81,6 +81,12 @@ export function buildCommandDomainProjection(
           : activeMobilityCount > 0 || node.activeProductionUnits >= 8
             ? "elevated"
             : "steady";
+      const trend =
+        contestedMobilityCount > 0
+          ? "failing"
+          : activeMobilityCount > 0
+            ? "stressed"
+            : "recovering";
       return {
         id: node.id,
         label: node.label,
@@ -90,6 +96,7 @@ export function buildCommandDomainProjection(
         activeMobilityCount,
         contestedMobilityCount,
         pressureLevel,
+        trend,
       };
     });
 

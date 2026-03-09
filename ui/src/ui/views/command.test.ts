@@ -54,6 +54,8 @@ describe("command view", () => {
     expect(container.textContent).toContain("Governance Watchlist");
     expect(container.textContent).toContain("Corridor Pressure");
     expect(container.textContent).toContain("critical");
+    expect(container.textContent).toContain("stressed trend");
+    expect(container.textContent).toContain("failing");
     expect(container.textContent).toContain("Bruno Vale");
     expect(container.textContent).toContain("Ana Cruz");
     expect(container.textContent).toContain("Noah Lima");

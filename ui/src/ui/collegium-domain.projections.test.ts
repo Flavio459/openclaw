@@ -22,7 +22,9 @@ describe("buildCommandDomainProjection", () => {
     expect(projection.pendingDeliberationCount).toBe(1);
     expect(projection.networkSummary[0]?.label).toBe("Alpha Corridor");
     expect(projection.networkSummary[0]?.pressureLevel).toBe("elevated");
+    expect(projection.networkSummary[0]?.trend).toBe("stressed");
     expect(projection.networkSummary[1]?.pressureLevel).toBe("critical");
+    expect(projection.networkSummary[1]?.trend).toBe("failing");
     expect(projection.governanceWatchlist).toHaveLength(3);
     expect(projection.pilotBoard[0]?.displayName).toBe("Ana Cruz");
     expect(projection.passengerBoard[0]?.displayName).toBe("Noah Lima");
