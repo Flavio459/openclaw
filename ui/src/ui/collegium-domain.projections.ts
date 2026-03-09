@@ -1,3 +1,4 @@
+import { buildDefaultCollegiumDomainSnapshot } from "./collegium-domain.fixtures.ts";
 import {
   type CollegiumDomainSnapshot,
   type CommandDomainProjection,
@@ -5,7 +6,6 @@ import {
   type ForumDomainProjection,
   type ForumStrategicHighlight,
 } from "./collegium-domain.ts";
-import { buildDefaultCollegiumDomainSnapshot } from "./collegium-domain.fixtures.ts";
 
 function rankDeliberation(caseItem: DeliberationCase): number {
   const riskScore = caseItem.riskLevel === "high" ? 3 : caseItem.riskLevel === "medium" ? 2 : 1;
@@ -71,7 +71,7 @@ export function buildCommandDomainProjection(
 export function buildForumDomainProjection(
   snapshot: CollegiumDomainSnapshot,
 ): ForumDomainProjection {
-  const deliberationQueue = [...snapshot.deliberations].sort(
+  const deliberationQueue = snapshot.deliberations.toSorted(
     (left, right) => rankDeliberation(right) - rankDeliberation(left),
   );
 

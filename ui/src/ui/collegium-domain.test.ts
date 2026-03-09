@@ -27,9 +27,9 @@ describe("Collegium domain fixture", () => {
     const snapshot = buildDefaultCollegiumDomainSnapshot();
 
     snapshot.deliberations.forEach((caseItem) => {
-      expect(
-        caseItem.linkedPilotIds.length > 0 || caseItem.linkedMobilityEventIds.length > 0,
-      ).toBe(true);
+      expect(caseItem.linkedPilotIds.length > 0 || caseItem.linkedMobilityEventIds.length > 0).toBe(
+        true,
+      );
     });
   });
 

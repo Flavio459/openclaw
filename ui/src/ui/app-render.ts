@@ -3,18 +3,19 @@ import type { AppViewState } from "./app-view-state.ts";
 import type { UsageState } from "./controllers/usage.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
+import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
+import { refreshActiveTab } from "./app-settings.ts";
+import {
+  buildCommandDomainProjection,
+  buildDefaultCollegiumDomainSnapshot,
+  buildForumDomainProjection,
+} from "./collegium-domain.projections.ts";
 import {
   brandingForTab,
   detectRuntimeEnvironment,
   isCollegiumTab,
   selectCollegiumEventFeed,
 } from "./collegium.ts";
-import {
-  buildCommandDomainProjection,
-  buildDefaultCollegiumDomainSnapshot,
-  buildForumDomainProjection,
-} from "./collegium-domain.projections.ts";
-import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -64,7 +65,6 @@ import {
 import { loadUsage, loadSessionTimeSeries, loadSessionLogs } from "./controllers/usage.ts";
 import { icons } from "./icons.ts";
 import { normalizeBasePath, TAB_GROUPS, subtitleForTab, titleForTab } from "./navigation.ts";
-import { refreshActiveTab } from "./app-settings.ts";
 
 // Module-scope debounce for usage date changes (avoids type-unsafe hacks on state object)
 let usageDateDebounceTimeout: number | null = null;
@@ -74,6 +74,8 @@ const debouncedLoadUsage = (state: UsageState) => {
   }
   usageDateDebounceTimeout = window.setTimeout(() => void loadUsage(state), 400);
 };
+const refreshCollegiumTab = (state: AppViewState) =>
+  void refreshActiveTab(state as unknown as Parameters<typeof refreshActiveTab>[0]);
 import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
 import { renderChat } from "./views/chat.ts";
@@ -82,12 +84,12 @@ import { renderConfig } from "./views/config.ts";
 import { renderCron } from "./views/cron.ts";
 import { renderDebug } from "./views/debug.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
+import { renderForum } from "./views/forum.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
 import { renderInstances } from "./views/instances.ts";
 import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
-import { renderForum } from "./views/forum.ts";
 import { renderPraetorium } from "./views/praetorium.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
@@ -252,7 +254,7 @@ export function renderApp(state: AppViewState) {
                 cronStatus: state.cronStatus,
                 sessionsCount,
                 domainProjection: commandDomainProjection,
-                onRefresh: () => void refreshActiveTab(state),
+                onRefresh: () => refreshCollegiumTab(state),
                 onOpenForum: () => state.setTab("forum"),
                 onOpenPraetorium: () => state.setTab("praetorium"),
               })
@@ -266,14 +268,10 @@ export function renderApp(state: AppViewState) {
                 hello: state.hello,
                 environment,
                 agentsList: state.agentsList,
-                eventLog: selectCollegiumEventFeed(
-                  state.tab,
-                  state.eventLog,
-                  state.eventLogBuffer,
-                ),
+                eventLog: selectCollegiumEventFeed(state.tab, state.eventLog, state.eventLogBuffer),
                 execApprovalQueue: state.execApprovalQueue,
                 domainProjection: forumDomainProjection,
-                onRefresh: () => void refreshActiveTab(state),
+                onRefresh: () => refreshCollegiumTab(state),
                 onOpenPraetorium: () => state.setTab("praetorium"),
               })
             : nothing
@@ -290,7 +288,7 @@ export function renderApp(state: AppViewState) {
                 eventLog: state.eventLog,
                 execApprovalQueue: state.execApprovalQueue,
                 cronJobs: state.cronJobs,
-                onRefresh: () => void refreshActiveTab(state),
+                onRefresh: () => refreshCollegiumTab(state),
                 onOpenCommand: () => state.setTab("command"),
               })
             : nothing

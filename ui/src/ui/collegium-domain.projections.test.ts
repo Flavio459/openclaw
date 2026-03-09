@@ -29,9 +29,9 @@ describe("buildCommandDomainProjection", () => {
     expect(
       projection.operationalAlerts.some((alert) => alert.includes("Mobility event mob-1002")),
     ).toBe(true);
-    expect(
-      projection.operationalAlerts.some((alert) => alert.includes("Chairman rail")),
-    ).toBe(true);
+    expect(projection.operationalAlerts.some((alert) => alert.includes("Chairman rail"))).toBe(
+      true,
+    );
   });
 });
 

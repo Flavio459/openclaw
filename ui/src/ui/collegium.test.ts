@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { EventLogEntry } from "./app-events.ts";
 import {
   buildDevCockpitState,
   buildDevEvents,
@@ -7,7 +8,6 @@ import {
   isCollegiumTab,
   selectCollegiumEventFeed,
 } from "./collegium.ts";
-import type { EventLogEntry } from "./app-events.ts";
 
 const AGENTS = {
   defaultId: "main",

@@ -85,14 +85,16 @@ function buildBlockMessage(relativePath, missingGuardrails) {
   }
 
   const bypasses = [];
-  const envOverrides = missingGuardrails
-    .map((entry) => entry.envOverride)
-    .filter(Boolean);
+  const envOverrides = missingGuardrails.flatMap((entry) =>
+    typeof entry.envOverride === "string" && entry.envOverride.length > 0
+      ? [entry.envOverride]
+      : [],
+  );
   if (missingGuardrails.some((entry) => entry.fileMarkers.length > 0)) {
     bypasses.push("- add @skip-validation to the file");
   }
   for (const envOverride of new Set(envOverrides)) {
-    bypasses.push(`- set ${envOverride}=1`);
+    bypasses.push(`- set ${String(envOverride)}=1`);
   }
   if (bypasses.length > 0) {
     lines.push("", "Explicit bypasses:", ...bypasses);

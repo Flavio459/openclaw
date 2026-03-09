@@ -188,7 +188,8 @@ export function buildDefaultCollegiumDomainSnapshot(): CollegiumDomainSnapshot {
           "Compensate passenger and preserve pilot score",
           "Split liability between pilot and passenger",
         ],
-        recommendedPath: "Compensate passenger while preserving pilot eligibility pending final evidence review.",
+        recommendedPath:
+          "Compensate passenger while preserving pilot eligibility pending final evidence review.",
         chairmanActionRequired: false,
         evidenceRefs: ["trip:mob-1002", "support:ticket-204"],
       },

@@ -57,11 +57,8 @@ describe("command view", () => {
         createProps({
           presenceEntries: [
             {
-              deviceId: "dev-1",
-              clientId: "client-1",
-              sessionKey: "agent:ceo:main",
-              connectedAt: Date.now(),
-              lastSeenAt: Date.now(),
+              instanceId: "dev-1",
+              ts: Date.now(),
             },
           ],
         }),

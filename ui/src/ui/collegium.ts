@@ -1,9 +1,9 @@
-import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import type { EventLogEntry } from "./app-events.ts";
 import type { ExecApprovalRequest } from "./controllers/exec-approval.ts";
 import type { GatewayHelloOk } from "./gateway.ts";
 import type { Tab } from "./navigation.ts";
 import type { AgentsListResult, CronJob, GatewayAgentRow } from "./types.ts";
+import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 
 export const COLLEGIUM_BRAND_NAME = "Collegium Cortex" as const;
 export const COLLEGIUM_SLOGAN = "Intelligentia in Motu" as const;
@@ -353,7 +353,10 @@ export function brandingForTab(tab: Tab): Branding {
   return { title: "OPENCLAW", subtitle: "Gateway Dashboard" };
 }
 
-export function detectRuntimeEnvironment(gatewayUrl: string, hello?: GatewayHelloOk | null): RuntimeEnvironment {
+export function detectRuntimeEnvironment(
+  gatewayUrl: string,
+  hello?: GatewayHelloOk | null,
+): RuntimeEnvironment {
   const source = `${gatewayUrl} ${JSON.stringify(hello ?? {})}`.toLowerCase();
   if (source.includes("prod")) {
     return "PROD";
@@ -434,9 +437,7 @@ export function buildPraetoriumBlockers(
   return blockers;
 }
 
-export function buildIntentDisambiguation(
-  recentEvents: DevEvent[],
-): IntentDisambiguation | null {
+export function buildIntentDisambiguation(recentEvents: DevEvent[]): IntentDisambiguation | null {
   const ambiguous = recentEvents.find((entry) => entry.ambiguity_flag);
   if (!ambiguous) {
     return null;
@@ -469,19 +470,18 @@ export function buildDevCockpitState(params: CockpitParams): DevCockpitState {
   );
   const activeEvent = recentEvents.find((entry) => entry.actor_id !== "system");
   const inProgress = new Set(
-    recentEvents
-      .filter((entry) => entry.actor_id !== "system")
-      .map((entry) => entry.actor_id),
+    recentEvents.filter((entry) => entry.actor_id !== "system").map((entry) => entry.actor_id),
   ).size;
-  const status = !params.connected && params.lastError
-    ? "error"
-    : !params.connected
-      ? "waiting"
-      : blockers.length > 0
-        ? "blocked"
-        : recentEvents.length > 0
-          ? "running"
-          : "waiting";
+  const status =
+    !params.connected && params.lastError
+      ? "error"
+      : !params.connected
+        ? "waiting"
+        : blockers.length > 0
+          ? "blocked"
+          : recentEvents.length > 0
+            ? "running"
+            : "waiting";
   return {
     environment: detectRuntimeEnvironment(params.gatewayUrl, params.hello),
     runtime_name: COLLEGIUM_RUNTIME_NAME,

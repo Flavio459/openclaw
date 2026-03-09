@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -15,18 +15,14 @@ function makeStateDir() {
 }
 
 function runHook({ prompt, sessionId = "test-session", stateDir }) {
-  return spawnSync(
-    process.execPath,
-    [hookPath],
-    {
-      encoding: "utf8",
-      env: {
-        ...process.env,
-        OPENCLAW_GUARDRAIL_STATE_DIR: stateDir,
-      },
-      input: JSON.stringify({ session_id: sessionId, prompt }),
+  return spawnSync(process.execPath, [hookPath], {
+    encoding: "utf8",
+    env: {
+      ...process.env,
+      OPENCLAW_GUARDRAIL_STATE_DIR: stateDir,
     },
-  );
+    input: JSON.stringify({ session_id: sessionId, prompt }),
+  });
 }
 
 function readState(stateDir, sessionId = "test-session") {
@@ -37,7 +33,7 @@ function readState(stateDir, sessionId = "test-session") {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-test("ignores unrelated prompts", () => {
+void test("ignores unrelated prompts", () => {
   const stateDir = makeStateDir();
   try {
     const result = runHook({ prompt: "hello world", stateDir });
@@ -48,7 +44,7 @@ test("ignores unrelated prompts", () => {
   }
 });
 
-test("keeps skill suggestions for matching prompts", () => {
+void test("keeps skill suggestions for matching prompts", () => {
   const stateDir = makeStateDir();
   try {
     const result = runHook({ prompt: "Update The Forum decision flow", stateDir });
@@ -60,7 +56,7 @@ test("keeps skill suggestions for matching prompts", () => {
   }
 });
 
-test("records validated guardrail ack blocks with ttl", () => {
+void test("records validated guardrail ack blocks with ttl", () => {
   const stateDir = makeStateDir();
   try {
     const result = runHook({
@@ -85,7 +81,7 @@ test("records validated guardrail ack blocks with ttl", () => {
   }
 });
 
-test("ignores incomplete guardrail ack blocks", () => {
+void test("ignores incomplete guardrail ack blocks", () => {
   const stateDir = makeStateDir();
   try {
     const result = runHook({

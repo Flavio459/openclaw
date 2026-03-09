@@ -1,9 +1,9 @@
 import { render } from "lit";
 import { describe, expect, it } from "vitest";
 import type { EventLogEntry } from "../app-events.ts";
+import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
 import { buildDefaultCollegiumDomainSnapshot } from "../collegium-domain.fixtures.ts";
 import { buildForumDomainProjection } from "../collegium-domain.projections.ts";
-import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
 import { renderForum, type ForumProps } from "./forum.ts";
 
 const AGENTS = {

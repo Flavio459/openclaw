@@ -35,9 +35,7 @@ Adicione no seu config MCP:
   "mcpServers": {
     "pema-dashboard": {
       "command": "node",
-      "args": [
-        "c:/Pico-Open/openclaw-push/scripts/pema/pema-chairman-dashboard.mcp.mjs"
-      ],
+      "args": ["c:/Pico-Open/openclaw-push/scripts/pema/pema-chairman-dashboard.mcp.mjs"],
       "env": {
         "PEMA_STATE_URL": "http://127.0.0.1:8787/state",
         "PEMA_DECISION_URL": "http://127.0.0.1:8787/decision",

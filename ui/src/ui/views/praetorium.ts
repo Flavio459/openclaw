@@ -1,5 +1,8 @@
 import { html } from "lit";
 import type { EventLogEntry } from "../app-events.ts";
+import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
+import type { GatewayHelloOk } from "../gateway.ts";
+import type { AgentsListResult, CronJob } from "../types.ts";
 import {
   COLLEGIUM_BRAND_NAME,
   COLLEGIUM_PRAETORIUM_NAME,
@@ -8,9 +11,6 @@ import {
   buildPraetoriumBlockers,
   groupAgentsByClass,
 } from "../collegium.ts";
-import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
-import type { GatewayHelloOk } from "../gateway.ts";
-import type { AgentsListResult, CronJob } from "../types.ts";
 
 export type PraetoriumProps = {
   connected: boolean;
@@ -98,7 +98,9 @@ export function renderPraetorium(props: PraetoriumProps) {
           <div class="list" style="margin-top: 12px;">
             ${
               agents.length === 0
-                ? html`<div class="muted">No agents loaded.</div>`
+                ? html`
+                    <div class="muted">No agents loaded.</div>
+                  `
                 : agents.map(
                     (agent) => html`
                       <div class="list-item">
@@ -122,7 +124,9 @@ export function renderPraetorium(props: PraetoriumProps) {
           <div class="praetorium-timeline">
             ${
               cockpit.recent_events.length === 0
-                ? html`<div class="muted">No runtime events available yet.</div>`
+                ? html`
+                    <div class="muted">No runtime events available yet.</div>
+                  `
                 : cockpit.recent_events.map(
                     (entry) => html`
                       <article class="praetorium-event">
@@ -149,7 +153,9 @@ export function renderPraetorium(props: PraetoriumProps) {
           <div class="list" style="margin-top: 12px;">
             ${
               blockers.length === 0
-                ? html`<div class="muted">No blockers detected in the current read.</div>`
+                ? html`
+                    <div class="muted">No blockers detected in the current read.</div>
+                  `
                 : blockers.map(
                     (blocker) => html`
                       <div class="list-item">
@@ -175,7 +181,7 @@ export function renderPraetorium(props: PraetoriumProps) {
                   </div>
                 `
               : html`
-                  <div class="callout" style="margin-top: 12px;">
+                  <div class="callout" style="margin-top: 12px">
                     No ambiguous event is currently visible in the recent feed.
                   </div>
                 `
@@ -190,7 +196,9 @@ export function renderPraetorium(props: PraetoriumProps) {
           <div class="list" style="margin-top: 12px;">
             ${
               cockpit.recent_events.flatMap((entry) => entry.evidence_refs).length === 0
-                ? html`<div class="muted">No evidence refs available yet.</div>`
+                ? html`
+                    <div class="muted">No evidence refs available yet.</div>
+                  `
                 : Array.from(
                     new Set(cockpit.recent_events.flatMap((entry) => entry.evidence_refs)),
                   ).map(
@@ -212,7 +220,9 @@ export function renderPraetorium(props: PraetoriumProps) {
           <div class="list" style="margin-top: 12px;">
             ${
               props.execApprovalQueue.length === 0
-                ? html`<div class="muted">No pending authority request.</div>`
+                ? html`
+                    <div class="muted">No pending authority request.</div>
+                  `
                 : props.execApprovalQueue.map(
                     (entry) => html`
                       <div class="list-item">

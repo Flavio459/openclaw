@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { spawnSync } from "node:child_process";
 import test from "node:test";
 import { fileURLToPath } from "node:url";
 
@@ -33,7 +33,13 @@ function runActivation({ prompt, sessionId = "test-session", stateDir }) {
   });
 }
 
-function runVerification({ workspaceDir, relativePath, sessionId = "test-session", stateDir, env = {} }) {
+function runVerification({
+  workspaceDir,
+  relativePath,
+  sessionId = "test-session",
+  stateDir,
+  env = {},
+}) {
   return spawnSync(process.execPath, [verificationHookPath], {
     encoding: "utf8",
     env: {
@@ -60,7 +66,7 @@ function readState(stateDir, sessionId = "test-session") {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
-test("blocked attempts do not create their own unlock state", () => {
+void test("blocked attempts do not create their own unlock state", () => {
   const stateDir = makeTempDir("openclaw-guardrail-state-");
   const workspaceDir = makeTempDir("openclaw-guardrail-workspace-");
   try {
@@ -81,7 +87,7 @@ test("blocked attempts do not create their own unlock state", () => {
   }
 });
 
-test("single-skill files require a valid ack", () => {
+void test("single-skill files require a valid ack", () => {
   const stateDir = makeTempDir("openclaw-guardrail-state-");
   const workspaceDir = makeTempDir("openclaw-guardrail-workspace-");
   try {
@@ -101,7 +107,7 @@ test("single-skill files require a valid ack", () => {
   }
 });
 
-test("files with multiple guardrails require all acknowledgements", () => {
+void test("files with multiple guardrails require all acknowledgements", () => {
   const stateDir = makeTempDir("openclaw-guardrail-state-");
   const workspaceDir = makeTempDir("openclaw-guardrail-workspace-");
   try {
@@ -130,7 +136,7 @@ test("files with multiple guardrails require all acknowledgements", () => {
   }
 });
 
-test("expired validations stop allowing edits", () => {
+void test("expired validations stop allowing edits", () => {
   const stateDir = makeTempDir("openclaw-guardrail-state-");
   const workspaceDir = makeTempDir("openclaw-guardrail-workspace-");
   try {
@@ -156,7 +162,7 @@ test("expired validations stop allowing edits", () => {
   }
 });
 
-test("@skip-validation bypasses the guardrail", () => {
+void test("@skip-validation bypasses the guardrail", () => {
   const stateDir = makeTempDir("openclaw-guardrail-state-");
   const workspaceDir = makeTempDir("openclaw-guardrail-workspace-");
   try {
@@ -171,7 +177,7 @@ test("@skip-validation bypasses the guardrail", () => {
   }
 });
 
-test("env overrides bypass the guardrail", () => {
+void test("env overrides bypass the guardrail", () => {
   const stateDir = makeTempDir("openclaw-guardrail-state-");
   const workspaceDir = makeTempDir("openclaw-guardrail-workspace-");
   try {

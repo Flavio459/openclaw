@@ -1,5 +1,9 @@
 import { html, nothing } from "lit";
 import type { EventLogEntry } from "../app-events.ts";
+import type { DeliberationCase, ForumDomainProjection } from "../collegium-domain.ts";
+import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
+import type { GatewayHelloOk } from "../gateway.ts";
+import type { AgentsListResult } from "../types.ts";
 import {
   COLLEGIUM_FORUM_NAME,
   COLLEGIUM_PROTOCOL_NAME,
@@ -7,10 +11,6 @@ import {
   groupAgentsByClass,
   type RuntimeEnvironment,
 } from "../collegium.ts";
-import type { DeliberationCase, ForumDomainProjection } from "../collegium-domain.ts";
-import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
-import type { GatewayHelloOk } from "../gateway.ts";
-import type { AgentsListResult } from "../types.ts";
 
 export type ForumProps = {
   gatewayUrl: string;
@@ -78,7 +78,7 @@ export function renderForum(props: ForumProps) {
                 props.domainProjection.deliberationQueue.length === 0 &&
                 props.execApprovalQueue.length === 0
                   ? html`
-                      <div class="callout" style="margin-top: 14px;">
+                      <div class="callout" style="margin-top: 14px">
                         No authority request is waiting. The room is clear for proactive strategy work.
                       </div>
                     `
@@ -105,8 +105,11 @@ export function renderForum(props: ForumProps) {
             <div class="card-sub">Recent events that matter to strategy, risk, or authority.</div>
             <div class="list" style="margin-top: 12px;">
               ${
-                props.domainProjection.strategicHighlights.length === 0 && strategicEvents.length === 0
-                  ? html`<div class="muted">No strategic traces visible yet.</div>`
+                props.domainProjection.strategicHighlights.length === 0 &&
+                strategicEvents.length === 0
+                  ? html`
+                      <div class="muted">No strategic traces visible yet.</div>
+                    `
                   : html`
                       ${props.domainProjection.strategicHighlights.map(
                         (entry) => html`
@@ -149,7 +152,9 @@ export function renderForum(props: ForumProps) {
             <div class="list" style="margin-top: 12px;">
               ${
                 agents.length === 0
-                  ? html`<div class="muted">No collaborators loaded.</div>`
+                  ? html`
+                      <div class="muted">No collaborators loaded.</div>
+                    `
                   : agents.map(
                       (agent) => html`
                         <div class="list-item">

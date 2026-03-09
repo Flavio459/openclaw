@@ -53,4 +53,3 @@ Use os comandos de refinamento:
 1. `Make the decisions table denser with sticky header and row hover highlight.`
 2. `Add optimistic UI for approve/reject and rollback on failure.`
 3. `Create a mobile variant with bottom sheet actions instead of side panel.`
-

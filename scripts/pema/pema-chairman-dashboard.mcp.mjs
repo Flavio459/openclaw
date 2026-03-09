@@ -89,7 +89,9 @@ function parseHeaders(rawHeaders) {
   const headers = {};
   for (const line of rawHeaders.split("\r\n")) {
     const idx = line.indexOf(":");
-    if (idx <= 0) continue;
+    if (idx <= 0) {
+      continue;
+    }
     const key = line.slice(0, idx).trim().toLowerCase();
     const value = line.slice(idx + 1).trim();
     headers[key] = value;
@@ -112,14 +114,20 @@ async function readState() {
 
 function pendingFromState(state) {
   const items = state?.decisions?.items;
-  if (!Array.isArray(items)) return [];
+  if (!Array.isArray(items)) {
+    return [];
+  }
   return items.filter((item) => String(item?.status ?? "").toLowerCase() === "pending");
 }
 
 function buildHeaders({ json = false } = {}) {
   const headers = {};
-  if (json) headers["Content-Type"] = "application/json";
-  if (API_TOKEN) headers.Authorization = `Bearer ${API_TOKEN}`;
+  if (json) {
+    headers["Content-Type"] = "application/json";
+  }
+  if (API_TOKEN) {
+    headers.Authorization = `Bearer ${API_TOKEN}`;
+  }
   return headers;
 }
 
@@ -142,7 +150,7 @@ async function callTool(name, args) {
       decisions: state?.decisions ?? {},
       agents: state?.agents ?? {},
       meeting: state?.meeting ?? {},
-      items: includeAll ? state?.decisions?.items ?? [] : undefined,
+      items: includeAll ? (state?.decisions?.items ?? []) : undefined,
     };
   }
 
@@ -158,11 +166,15 @@ async function callTool(name, args) {
 
   if (name === "pema.decision") {
     const id = String(args?.id ?? "").trim();
-    const status = String(args?.status ?? "").trim().toLowerCase();
+    const status = String(args?.status ?? "")
+      .trim()
+      .toLowerCase();
     const actor = String(args?.actor ?? "chairman").trim() || "chairman";
     const note = String(args?.note ?? `mcp:${status}`).trim();
 
-    if (!id) throw new Error("`id` is required.");
+    if (!id) {
+      throw new Error("`id` is required.");
+    }
     if (status !== "approved" && status !== "rejected") {
       throw new Error("`status` must be `approved` or `rejected`.");
     }
@@ -229,7 +241,9 @@ async function handleRequest(message) {
   }
 
   // Notifications we can safely ignore.
-  if (id === undefined) return;
+  if (id === undefined) {
+    return;
+  }
 
   fail(id, -32601, `Method not found: ${method}`);
 }
@@ -248,7 +262,9 @@ process.stdin.on("error", (err) => {
 async function pump() {
   while (true) {
     const sep = buffer.indexOf("\r\n\r\n");
-    if (sep < 0) return;
+    if (sep < 0) {
+      return;
+    }
 
     const rawHeaders = buffer.slice(0, sep).toString("utf8");
     const headers = parseHeaders(rawHeaders);
@@ -260,7 +276,9 @@ async function pump() {
     }
 
     const total = sep + 4 + contentLength;
-    if (buffer.length < total) return;
+    if (buffer.length < total) {
+      return;
+    }
 
     const body = buffer.slice(sep + 4, total).toString("utf8");
     buffer = buffer.slice(total);

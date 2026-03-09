@@ -81,6 +81,7 @@ risk: regulatory narrative drift
 ```
 
 Regras:
+
 - um bloco vale para uma skill
 - múltiplos blocos podem coexistir no mesmo prompt
 - o desbloqueio vale por skill, por sessão, com TTL de `10` minutos
@@ -92,6 +93,7 @@ Regras:
 Se um arquivo casar com mais de uma skill, todas precisam estar validadas.
 
 Exemplos:
+
 - `ui/src/ui/views/forum.ts`
   - `surface-separation`
   - `forum-deliberation`

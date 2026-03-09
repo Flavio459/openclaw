@@ -1,5 +1,12 @@
 import { html } from "lit";
+import type { CommandDomainProjection } from "../collegium-domain.ts";
 import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
+import type {
+  AgentsListResult,
+  ChannelsStatusSnapshot,
+  CronStatus,
+  PresenceEntry,
+} from "../types.ts";
 import {
   COLLEGIUM_BRAND_NAME,
   COLLEGIUM_COMMAND_NAME,
@@ -10,13 +17,6 @@ import {
   countEngineeringAgents,
   type RuntimeEnvironment,
 } from "../collegium.ts";
-import type { CommandDomainProjection } from "../collegium-domain.ts";
-import type {
-  AgentsListResult,
-  ChannelsStatusSnapshot,
-  CronStatus,
-  PresenceEntry,
-} from "../types.ts";
 
 export type CommandProps = {
   connected: boolean;
@@ -46,27 +46,30 @@ export function renderCommand(props: CommandProps) {
           ? `${props.domainProjection.pendingDeliberationCount} institutional pending`
           : props.execApprovalQueue.length > 0
             ? `${props.execApprovalQueue.length} runtime pending`
-          : "Clear for action",
+            : "Clear for action",
       detail: "Vetos, autorização HITL e decisões que exigem autoridade formal.",
     },
     {
       name: "Operations",
       owner: "Chief Executive Agent",
       status: `${props.domainProjection.activePilotCount}/${props.domainProjection.pilotCount} pilots active`,
-      detail: "A camada de domínio já projeta pilotos e mobilidade. A lattice de runtime continua ao lado como telemetria operacional.",
+      detail:
+        "A camada de domínio já projeta pilotos e mobilidade. A lattice de runtime continua ao lado como telemetria operacional.",
     },
     {
       name: "Capital & Assets",
       owner: "Chief Financial Agent",
       status: `${props.domainProjection.validatedProductionUnits} validated U.P.`,
-      detail: "Produção econômica derivada de eventos de mobilidade completados e validados por evidência.",
+      detail:
+        "Produção econômica derivada de eventos de mobilidade completados e validados por evidência.",
     },
     {
       name: "Compliance",
       owner: "Chief Legal Agent",
       status:
         props.domainProjection.operationalAlerts.length > 0 ? "Protocol alerts raised" : "Nominal",
-      detail: "Governança protocolar, restrições e eventos contestados agora aparecem como alertas explícitos de domínio.",
+      detail:
+        "Governança protocolar, restrições e eventos contestados agora aparecem como alertas explícitos de domínio.",
     },
     {
       name: "The Foundry",
@@ -165,9 +168,11 @@ export function renderCommand(props: CommandProps) {
           </div>
           <div class="forum-callout">
             <div class="forum-callout__title">
-              ${props.execApprovalQueue.length > 0
-                ? "A pauta já exige decisão humana"
-                : "A sala está pronta para deliberação"}
+              ${
+                props.execApprovalQueue.length > 0
+                  ? "A pauta já exige decisão humana"
+                  : "A sala está pronta para deliberação"
+              }
             </div>
             <div class="muted">
               ${
@@ -205,7 +210,9 @@ export function renderCommand(props: CommandProps) {
         <div class="list" style="margin-top: 12px;">
           ${
             props.domainProjection.operationalAlerts.length === 0
-              ? html`<div class="muted">No protocol alert is currently projected.</div>`
+              ? html`
+                  <div class="muted">No protocol alert is currently projected.</div>
+                `
               : props.domainProjection.operationalAlerts.map(
                   (alert) => html`
                     <div class="list-item">

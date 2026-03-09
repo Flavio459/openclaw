@@ -139,7 +139,7 @@ export async function main() {
   const rules = loadRules();
   const matches = Object.entries(rules.skills ?? {})
     .filter(([, rule]) => matchesPrompt(prompt, rule))
-    .sort(([, left], [, right]) => priorityRank(left.priority) - priorityRank(right.priority))
+    .toSorted(([, left], [, right]) => priorityRank(left.priority) - priorityRank(right.priority))
     .map(([name]) => name);
 
   const ackNotes = [];
@@ -157,12 +157,7 @@ export async function main() {
       continue;
     }
 
-    recordValidatedSkill(
-      sessionId,
-      block.skillName,
-      block.ack,
-      rule.ack.ttlMinutes ?? 10,
-    );
+    recordValidatedSkill(sessionId, block.skillName, block.ack, rule.ack.ttlMinutes ?? 10);
   }
 
   const additionalContext = buildAdditionalContext(matches, ackNotes);
