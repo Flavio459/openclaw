@@ -179,13 +179,17 @@ workspace/
   1. Quotas excedidas nos provedores Gemini e DeepSeek; fallback para Moonshot/Kimi estável.
   2. Cron job `healthcheck:update-status` com timeouts crônicos (≥3 falhas consecutivas). Investigar comando `openclaw update status` ou timeout do alvo.
 
-### 2026-03-09 (Ciclo Longo)
-- **Operação Autônoma:** Sistema mantém funcionamento 100% autônomo estável por ~17 dias consecutivos.
-- **Health Check:** Disco 46%, workspace ~372M. Todas as métricas saudáveis.
-- **Auto-Saneamento:** Canvas vazio, archive limpo, zero arquivos temporários. Git status limpo e sincronizado com GitHub.
-- **Análise de Padrões:** Nenhuma tarefa manual repetida ≥3x nas últimas semanas. Sistema opera apenas via automações.
-- **Alertas:** Healthcheck:update-status com timeouts crônicos; quotas Gemini/DeepSeek excedidas (fallback Moonshot/Kimi estável).
-- **Ações:** Commit automático dos logs de heartbeat. Silêncio operacional mantido.
+### 2026-03-09 (Ciclo Longo — 04:00 UTC)
+- **Operação Autônoma:** Sistema mantém funcionamento 100% autônomo estável por **18.0 dias consecutivos** (última interação: 2026-02-18).
+- **Health Check:** Disco 46%, workspace ~372M. Todas as métricas Saudáveis.
+- **Auto-Saneamento:** Canvas vazio, archive limpo, zero arquivos temporários. Git status limpo e sincronizado.
+- **Análise de Padrões:** Nenhuma tarefa manual repetida ≥3x nas últimas 3 semanas. Atividade exclusivamente automática (cron jobs, heartbeats, probes).
+- **Alertas Persistentes:**
+  1. Quotas excedidas: Gemini e DeepSeek fora (429/402). Fallback ativo no Moonshot/Kimi (estável).
+  2. `healthcheck:update-status` com timeouts crônicos (≥3 falhas). Investigar comando `openclaw update status` ou timeout do alvo.
+- **Ações Realizadas:** Verificação R0 completa, commit automático de logs, silêncio operacional mantido. Nenhuma intervenção humana necessária.
+
+*Marco: 18 dias de operação contínua sem interação humana.*
 
 ---
 
