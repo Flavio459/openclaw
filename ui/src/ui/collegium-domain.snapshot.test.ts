@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { buildDefaultCollegiumDomainSnapshot } from "./collegium-domain.fixtures.ts";
 import {
   COLLEGIUM_DOMAIN_SNAPSHOT_STORAGE_KEY,
+  clearCollegiumDomainSnapshot,
   loadCollegiumDomainSnapshotSource,
   parseCollegiumDomainSnapshot,
   saveCollegiumDomainSnapshot,
@@ -11,6 +12,7 @@ import {
 type MemoryStorage = {
   getItem: (key: string) => string | null;
   setItem: (key: string, value: string) => void;
+  removeItem: (key: string) => void;
   dump: () => Record<string, string>;
 };
 
@@ -20,6 +22,9 @@ function createMemoryStorage(seed: Record<string, string> = {}): MemoryStorage {
     getItem: (key) => data.get(key) ?? null,
     setItem: (key, value) => {
       data.set(key, value);
+    },
+    removeItem: (key) => {
+      data.delete(key);
     },
     dump: () => Object.fromEntries(data.entries()),
   };
@@ -73,5 +78,16 @@ describe("collegium domain snapshot source", () => {
     expect(storage.dump()[COLLEGIUM_DOMAIN_SNAPSHOT_STORAGE_KEY]).toBe(
       serializeCollegiumDomainSnapshot(snapshot),
     );
+  });
+
+  it("clears the persisted snapshot and restores fixture fallback", () => {
+    const snapshot = buildDefaultCollegiumDomainSnapshot();
+    const storage = createMemoryStorage({
+      [COLLEGIUM_DOMAIN_SNAPSHOT_STORAGE_KEY]: serializeCollegiumDomainSnapshot(snapshot),
+    });
+
+    expect(clearCollegiumDomainSnapshot(storage)).toBe(true);
+    expect(storage.dump()[COLLEGIUM_DOMAIN_SNAPSHOT_STORAGE_KEY]).toBeUndefined();
+    expect(loadCollegiumDomainSnapshotSource(storage).kind).toBe("fixture");
   });
 });

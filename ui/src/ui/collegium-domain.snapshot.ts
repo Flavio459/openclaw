@@ -13,7 +13,7 @@ export type CollegiumDomainSnapshotSource =
       snapshot: CollegiumDomainSnapshot;
     };
 
-type StorageLike = Pick<Storage, "getItem" | "setItem">;
+type StorageLike = Pick<Storage, "getItem" | "setItem" | "removeItem">;
 
 export function serializeCollegiumDomainSnapshot(snapshot: CollegiumDomainSnapshot): string {
   return JSON.stringify(snapshot, null, 2);
@@ -70,6 +70,16 @@ export function saveCollegiumDomainSnapshot(
     COLLEGIUM_DOMAIN_SNAPSHOT_STORAGE_KEY,
     serializeCollegiumDomainSnapshot(snapshot),
   );
+  return true;
+}
+
+export function clearCollegiumDomainSnapshot(
+  storage: StorageLike | null = resolveBrowserStorage(),
+): boolean {
+  if (!storage) {
+    return false;
+  }
+  storage.removeItem(COLLEGIUM_DOMAIN_SNAPSHOT_STORAGE_KEY);
   return true;
 }
 

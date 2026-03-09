@@ -9,7 +9,13 @@ import {
   buildCommandDomainProjection,
   buildForumDomainProjection,
 } from "./collegium-domain.projections.ts";
-import { loadCollegiumDomainSnapshotSource } from "./collegium-domain.snapshot.ts";
+import {
+  clearCollegiumDomainSnapshot,
+  loadCollegiumDomainSnapshotSource,
+  parseCollegiumDomainSnapshot,
+  saveCollegiumDomainSnapshot,
+  serializeCollegiumDomainSnapshot,
+} from "./collegium-domain.snapshot.ts";
 import {
   brandingForTab,
   detectRuntimeEnvironment,
@@ -132,6 +138,7 @@ export function renderApp(state: AppViewState) {
   const collegiumMode = isCollegiumTab(state.tab);
   const domainSnapshotSource = loadCollegiumDomainSnapshotSource();
   const domainSnapshot = domainSnapshotSource.snapshot;
+  const serializedDomainSnapshot = serializeCollegiumDomainSnapshot(domainSnapshot);
   const commandDomainProjection = buildCommandDomainProjection(domainSnapshot);
   const forumDomainProjection = buildForumDomainProjection(domainSnapshot);
   const resolvedAgentId =
@@ -139,6 +146,29 @@ export function renderApp(state: AppViewState) {
     state.agentsList?.defaultId ??
     state.agentsList?.agents?.[0]?.id ??
     null;
+
+  const notifyDomainSnapshotError = (message: string) => {
+    if (typeof window !== "undefined" && typeof window.alert === "function") {
+      window.alert(message);
+    }
+  };
+
+  const handleSaveDomainSnapshot = (raw: string) => {
+    const snapshot = parseCollegiumDomainSnapshot(raw);
+    if (!snapshot) {
+      notifyDomainSnapshotError(
+        "Invalid Collegium domain snapshot JSON. Paste a complete snapshot object before saving.",
+      );
+      return;
+    }
+    saveCollegiumDomainSnapshot(snapshot);
+    void refreshActiveTab(state as unknown as Parameters<typeof refreshActiveTab>[0]);
+  };
+
+  const handleResetDomainSnapshot = () => {
+    clearCollegiumDomainSnapshot();
+    void refreshActiveTab(state as unknown as Parameters<typeof refreshActiveTab>[0]);
+  };
 
   return html`
     <div class="shell ${isChat ? "shell--chat" : ""} ${chatFocus ? "shell--chat-focus" : ""} ${state.settings.navCollapsed ? "shell--nav-collapsed" : ""} ${state.onboarding ? "shell--onboarding" : ""}">
@@ -289,8 +319,13 @@ export function renderApp(state: AppViewState) {
                 eventLog: state.eventLog,
                 execApprovalQueue: state.execApprovalQueue,
                 cronJobs: state.cronJobs,
+                domainSnapshotSourceKind: domainSnapshotSource.kind,
+                domainSnapshotRaw: serializedDomainSnapshot,
                 onRefresh: () => refreshCollegiumTab(state),
                 onOpenCommand: () => state.setTab("command"),
+                onReloadDomainSnapshot: () => refreshCollegiumTab(state),
+                onSaveDomainSnapshot: handleSaveDomainSnapshot,
+                onResetDomainSnapshot: handleResetDomainSnapshot,
               })
             : nothing
         }

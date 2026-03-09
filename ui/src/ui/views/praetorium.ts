@@ -1,5 +1,6 @@
 import { html } from "lit";
 import type { EventLogEntry } from "../app-events.ts";
+import type { CollegiumDomainSnapshotSource } from "../collegium-domain.snapshot.ts";
 import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
 import type { GatewayHelloOk } from "../gateway.ts";
 import type { AgentsListResult, CronJob } from "../types.ts";
@@ -21,8 +22,13 @@ export type PraetoriumProps = {
   eventLog: EventLogEntry[];
   execApprovalQueue: ExecApprovalRequest[];
   cronJobs: CronJob[];
+  domainSnapshotSourceKind: CollegiumDomainSnapshotSource["kind"];
+  domainSnapshotRaw: string;
   onRefresh: () => void;
   onOpenCommand: () => void;
+  onReloadDomainSnapshot: () => void;
+  onSaveDomainSnapshot: (raw: string) => void;
+  onResetDomainSnapshot: () => void;
 };
 
 export function renderPraetorium(props: PraetoriumProps) {
@@ -241,8 +247,50 @@ export function renderPraetorium(props: PraetoriumProps) {
           </div>
         </section>
       </section>
+
+      <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Domain Snapshot Console</div>
+        <div class="card-sub">
+          Local backstage source for Collegium domain inspection and controlled mutation before a
+          real backend exists.
+        </div>
+        <div class="chip-row" style="margin-top: 12px;">
+          <span class="chip">source: ${props.domainSnapshotSourceKind}</span>
+          <span class="chip">storage: local browser</span>
+          <span class="chip">stage: pre-backend</span>
+        </div>
+        <label class="field" style="margin-top: 16px;">
+          <span>Snapshot JSON</span>
+          <textarea id=${PRAETORIUM_DOMAIN_EDITOR_ID} rows="18" spellcheck="false">
+${props.domainSnapshotRaw}</textarea
+          >
+        </label>
+        <div class="row" style="margin-top: 14px; gap: 10px;">
+          <button
+            class="btn primary"
+            @click=${() => props.onSaveDomainSnapshot(readDomainEditorValue())}
+          >
+            Save local snapshot
+          </button>
+          <button class="btn" @click=${props.onReloadDomainSnapshot}>Reload snapshot</button>
+          <button class="btn" @click=${props.onResetDomainSnapshot}>Reset to fixture</button>
+        </div>
+      </section>
     </section>
   `;
+}
+
+const PRAETORIUM_DOMAIN_EDITOR_ID = "praetorium-domain-editor";
+
+function readDomainEditorValue(): string {
+  if (typeof document === "undefined") {
+    return "";
+  }
+  const textarea = document.getElementById(PRAETORIUM_DOMAIN_EDITOR_ID);
+  if (!(textarea instanceof HTMLTextAreaElement)) {
+    return "";
+  }
+  return textarea.value;
 }
 
 function statusTone(status: "running" | "waiting" | "blocked" | "error") {
