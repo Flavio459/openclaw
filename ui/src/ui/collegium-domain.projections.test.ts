@@ -11,12 +11,17 @@ describe("buildCommandDomainProjection", () => {
 
     expect(projection.pilotCount).toBe(3);
     expect(projection.activePilotCount).toBe(2);
+    expect(projection.restrictedPilotCount).toBe(1);
     expect(projection.passengerCount).toBe(3);
+    expect(projection.flaggedPassengerCount).toBe(1);
     expect(projection.activeMobilityCount).toBe(1);
     expect(projection.completedMobilityCount).toBe(2);
+    expect(projection.contestedMobilityCount).toBe(1);
     expect(projection.validatedProductionUnits).toBe(12);
     expect(projection.connectedNetworkCount).toBe(2);
     expect(projection.pendingDeliberationCount).toBe(1);
+    expect(projection.networkSummary[0]?.label).toBe("Alpha Corridor");
+    expect(projection.governanceWatchlist).toHaveLength(3);
     expect(projection.provenance).toBe("fixture_projection");
   });
 
@@ -42,6 +47,7 @@ describe("buildForumDomainProjection", () => {
     expect(projection.deliberationQueue).toHaveLength(2);
     expect(projection.deliberationQueue[0].status).toBe("pending_chairman");
     expect(projection.deliberationQueue[0].chairmanActionRequired).toBe(true);
+    expect(projection.riskLattice).toHaveLength(3);
   });
 
   it("creates strategic highlights linked to domain entities", () => {

@@ -93,13 +93,30 @@ export type CollegiumDomainSnapshot = {
 export type CommandDomainProjection = {
   pilotCount: number;
   activePilotCount: number;
+  restrictedPilotCount: number;
   passengerCount: number;
+  flaggedPassengerCount: number;
   activeMobilityCount: number;
   completedMobilityCount: number;
+  contestedMobilityCount: number;
   validatedProductionUnits: number;
   connectedNetworkCount: number;
   pendingDeliberationCount: number;
   operationalAlerts: string[];
+  networkSummary: Array<{
+    id: NetworkNodeId;
+    label: string;
+    pilotCount: number;
+    activeProductionUnits: number;
+    supervisedBy?: PilotId;
+  }>;
+  governanceWatchlist: Array<{
+    id: string;
+    kind: "pilot" | "passenger" | "mobility";
+    title: string;
+    status: string;
+    summary: string;
+  }>;
   provenance: "fixture_projection";
 };
 
@@ -114,5 +131,12 @@ export type ForumStrategicHighlight = {
 export type ForumDomainProjection = {
   deliberationQueue: DeliberationCase[];
   strategicHighlights: ForumStrategicHighlight[];
+  riskLattice: Array<{
+    id: string;
+    kind: "pilot" | "passenger" | "mobility";
+    title: string;
+    status: string;
+    summary: string;
+  }>;
   provenance: "fixture_projection";
 };

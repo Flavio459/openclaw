@@ -147,6 +147,33 @@ export function renderForum(props: ForumProps) {
 
         <aside class="forum-rail">
           <section class="card">
+            <div class="card-title">Risk Lattice</div>
+            <div class="card-sub">
+              Participantes e eventos que sustentam a pauta institucional desta sala.
+            </div>
+            <div class="list" style="margin-top: 12px;">
+              ${
+                props.domainProjection.riskLattice.length === 0
+                  ? html`<div class="muted">No governed risk signal is visible.</div>`
+                  : props.domainProjection.riskLattice.map(
+                      (entry) => html`
+                        <div class="list-item">
+                          <div class="list-main">
+                            <div class="list-title">${entry.title}</div>
+                            <div class="list-sub">${entry.summary}</div>
+                          </div>
+                          <div class="list-meta">
+                            <div class="mono">${entry.kind}</div>
+                            <div class="muted">${entry.status}</div>
+                          </div>
+                        </div>
+                      `,
+                    )
+              }
+            </div>
+          </section>
+
+          <section class="card">
             <div class="card-title">Participants</div>
             <div class="card-sub">Digital collaborators currently defined in the system.</div>
             <div class="list" style="margin-top: 12px;">
@@ -215,6 +242,9 @@ function renderDeliberationCard(entry: DeliberationCase) {
       </div>
       <div class="forum-decision-card__body">${entry.summary}</div>
       <div class="muted" style="margin-top: 10px;">Recommended path: ${entry.recommendedPath}</div>
+      <div class="muted" style="margin-top: 6px;">
+        options: ${entry.options.length} · evidence: ${entry.evidenceRefs.length}
+      </div>
       <div class="muted" style="margin-top: 6px;">
         refs: ${[
           ...entry.linkedPilotIds.map((id) => `pilot:${id}`),

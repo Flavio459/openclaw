@@ -47,6 +47,9 @@ describe("command view", () => {
     expect(container.textContent).toContain("Connected Networks");
     expect(container.textContent).toContain("2");
     expect(container.textContent).toContain("Validated U.P.");
+    expect(container.textContent).toContain("Governed Field");
+    expect(container.textContent).toContain("Governance Watchlist");
+    expect(container.textContent).toContain("Bruno Vale");
     expect(container.textContent).not.toContain("Feed pending");
   });
 

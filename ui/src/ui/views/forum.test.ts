@@ -83,6 +83,7 @@ describe("forum view", () => {
     expect(container.textContent).toContain("Resolve Bruno restriction before demand surge");
     expect(container.textContent).toContain("Operational authority rail");
     expect(container.textContent).toContain("Review fleet changes");
+    expect(container.textContent).toContain("Risk Lattice");
     expect(container.textContent).toContain("cwd: /workspace/openclaw");
   });
 
@@ -111,5 +112,6 @@ describe("forum view", () => {
     expect(container.textContent).toContain("Strategic Traces");
     expect(container.textContent).toContain("Resolve Bruno restriction before demand surge");
     expect(container.textContent).toContain("Need authority to review fleet changes");
+    expect(container.textContent).toContain("options: 3");
   });
 });

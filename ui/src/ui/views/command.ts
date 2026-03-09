@@ -161,6 +161,43 @@ export function renderCommand(props: CommandProps) {
       </section>
 
       <section class="grid grid-cols-2" style="margin-top: 18px;">
+        <div class="card">
+          <div class="card-title">Governed Field</div>
+          <div class="card-sub">
+            Sinais do dominio que ja exigem governanca sobre pilotos, passageiros e eventos.
+          </div>
+          <div class="list" style="margin-top: 12px;">
+            ${renderCapability("Restricted Pilots", String(props.domainProjection.restrictedPilotCount))}
+            ${renderCapability("Flagged Passengers", String(props.domainProjection.flaggedPassengerCount))}
+            ${renderCapability("Contested Mobility", String(props.domainProjection.contestedMobilityCount))}
+            ${renderCapability("Completed Mobility", String(props.domainProjection.completedMobilityCount))}
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Corridor Watch</div>
+          <div class="card-sub">
+            Corredores e rede economica derivados do snapshot protocolar atual.
+          </div>
+          <div class="list" style="margin-top: 12px;">
+            ${props.domainProjection.networkSummary.map(
+              (node) => html`
+                <div class="list-item">
+                  <div class="list-main">
+                    <div class="list-title">${node.label}</div>
+                    <div class="list-sub">
+                      ${node.pilotCount} pilot(s) · supervisor ${node.supervisedBy ?? "unassigned"}
+                    </div>
+                  </div>
+                  <div class="list-meta mono">${node.activeProductionUnits} U.P.</div>
+                </div>
+              `,
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section class="grid grid-cols-2" style="margin-top: 18px;">
         <div class="card collegium-forum-card">
           <div class="card-title">The Forum</div>
           <div class="card-sub">
@@ -199,6 +236,29 @@ export function renderCommand(props: CommandProps) {
             ${renderCapability("The Pilots Domain", `${props.domainProjection.pilotCount} pilots mapped`)}
             ${renderCapability("Protocol Source", props.domainProjection.provenance)}
           </div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Governance Watchlist</div>
+        <div class="card-sub">
+          Itens do dominio que ja pedem vigilancia institucional antes de qualquer backend real.
+        </div>
+        <div class="list" style="margin-top: 12px;">
+          ${props.domainProjection.governanceWatchlist.map(
+            (item) => html`
+              <div class="list-item">
+                <div class="list-main">
+                  <div class="list-title">${item.title}</div>
+                  <div class="list-sub">${item.summary}</div>
+                </div>
+                <div class="list-meta">
+                  <div class="mono">${item.kind}</div>
+                  <div class="muted">${item.status}</div>
+                </div>
+              </div>
+            `,
+          )}
         </div>
       </section>
 
