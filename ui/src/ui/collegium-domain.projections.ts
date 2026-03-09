@@ -144,6 +144,24 @@ export function buildCommandDomainProjection(
       flags: pilot.flags,
     }));
 
+  const passengerBoard = snapshot.passengers
+    .toSorted((left, right) => {
+      const leftWeight = (left.status === "flagged" || left.status === "restricted" ? 100 : 0) +
+        left.completedTrips;
+      const rightWeight =
+        (right.status === "flagged" || right.status === "restricted" ? 100 : 0) +
+        right.completedTrips;
+      return rightWeight - leftWeight;
+    })
+    .map((passenger) => ({
+      id: passenger.id,
+      displayName: passenger.displayName,
+      status: passenger.status,
+      reputationScore: passenger.reputationScore,
+      completedTrips: passenger.completedTrips,
+      trustFlags: passenger.trustFlags,
+    }));
+
   const pilotLabelById = new Map(snapshot.pilots.map((pilot) => [pilot.id, pilot.displayName]));
   const passengerLabelById = new Map(
     snapshot.passengers.map((passenger) => [passenger.id, passenger.displayName]),
@@ -183,6 +201,7 @@ export function buildCommandDomainProjection(
     networkSummary,
     governanceWatchlist,
     pilotBoard,
+    passengerBoard,
     mobilityBoard,
     provenance: "fixture_projection",
   };
@@ -261,36 +280,20 @@ export function buildForumDomainProjection(
             (item) =>
               leadDeliberation.linkedPilotIds.some((id) => item.id === `pilot:${id}`) ||
               leadDeliberation.linkedMobilityEventIds.some((id) => item.id === `mobility:${id}`),
-          )
+        )
           .map((item) => `${item.title}: ${item.summary}`),
         recommendedPath: leadDeliberation.recommendedPath,
         chairmanAction: leadDeliberation.chairmanActionRequired ? "approve" : "review",
-        decisionPanel: [
-          {
-            action: "approve",
-            label: "Approve supervised release",
-            rationale:
-              "Moves the lead case forward on the Chairman rail while preserving monitored access.",
-          },
-          {
-            action: "reject",
-            label: "Keep institutional restriction",
-            rationale:
-              "Preserves control until evidence closes the open risk and identity review.",
-          },
-          {
-            action: "defer",
-            label: "Defer until more evidence",
-            rationale:
-              "Holds the case in the room and requests additional protocol evidence before authority acts.",
-          },
-          {
-            action: "escalate",
-            label: "Escalate to legal corridor",
-            rationale:
-              "Transfers the case to a stricter compliance path when risk outweighs operational urgency.",
-          },
-        ],
+        authorityState: leadDeliberation.chairmanActionRequired
+          ? "chairman_pending"
+          : "board_review",
+        urgency:
+          leadDeliberation.riskLevel === "high"
+            ? "immediate"
+            : leadDeliberation.riskLevel === "medium"
+              ? "priority"
+              : "monitor",
+        decisionPanel: buildDecisionPanel(leadDeliberation),
       }
     : null;
 
@@ -301,6 +304,46 @@ export function buildForumDomainProjection(
     leadCase,
     provenance: "fixture_projection",
   };
+}
+
+function buildDecisionPanel(caseItem: DeliberationCase) {
+  const approvalLabel = caseItem.chairmanActionRequired
+    ? "Approve supervised release"
+    : "Approve board recommendation";
+  const approvalRationale = caseItem.chairmanActionRequired
+    ? "Moves the lead case forward on the Chairman rail while preserving monitored access."
+    : "Allows the board recommendation to proceed without opening a higher authority rail.";
+  const escalationLabel =
+    caseItem.riskLevel === "high" ? "Escalate to legal corridor" : "Escalate to board escalation lane";
+  const escalationRationale =
+    caseItem.riskLevel === "high"
+      ? "Transfers the case to a stricter compliance path when risk outweighs operational urgency."
+      : "Raises the case to a stronger institutional lane when current board review is insufficient.";
+
+  return [
+    {
+      action: "approve" as const,
+      label: approvalLabel,
+      rationale: approvalRationale,
+    },
+    {
+      action: "reject" as const,
+      label: "Keep institutional restriction",
+      rationale:
+        "Preserves control until evidence closes the open risk and the room has a defensible release path.",
+    },
+    {
+      action: "defer" as const,
+      label: "Defer until more evidence",
+      rationale:
+        "Holds the case in the room and requests additional protocol evidence before authority acts.",
+    },
+    {
+      action: "escalate" as const,
+      label: escalationLabel,
+      rationale: escalationRationale,
+    },
+  ];
 }
 
 export { buildDefaultCollegiumDomainSnapshot };

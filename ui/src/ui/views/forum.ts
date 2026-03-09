@@ -105,6 +105,20 @@ export function renderForum(props: ForumProps) {
                           ${props.domainProjection.leadCase.chairmanAction}
                         </div>
                       </div>
+                      <div class="forum-lead-case__grid">
+                        <div class="forum-lead-case__section">
+                          <div class="forum-lead-case__label">Authority State</div>
+                          <div class="forum-lead-case__value mono">
+                            ${props.domainProjection.leadCase.authorityState}
+                          </div>
+                        </div>
+                        <div class="forum-lead-case__section">
+                          <div class="forum-lead-case__label">Urgency</div>
+                          <div class="forum-lead-case__value mono">
+                            ${props.domainProjection.leadCase.urgency}
+                          </div>
+                        </div>
+                      </div>
                       <div class="forum-lead-case__section">
                         <div class="forum-lead-case__label">Decision Panel</div>
                         <div class="list" style="margin-top: 8px;">
@@ -307,7 +321,8 @@ function renderDeliberationCard(entry: DeliberationCase) {
         options: ${entry.options.length} · evidence: ${entry.evidenceRefs.length}
       </div>
       <div class="muted" style="margin-top: 6px;">
-        chairman lane: ${entry.chairmanActionRequired ? "approve or reject" : "review or defer"}
+        chairman lane: ${entry.chairmanActionRequired ? "approve or reject" : "review or defer"} ·
+        urgency: ${entry.riskLevel === "high" ? "immediate" : entry.riskLevel === "medium" ? "priority" : "monitor"}
       </div>
       <div class="muted" style="margin-top: 6px;">
         refs: ${[

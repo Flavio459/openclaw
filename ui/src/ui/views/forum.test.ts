@@ -90,6 +90,10 @@ describe("forum view", () => {
     expect(container.textContent).toContain("cwd: /workspace/openclaw");
     expect(container.textContent).toContain("Decision Panel");
     expect(container.textContent).toContain("Approve supervised release");
+    expect(container.textContent).toContain("Authority State");
+    expect(container.textContent).toContain("chairman_pending");
+    expect(container.textContent).toContain("Urgency");
+    expect(container.textContent).toContain("immediate");
   });
 
   it("shows both domain highlights and live strategic events", () => {
@@ -120,5 +124,6 @@ describe("forum view", () => {
     expect(container.textContent).toContain("options: 3");
     expect(container.textContent).toContain("Chairman Action");
     expect(container.textContent).toContain("chairman lane: approve or reject");
+    expect(container.textContent).toContain("urgency: immediate");
   });
 });

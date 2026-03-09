@@ -300,6 +300,35 @@ export function renderCommand(props: CommandProps) {
       </section>
 
       <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Passenger Trust Board</div>
+        <div class="card-sub">
+          Passageiros governados pelo protocolo, com leitura de reputacao, historico e flags de confianca.
+        </div>
+        <div class="list" style="margin-top: 12px;">
+          ${props.domainProjection.passengerBoard.map(
+            (passenger) => html`
+              <div class="list-item">
+                <div class="list-main">
+                  <div class="list-title">${passenger.displayName}</div>
+                  <div class="list-sub">
+                    reputation ${passenger.reputationScore} · completed trips ${passenger.completedTrips}
+                  </div>
+                  ${
+                    passenger.trustFlags.length > 0
+                      ? html`<div class="muted">trust flags: ${passenger.trustFlags.join(", ")}</div>`
+                      : html`<div class="muted">No active trust flags.</div>`
+                  }
+                </div>
+                <div class="list-meta">
+                  <div class="mono">${passenger.status}</div>
+                </div>
+              </div>
+            `,
+          )}
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
         <div class="card-title">Mobility Board</div>
         <div class="card-sub">
           Eventos de mobilidade que sustentam producao, risco e pauta institucional.

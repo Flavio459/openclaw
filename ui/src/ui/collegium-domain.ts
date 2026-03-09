@@ -129,6 +129,14 @@ export type CommandDomainProjection = {
     activeMobilityEvents: number;
     flags: string[];
   }>;
+  passengerBoard: Array<{
+    id: PassengerId;
+    displayName: string;
+    status: PassengerStatus;
+    reputationScore: number;
+    completedTrips: number;
+    trustFlags: string[];
+  }>;
   mobilityBoard: Array<{
     id: MobilityEventId;
     routeLabel: string;
@@ -169,6 +177,8 @@ export type ForumDomainProjection = {
         risks: string[];
         recommendedPath: string;
         chairmanAction: "approve" | "review" | "defer";
+        authorityState: "chairman_pending" | "board_review";
+        urgency: "monitor" | "priority" | "immediate";
         decisionPanel: Array<{
           action: "approve" | "reject" | "defer" | "escalate";
           label: string;

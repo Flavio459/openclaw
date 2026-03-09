@@ -49,12 +49,14 @@ describe("command view", () => {
     expect(container.textContent).toContain("Validated U.P.");
     expect(container.textContent).toContain("Governed Field");
     expect(container.textContent).toContain("Pilot Board");
+    expect(container.textContent).toContain("Passenger Trust Board");
     expect(container.textContent).toContain("Mobility Board");
     expect(container.textContent).toContain("Governance Watchlist");
     expect(container.textContent).toContain("Corridor Pressure");
     expect(container.textContent).toContain("critical");
     expect(container.textContent).toContain("Bruno Vale");
     expect(container.textContent).toContain("Ana Cruz");
+    expect(container.textContent).toContain("Noah Lima");
     expect(container.textContent).toContain("Hospital -> Zona Sul");
     expect(container.textContent).not.toContain("Feed pending");
   });
