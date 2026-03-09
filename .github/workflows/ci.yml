@@ -322,14 +322,36 @@ jobs:
           done
           exit 1
 
+      - name: Detect Apple-target changes
+        id: apple_paths
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            apple:
+              - '.github/workflows/ci.yml'
+              - '.swiftformat'
+              - '.swiftlint.yml'
+              - 'apps/macos/**'
+              - 'apps/ios/**'
+              - 'apps/shared/OpenClawKit/**'
+              - 'scripts/protocol-gen.ts'
+              - 'scripts/protocol-gen-swift.ts'
+              - 'dist/protocol.schema.json'
+
+      - name: Skip macOS lane when Apple code is untouched
+        if: steps.apple_paths.outputs.apple != 'true'
+        run: echo "Skipping macOS lane; no Apple-target changes detected in this PR."
+
       # --- Node/pnpm setup (for TS tests) ---
       - name: Setup Node.js
+        if: steps.apple_paths.outputs.apple == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: 22.x
           check-latest: true
 
       - name: Setup pnpm (corepack retry)
+        if: steps.apple_paths.outputs.apple == 'true'
         run: |
           set -euo pipefail
           corepack enable
@@ -344,15 +366,18 @@ jobs:
           exit 1
 
       - name: Runtime versions
+        if: steps.apple_paths.outputs.apple == 'true'
         run: |
           node -v
           npm -v
           pnpm -v
 
       - name: Capture node path
+        if: steps.apple_paths.outputs.apple == 'true'
         run: echo "NODE_BIN=$(dirname \"$(node -p \"process.execPath\")\")" >> "$GITHUB_ENV"
 
       - name: Install dependencies
+        if: steps.apple_paths.outputs.apple == 'true'
         env:
           CI: true
         run: |
@@ -364,31 +389,37 @@ jobs:
 
       # --- Run all checks sequentially (fast gates first) ---
       - name: TS tests (macOS)
+        if: steps.apple_paths.outputs.apple == 'true'
         env:
           NODE_OPTIONS: --max-old-space-size=4096
         run: pnpm test
 
       # --- Xcode/Swift setup ---
       - name: Select Xcode 26.1
+        if: steps.apple_paths.outputs.apple == 'true'
         run: |
           sudo xcode-select -s /Applications/Xcode_26.1.app
           xcodebuild -version
 
       - name: Install XcodeGen / SwiftLint / SwiftFormat
+        if: steps.apple_paths.outputs.apple == 'true'
         run: brew install xcodegen swiftlint swiftformat
 
       - name: Show toolchain
+        if: steps.apple_paths.outputs.apple == 'true'
         run: |
           sw_vers
           xcodebuild -version
           swift --version
 
       - name: Swift lint
+        if: steps.apple_paths.outputs.apple == 'true'
         run: |
           swiftlint --config .swiftlint.yml
           swiftformat --lint apps/macos/Sources --config .swiftformat
 
       - name: Swift build (release)
+        if: steps.apple_paths.outputs.apple == 'true'
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
@@ -401,6 +432,7 @@ jobs:
           exit 1
 
       - name: Swift test
+        if: steps.apple_paths.outputs.apple == 'true'
         run: |
           set -euo pipefail
           for attempt in 1 2 3; do
