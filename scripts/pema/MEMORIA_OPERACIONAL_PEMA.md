@@ -24,6 +24,7 @@ Documento complementar:
 - Primeira camada explícita de domínio central do Collegium materializada na UI.
 - `Cortex Command` e `The Forum` agora consomem projeções de domínio além da telemetria de runtime.
 - A proveniência atual desse domínio é `fixture_projection`, declarada de forma explícita.
+- O snapshot de domínio agora possui uma costura intermediária de persistência local, ainda com fallback para fixture.
 - Backend definitivo e telemetria real de `The Pilots` continuam pendentes nesta etapa.
 
 ## Componentes Operacionais

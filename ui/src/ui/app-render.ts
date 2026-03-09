@@ -7,9 +7,9 @@ import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.h
 import { refreshActiveTab } from "./app-settings.ts";
 import {
   buildCommandDomainProjection,
-  buildDefaultCollegiumDomainSnapshot,
   buildForumDomainProjection,
 } from "./collegium-domain.projections.ts";
+import { loadCollegiumDomainSnapshotSource } from "./collegium-domain.snapshot.ts";
 import {
   brandingForTab,
   detectRuntimeEnvironment,
@@ -130,7 +130,8 @@ export function renderApp(state: AppViewState) {
   const environment = detectRuntimeEnvironment(state.settings.gatewayUrl, state.hello);
   const branding = brandingForTab(state.tab);
   const collegiumMode = isCollegiumTab(state.tab);
-  const domainSnapshot = buildDefaultCollegiumDomainSnapshot();
+  const domainSnapshotSource = loadCollegiumDomainSnapshotSource();
+  const domainSnapshot = domainSnapshotSource.snapshot;
   const commandDomainProjection = buildCommandDomainProjection(domainSnapshot);
   const forumDomainProjection = buildForumDomainProjection(domainSnapshot);
   const resolvedAgentId =

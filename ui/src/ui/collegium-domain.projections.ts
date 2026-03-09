@@ -1,4 +1,3 @@
-import { buildDefaultCollegiumDomainSnapshot } from "./collegium-domain.fixtures.ts";
 import {
   type CollegiumDomainSnapshot,
   type CommandDomainProjection,
@@ -539,5 +538,3 @@ function buildEvidenceTrail(snapshot: CollegiumDomainSnapshot, caseItem: Deliber
 
   return [...pilotEntries, ...passengerEntries, ...mobilityEntries];
 }
-
-export { buildDefaultCollegiumDomainSnapshot };
