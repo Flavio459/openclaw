@@ -46,6 +46,9 @@ jobs:
             --config.engine-strict=false \
             --config.enable-pre-post-scripts=true
 
+      - name: Install Playwright browser
+        run: pnpm --dir ui exec playwright install --with-deps chromium
+
       - name: Validate Claude hooks
         run: pnpm test:claude-hooks
 
