@@ -4,6 +4,24 @@ import type { UsageState } from "./controllers/usage.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
 import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
+import { refreshActiveTab } from "./app-settings.ts";
+import {
+  buildCommandDomainProjection,
+  buildForumDomainProjection,
+} from "./collegium-domain.projections.ts";
+import {
+  clearCollegiumDomainSnapshot,
+  loadCollegiumDomainSnapshotSource,
+  parseCollegiumDomainSnapshot,
+  saveCollegiumDomainSnapshot,
+  serializeCollegiumDomainSnapshot,
+} from "./collegium-domain.snapshot.ts";
+import {
+  brandingForTab,
+  detectRuntimeEnvironment,
+  isCollegiumTab,
+  selectCollegiumEventFeed,
+} from "./collegium.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
 import { loadAgentSkills } from "./controllers/agent-skills.ts";
@@ -62,18 +80,23 @@ const debouncedLoadUsage = (state: UsageState) => {
   }
   usageDateDebounceTimeout = window.setTimeout(() => void loadUsage(state), 400);
 };
+const refreshCollegiumTab = (state: AppViewState) =>
+  void refreshActiveTab(state as unknown as Parameters<typeof refreshActiveTab>[0]);
 import { renderAgents } from "./views/agents.ts";
 import { renderChannels } from "./views/channels.ts";
 import { renderChat } from "./views/chat.ts";
+import { renderCommand } from "./views/command.ts";
 import { renderConfig } from "./views/config.ts";
 import { renderCron } from "./views/cron.ts";
 import { renderDebug } from "./views/debug.ts";
 import { renderExecApprovalPrompt } from "./views/exec-approval.ts";
+import { renderForum } from "./views/forum.ts";
 import { renderGatewayUrlConfirmation } from "./views/gateway-url-confirmation.ts";
 import { renderInstances } from "./views/instances.ts";
 import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
+import { renderPraetorium } from "./views/praetorium.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
 import { renderUsage } from "./views/usage.ts";
@@ -110,11 +133,42 @@ export function renderApp(state: AppViewState) {
   const configValue =
     state.configForm ?? (state.configSnapshot?.config as Record<string, unknown> | null);
   const basePath = normalizeBasePath(state.basePath ?? "");
+  const environment = detectRuntimeEnvironment(state.settings.gatewayUrl, state.hello);
+  const branding = brandingForTab(state.tab);
+  const collegiumMode = isCollegiumTab(state.tab);
+  const domainSnapshotSource = loadCollegiumDomainSnapshotSource();
+  const domainSnapshot = domainSnapshotSource.snapshot;
+  const serializedDomainSnapshot = serializeCollegiumDomainSnapshot(domainSnapshot);
+  const commandDomainProjection = buildCommandDomainProjection(domainSnapshot);
+  const forumDomainProjection = buildForumDomainProjection(domainSnapshot);
   const resolvedAgentId =
     state.agentsSelectedId ??
     state.agentsList?.defaultId ??
     state.agentsList?.agents?.[0]?.id ??
     null;
+
+  const notifyDomainSnapshotError = (message: string) => {
+    if (typeof window !== "undefined" && typeof window.alert === "function") {
+      window.alert(message);
+    }
+  };
+
+  const handleSaveDomainSnapshot = (raw: string) => {
+    const snapshot = parseCollegiumDomainSnapshot(raw);
+    if (!snapshot) {
+      notifyDomainSnapshotError(
+        "Invalid Collegium domain snapshot JSON. Paste a complete snapshot object before saving.",
+      );
+      return;
+    }
+    saveCollegiumDomainSnapshot(snapshot);
+    void refreshActiveTab(state as unknown as Parameters<typeof refreshActiveTab>[0]);
+  };
+
+  const handleResetDomainSnapshot = () => {
+    clearCollegiumDomainSnapshot();
+    void refreshActiveTab(state as unknown as Parameters<typeof refreshActiveTab>[0]);
+  };
 
   return html`
     <div class="shell ${isChat ? "shell--chat" : ""} ${chatFocus ? "shell--chat-focus" : ""} ${state.settings.navCollapsed ? "shell--nav-collapsed" : ""} ${state.onboarding ? "shell--onboarding" : ""}">
@@ -137,12 +191,22 @@ export function renderApp(state: AppViewState) {
               <img src=${basePath ? `${basePath}/favicon.svg` : "/favicon.svg"} alt="OpenClaw" />
             </div>
             <div class="brand-text">
-              <div class="brand-title">OPENCLAW</div>
-              <div class="brand-sub">Gateway Dashboard</div>
+              <div class="brand-title">${branding.title}</div>
+              <div class="brand-sub">${branding.subtitle}</div>
             </div>
           </div>
         </div>
         <div class="topbar-status">
+          ${
+            collegiumMode
+              ? html`
+                  <div class="pill">
+                    <span>Runtime</span>
+                    <span class="mono">${environment}</span>
+                  </div>
+                `
+              : nothing
+          }
           <div class="pill">
             <span class="statusDot ${state.connected ? "ok" : ""}"></span>
             <span>Health</span>
@@ -207,6 +271,64 @@ export function renderApp(state: AppViewState) {
             ${isChat ? renderChatControls(state) : nothing}
           </div>
         </section>
+
+        ${
+          state.tab === "command"
+            ? renderCommand({
+                connected: state.connected,
+                lastError: state.lastError,
+                environment,
+                agentsList: state.agentsList,
+                presenceEntries: state.presenceEntries,
+                channelsSnapshot: state.channelsSnapshot,
+                execApprovalQueue: state.execApprovalQueue,
+                cronStatus: state.cronStatus,
+                sessionsCount,
+                domainProjection: commandDomainProjection,
+                onRefresh: () => refreshCollegiumTab(state),
+                onOpenForum: () => state.setTab("forum"),
+                onOpenPraetorium: () => state.setTab("praetorium"),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "forum"
+            ? renderForum({
+                gatewayUrl: state.settings.gatewayUrl,
+                hello: state.hello,
+                environment,
+                agentsList: state.agentsList,
+                eventLog: selectCollegiumEventFeed(state.tab, state.eventLog, state.eventLogBuffer),
+                execApprovalQueue: state.execApprovalQueue,
+                domainProjection: forumDomainProjection,
+                onRefresh: () => refreshCollegiumTab(state),
+                onOpenPraetorium: () => state.setTab("praetorium"),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "praetorium"
+            ? renderPraetorium({
+                connected: state.connected,
+                lastError: state.lastError,
+                gatewayUrl: state.settings.gatewayUrl,
+                hello: state.hello,
+                agentsList: state.agentsList,
+                eventLog: state.eventLog,
+                execApprovalQueue: state.execApprovalQueue,
+                cronJobs: state.cronJobs,
+                domainSnapshotSourceKind: domainSnapshotSource.kind,
+                domainSnapshotRaw: serializedDomainSnapshot,
+                onRefresh: () => refreshCollegiumTab(state),
+                onOpenCommand: () => state.setTab("command"),
+                onReloadDomainSnapshot: () => refreshCollegiumTab(state),
+                onSaveDomainSnapshot: handleSaveDomainSnapshot,
+                onResetDomainSnapshot: handleResetDomainSnapshot,
+              })
+            : nothing
+        }
 
         ${
           state.tab === "overview"

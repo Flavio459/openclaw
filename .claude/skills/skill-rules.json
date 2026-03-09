@@ -1,0 +1,216 @@
+{
+  "version": "1.0",
+  "skills": {
+    "collegium-context": {
+      "type": "domain",
+      "enforcement": "suggest",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "collegium cortex",
+          "pema",
+          "pema protocol",
+          "the pilots",
+          "protocolo",
+          "governanca",
+          "governança",
+          "mobilidade",
+          "the core"
+        ],
+        "intentPatterns": [
+          "(explicar|explique|modele|modelar|crie|criar|implemente|implementar|ajude|ajudar).*?(collegium|pema|pilot|protocolo|governan|mobilidade)",
+          "(what is|explain|model|design|implement|help).*?(collegium|pema|pilots|protocol|governance|mobility)"
+        ]
+      }
+    },
+    "surface-separation": {
+      "type": "guardrail",
+      "enforcement": "block",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "cortex command",
+          "the forum",
+          "cortex praetorium",
+          "openclaw runtime",
+          "sala de reuniões",
+          "cockpit",
+          "dashboard",
+          "produto",
+          "aplicação",
+          "motor"
+        ],
+        "intentPatterns": [
+          "(isso|isto|essa|essa tarefa|esse pedido).*?(produto|motor|aplica|infra|cockpit)",
+          "(is this|should this|does this).*?(product|engine|runtime|cockpit|forum|dashboard)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [
+          "ui/src/ui/collegium.ts",
+          "ui/src/ui/navigation.ts",
+          "ui/src/ui/views/command.ts",
+          "ui/src/ui/views/forum.ts",
+          "ui/src/ui/views/praetorium.ts",
+          "scripts/pema/README.stitch-mcp-dashboard.md"
+        ],
+        "pathExclusions": ["**/*.test.ts", "**/*.browser.test.ts"]
+      },
+      "blockMessage": "⚠️ BLOCKED - Surface Separation Required\n\nBefore editing `{file_path}`:\n1. Use the `surface-separation` skill\n2. Classify the target as `Cortex Command`, `The Forum`, `Cortex Praetorium`, or `OpenClaw Runtime`\n3. State what this file is, and what it is not\n4. Retry the edit\n\nReason: these files define core surface boundaries in Collegium Cortex.",
+      "skipConditions": {
+        "fileMarkers": ["@skip-validation"],
+        "envOverride": "SKIP_SURFACE_SEPARATION_GUARD"
+      },
+      "ack": {
+        "requiredFields": ["surface", "is", "is_not"],
+        "ttlMinutes": 10,
+        "helpLabel": "classify the surface boundary before editing this file"
+      }
+    },
+    "scope-classifier": {
+      "type": "guardrail",
+      "enforcement": "block",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "escopo",
+          "scope",
+          "product",
+          "engine",
+          "infra",
+          "research",
+          "business agent",
+          "engineering agent",
+          "agente"
+        ],
+        "intentPatterns": [
+          "(crie|criar|adicionar|adicionar|implemente|implementar).*?agente",
+          "(create|add|implement|build).*?agent",
+          "(classifique|classificar|separe|separar).*?(escopo|scope|produto|motor|infra|research)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [
+          "ui/src/ui/controllers/agent-*.ts",
+          "ui/src/ui/controllers/agents.ts",
+          "ui/src/ui/controllers/skills.ts",
+          "ui/src/ui/controllers/sessions.ts",
+          "ui/src/ui/controllers/presence.ts",
+          "ui/src/ui/controllers/devices.ts",
+          "ui/src/ui/app-gateway.ts",
+          "ui/src/ui/app-settings.ts"
+        ],
+        "pathExclusions": ["**/*.test.ts", "**/*.browser.test.ts"]
+      },
+      "blockMessage": "⚠️ BLOCKED - Scope Classification Required\n\nBefore editing `{file_path}`:\n1. Use the `scope-classifier` skill\n2. Classify the work as `product`, `engine`, `infra`, or `research`\n3. State whether the actor is a `business_agent` or `engineering_agent`\n4. Retry the edit\n\nReason: this area controls agents, runtime, or system behavior and is prone to product-vs-engine confusion.",
+      "skipConditions": {
+        "fileMarkers": ["@skip-validation"],
+        "envOverride": "SKIP_SCOPE_CLASSIFIER_GUARD"
+      },
+      "ack": {
+        "requiredFields": ["scope", "actor_class"],
+        "ttlMinutes": 10,
+        "helpLabel": "classify the scope and actor class before editing runtime or agent files"
+      }
+    },
+    "protocol-defensability": {
+      "type": "guardrail",
+      "enforcement": "block",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "compliance",
+          "regulatório",
+          "regulatorio",
+          "investidor",
+          "reputação",
+          "reputacao",
+          "rede econômica",
+          "rede economica",
+          "narrativa",
+          "mobilidade real"
+        ],
+        "intentPatterns": [
+          "(risco|narrativa|compliance|investidor|regula).*?(projeto|produto|modelo|economia)",
+          "(regulatory|investor|narrative|compliance|reputation).*?(risk|model|economics|design)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [
+          "scripts/pema/CONTEXTO_OPERACIONAL_AGENTES.md",
+          "scripts/pema/ORIGEM_PEMA_CURADA.md",
+          "scripts/pema/MEMORIA_OPERACIONAL_PEMA.md",
+          "scripts/pema/README.stitch-mcp-dashboard.md",
+          "scripts/pema/SKILLS_COLLEGIUM_ESTRATEGIA.md",
+          "scripts/pema/pema-chairman-dashboard.mcp.mjs"
+        ],
+        "pathExclusions": ["**/*.test.ts", "**/*.browser.test.ts"]
+      },
+      "blockMessage": "⚠️ BLOCKED - Protocol Defensability Check Required\n\nBefore editing `{file_path}`:\n1. Use the `protocol-defensability` skill\n2. State the real economic activity behind the change\n3. State the rule, evidence, review path, and likely narrative/regulatory reading\n4. Retry the edit\n\nReason: this file shapes how Collegium Cortex is defended in narrative, governance, compliance, or protocol design.",
+      "skipConditions": {
+        "fileMarkers": ["@skip-validation"],
+        "envOverride": "SKIP_PROTOCOL_DEFENSABILITY_GUARD"
+      },
+      "ack": {
+        "requiredFields": ["economic_activity", "rule", "evidence", "review_path", "risk"],
+        "ttlMinutes": 10,
+        "helpLabel": "state the economic activity, rule, evidence, review path, and risk"
+      }
+    },
+    "forum-deliberation": {
+      "type": "guardrail",
+      "enforcement": "block",
+      "priority": "high",
+      "promptTriggers": {
+        "keywords": [
+          "the forum",
+          "boardroom",
+          "chairman",
+          "decisão",
+          "decisao",
+          "aprovar",
+          "rejeitar",
+          "estratégia",
+          "estrategia",
+          "pauta",
+          "risco",
+          "incidente"
+        ],
+        "intentPatterns": [
+          "(discuta|discutir|delibere|deliberar|estruture|estruturar).*?(forum|estrategia|decisao|risco|pauta)",
+          "(discuss|deliberate|prepare|structure).*?(forum|strategy|decision|risk|board)"
+        ]
+      },
+      "fileTriggers": {
+        "pathPatterns": [
+          "ui/src/ui/views/forum.ts",
+          "ui/src/ui/views/command.ts",
+          "ui/src/ui/controllers/exec-approval.ts",
+          "ui/src/ui/controllers/exec-approvals.ts",
+          "ui/src/ui/views/exec-approval.ts",
+          "scripts/pema/pema-chairman-dashboard.mcp.mjs"
+        ],
+        "pathExclusions": ["**/*.test.ts", "**/*.browser.test.ts"]
+      },
+      "blockMessage": "⚠️ BLOCKED - Forum Deliberation Structure Required\n\nBefore editing `{file_path}`:\n1. Use the `forum-deliberation` skill\n2. Structure the work as `topic`, `context`, `participants`, `evidence`, `options`, `risks`, `recommended path`, `chairman action`\n3. Retry the edit\n\nReason: this area belongs to The Forum / Chairman decision flow and should not drift into unstructured chat or generic UI.",
+      "skipConditions": {
+        "fileMarkers": ["@skip-validation"],
+        "envOverride": "SKIP_FORUM_DELIBERATION_GUARD"
+      },
+      "ack": {
+        "requiredFields": [
+          "topic",
+          "context",
+          "participants",
+          "evidence",
+          "options",
+          "risks",
+          "recommended_path",
+          "chairman_action"
+        ],
+        "ttlMinutes": 10,
+        "helpLabel": "structure the deliberation for The Forum and Chairman flow"
+      }
+    }
+  }
+}

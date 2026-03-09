@@ -26,6 +26,9 @@ describe("iconForTab", () => {
   });
 
   it("returns stable icons for known tabs", () => {
+    expect(iconForTab("command")).toBe("brain");
+    expect(iconForTab("forum")).toBe("book");
+    expect(iconForTab("praetorium")).toBe("puzzle");
     expect(iconForTab("chat")).toBe("messageSquare");
     expect(iconForTab("overview")).toBe("barChart");
     expect(iconForTab("channels")).toBe("link");
@@ -56,6 +59,9 @@ describe("titleForTab", () => {
   });
 
   it("returns expected titles", () => {
+    expect(titleForTab("command")).toBe("Cortex Command");
+    expect(titleForTab("forum")).toBe("The Forum");
+    expect(titleForTab("praetorium")).toBe("Cortex Praetorium");
     expect(titleForTab("chat")).toBe("Chat");
     expect(titleForTab("overview")).toBe("Overview");
     expect(titleForTab("cron")).toBe("Cron Jobs");
@@ -71,6 +77,8 @@ describe("subtitleForTab", () => {
   });
 
   it("returns descriptive subtitles", () => {
+    expect(subtitleForTab("command")).toContain("Collegium Cortex");
+    expect(subtitleForTab("praetorium")).toContain("runtime supervision");
     expect(subtitleForTab("chat")).toContain("chat session");
     expect(subtitleForTab("config")).toContain("openclaw.json");
   });
@@ -115,6 +123,9 @@ describe("normalizePath", () => {
 
 describe("pathForTab", () => {
   it("returns correct path without base", () => {
+    expect(pathForTab("command")).toBe("/command");
+    expect(pathForTab("forum")).toBe("/command/forum");
+    expect(pathForTab("praetorium")).toBe("/praetorium");
     expect(pathForTab("chat")).toBe("/chat");
     expect(pathForTab("overview")).toBe("/overview");
   });
@@ -127,6 +138,9 @@ describe("pathForTab", () => {
 
 describe("tabFromPath", () => {
   it("returns tab for valid path", () => {
+    expect(tabFromPath("/command")).toBe("command");
+    expect(tabFromPath("/command/forum")).toBe("forum");
+    expect(tabFromPath("/praetorium")).toBe("praetorium");
     expect(tabFromPath("/chat")).toBe("chat");
     expect(tabFromPath("/overview")).toBe("overview");
     expect(tabFromPath("/sessions")).toBe("sessions");
@@ -175,6 +189,7 @@ describe("inferBasePathFromPathname", () => {
 describe("TAB_GROUPS", () => {
   it("contains all expected groups", () => {
     const labels = TAB_GROUPS.map((g) => g.label);
+    expect(labels).toContain("Collegium");
     expect(labels).toContain("Chat");
     expect(labels).toContain("Control");
     expect(labels).toContain("Agent");

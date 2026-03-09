@@ -1,0 +1,664 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cortex Praetorium Local Monitor</title>
+    <style>
+      :root {
+        --bg: #0c0f11;
+        --panel: #141a1e;
+        --line: rgba(255, 255, 255, 0.08);
+        --text: #f2eee6;
+        --muted: #97a0a2;
+        --ok: #67d39d;
+        --warn: #f2bc5a;
+        --danger: #ff7a66;
+        --accent: #8db4ff;
+        --mono: "IBM Plex Mono", "Cascadia Code", monospace;
+        --sans: "Segoe UI", "Helvetica Neue", sans-serif;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        color: var(--text);
+        font-family: var(--sans);
+        background:
+          radial-gradient(circle at top left, rgba(141, 180, 255, 0.12), transparent 22%),
+          radial-gradient(circle at top right, rgba(242, 188, 90, 0.12), transparent 24%),
+          linear-gradient(180deg, #090b0c, #101417 56%, #0a0d0f);
+      }
+      main {
+        width: min(1200px, calc(100vw - 24px));
+        margin: 0 auto;
+        padding: 24px 0 64px;
+      }
+      .hero,
+      .grid {
+        display: grid;
+        gap: 16px;
+      }
+      .hero {
+        grid-template-columns: 1.3fr 0.7fr;
+        margin-bottom: 16px;
+      }
+      .grid {
+        grid-template-columns: repeat(12, 1fr);
+      }
+      .panel {
+        background: rgba(20, 26, 30, 0.92);
+        border: 1px solid var(--line);
+        border-radius: 22px;
+        padding: 20px;
+        box-shadow: 0 20px 80px rgba(0, 0, 0, 0.28);
+      }
+      .span-8 {
+        grid-column: span 8;
+      }
+      .span-6 {
+        grid-column: span 6;
+      }
+      .span-4 {
+        grid-column: span 4;
+      }
+      .eyebrow,
+      label {
+        font: 12px var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+      h1 {
+        margin: 16px 0 10px;
+        font-size: clamp(38px, 6vw, 64px);
+        line-height: 0.95;
+        letter-spacing: -0.05em;
+        max-width: 10ch;
+      }
+      h2 {
+        margin: 0 0 6px;
+        font: 12px var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: var(--muted);
+      }
+      p {
+        margin: 0;
+        line-height: 1.6;
+        color: var(--muted);
+      }
+      .pills,
+      .actions,
+      .cards,
+      .inputs {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+      .pill,
+      .card,
+      .item {
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.03);
+        border-radius: 16px;
+      }
+      .pill {
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+      .cards {
+        margin-top: 16px;
+      }
+      .card {
+        padding: 14px;
+        min-width: 180px;
+        flex: 1;
+      }
+      .value {
+        font-size: 28px;
+        line-height: 1.1;
+        margin: 8px 0 4px;
+      }
+      .meta,
+      small,
+      .mono {
+        color: var(--muted);
+        font-family: var(--mono);
+        font-size: 12px;
+      }
+      .inputs {
+        margin: 14px 0;
+      }
+      .field {
+        display: grid;
+        gap: 6px;
+        min-width: 160px;
+        flex: 1;
+      }
+      input,
+      textarea,
+      button {
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: rgba(255, 255, 255, 0.04);
+        color: var(--text);
+        padding: 12px 14px;
+        font: inherit;
+      }
+      textarea {
+        width: 100%;
+        min-height: 150px;
+        resize: vertical;
+      }
+      button {
+        cursor: pointer;
+        background: var(--warn);
+        color: #101417;
+        font: 12px var(--mono);
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+      button.secondary {
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--text);
+      }
+      .list {
+        display: grid;
+        gap: 10px;
+        margin-top: 14px;
+      }
+      .item {
+        padding: 14px;
+      }
+      .item strong {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 14px;
+      }
+      .callout {
+        margin-top: 14px;
+        padding: 14px;
+        border-radius: 16px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .tone-ok {
+        color: var(--ok);
+      }
+      .tone-warn {
+        color: var(--warn);
+      }
+      .tone-danger {
+        color: var(--danger);
+      }
+      @media (max-width: 960px) {
+        .hero,
+        .grid {
+          grid-template-columns: 1fr;
+        }
+        .span-8,
+        .span-6,
+        .span-4 {
+          grid-column: span 1;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="hero">
+        <article class="panel">
+          <div class="eyebrow">Cortex Praetorium / Local Monitor</div>
+          <h1>acompanhar o desenvolvimento</h1>
+          <p>
+            Esta página existe para você não depender do chat para saber onde o trabalho está. Ela
+            lê a PR no GitHub, mostra a fase atual do desenvolvimento e pode consumir opcionalmente
+            o estado do LAB.
+          </p>
+          <div class="pills" style="margin-top: 16px">
+            <div class="pill" id="hero-pr">PR em leitura</div>
+            <div class="pill" id="hero-phase">fase em leitura</div>
+            <div class="pill" id="hero-lab">LAB opcional</div>
+          </div>
+        </article>
+        <aside class="panel">
+          <h2>Resumo</h2>
+          <div class="cards">
+            <div class="card">
+              <div class="meta">Checks</div>
+              <div class="value" id="summary-checks">--</div>
+              <small>status remoto</small>
+            </div>
+            <div class="card">
+              <div class="meta">Fase</div>
+              <div class="value" id="summary-phase">--</div>
+              <small>frente dominante</small>
+            </div>
+            <div class="card">
+              <div class="meta">Próximo</div>
+              <div class="value" id="summary-next">--</div>
+              <small>ação natural</small>
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <section class="grid">
+        <article class="panel span-8">
+          <h2>Leitura da PR</h2>
+          <p>Monitora estado, commit de cabeça, checks e mergeability.</p>
+          <div class="inputs">
+            <div class="field"><label>owner</label><input id="owner" value="Flavio459" /></div>
+            <div class="field"><label>repo</label><input id="repo" value="openclaw" /></div>
+            <div class="field">
+              <label>pr</label><input id="pr-number" type="number" value="1" />
+            </div>
+            <div class="field">
+              <label>refresh(s)</label
+              ><input id="refresh-seconds" type="number" value="60" min="15" />
+            </div>
+          </div>
+          <div class="actions">
+            <button id="refresh-github">Atualizar PR</button>
+            <button class="secondary" id="toggle-auto-refresh">Auto refresh: ligado</button>
+            <span class="mono" id="last-refresh">sem atualização</span>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <div class="meta">PR</div>
+              <div class="value" id="pr-state">--</div>
+              <small id="pr-title">aguardando</small>
+            </div>
+            <div class="card">
+              <div class="meta">Merge</div>
+              <div class="value" id="merge-state">--</div>
+              <small id="pr-branch">head/base</small>
+            </div>
+            <div class="card">
+              <div class="meta">Checks</div>
+              <div class="value" id="checks-state">--</div>
+              <small id="checks-meta">sem dados</small>
+            </div>
+            <div class="card">
+              <div class="meta">Head SHA</div>
+              <div class="value mono" id="head-sha">--</div>
+              <small id="head-updated">sem commit</small>
+            </div>
+          </div>
+          <div class="list" id="check-list">
+            <div class="item">Nenhum check carregado ainda.</div>
+          </div>
+        </article>
+
+        <article class="panel span-4">
+          <h2>Status do desenvolvimento</h2>
+          <p id="snapshot-summary">carregando leitura atual...</p>
+          <div class="list" id="timeline"></div>
+          <div class="callout" id="snapshot-note">sem nota ainda</div>
+        </article>
+
+        <article class="panel span-6">
+          <h2>LAB opcional</h2>
+          <p>
+            Se o browser conseguir ler os endpoints locais, você ganha health e contagens. Se não,
+            pode colar o JSON manualmente.
+          </p>
+          <div class="inputs">
+            <div class="field">
+              <label>health url</label
+              ><input id="health-url" value="http://127.0.0.1:8787/health" />
+            </div>
+            <div class="field">
+              <label>state url</label><input id="state-url" value="http://127.0.0.1:8787/state" />
+            </div>
+            <div class="field">
+              <label>bearer token</label
+              ><input id="api-token" type="password" placeholder="opcional para /state" />
+            </div>
+          </div>
+          <div class="actions">
+            <button id="refresh-lab">Ler LAB</button>
+            <button class="secondary" id="use-pasted-state">Usar JSON colado</button>
+          </div>
+          <div class="cards">
+            <div class="card">
+              <div class="meta">Health</div>
+              <div class="value" id="lab-health">--</div>
+              <small id="lab-health-meta">sem leitura</small>
+            </div>
+            <div class="card">
+              <div class="meta">Agentes</div>
+              <div class="value" id="lab-agents">--</div>
+              <small id="lab-agents-meta">sem leitura</small>
+            </div>
+            <div class="card">
+              <div class="meta">Decisões</div>
+              <div class="value" id="lab-decisions">--</div>
+              <small id="lab-decisions-meta">sem leitura</small>
+            </div>
+            <div class="card">
+              <div class="meta">Pendências</div>
+              <div class="value" id="lab-pending">--</div>
+              <small id="lab-pending-meta">sem leitura</small>
+            </div>
+          </div>
+          <div class="field" style="margin-top: 14px">
+            <label>state json colado</label>
+            <textarea
+              id="state-json"
+              placeholder="Cole aqui o conteúdo de /state ou state.json"
+            ></textarea>
+          </div>
+          <div class="list" id="lab-details"><div class="item">Sem snapshot carregado.</div></div>
+        </article>
+
+        <article class="panel span-6">
+          <h2>Próximas entregas</h2>
+          <p>
+            O que já consolidou e o que ainda falta para sair da observabilidade e ir para a próxima
+            camada de produto/domínio.
+          </p>
+          <div class="list" id="next-steps"></div>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const snapshot = {
+        phase: "consolidacao",
+        summary:
+          "As superfícies do Collegium já existem, a camada de guardrails está ativa, o slice inicial de domínio foi ligado ao UI e a PR principal está verde.",
+        note: "O que faltava era uma superfície local simples para você acompanhar sem depender do chat.",
+        checkpoints: [
+          [
+            "Identidade e superfícies",
+            "Feito",
+            "Cortex Command, The Forum e Cortex Praetorium já existem no UI.",
+          ],
+          [
+            "Guardrails do Collegium",
+            "Feito",
+            "A camada .claude e a política de ack/validação já passaram no CI.",
+          ],
+          [
+            "Domínio inicial",
+            "Feito",
+            "O slice com fixture_projection já alimenta Command e Forum.",
+          ],
+          [
+            "Monitor local",
+            "Em implantação",
+            "Este HTML fecha a lacuna de acompanhamento contínuo.",
+          ],
+        ],
+        next: [
+          ["Merge da PR #1", "Agora que o pacote está verde, a decisão natural é integrar."],
+          ["Fonte real de domínio", "Trocar fixture_projection por backend/telemetria real."],
+          ["Praetorium nativo", "Levar esse acompanhamento local para uma superfície integrada."],
+        ],
+      };
+
+      const el = {
+        owner: document.getElementById("owner"),
+        repo: document.getElementById("repo"),
+        prNumber: document.getElementById("pr-number"),
+        refreshSeconds: document.getElementById("refresh-seconds"),
+        refreshGithub: document.getElementById("refresh-github"),
+        toggleAutoRefresh: document.getElementById("toggle-auto-refresh"),
+        refreshLab: document.getElementById("refresh-lab"),
+        usePastedState: document.getElementById("use-pasted-state"),
+        healthUrl: document.getElementById("health-url"),
+        stateUrl: document.getElementById("state-url"),
+        apiToken: document.getElementById("api-token"),
+        stateJson: document.getElementById("state-json"),
+        heroPr: document.getElementById("hero-pr"),
+        heroPhase: document.getElementById("hero-phase"),
+        heroLab: document.getElementById("hero-lab"),
+        summaryChecks: document.getElementById("summary-checks"),
+        summaryPhase: document.getElementById("summary-phase"),
+        summaryNext: document.getElementById("summary-next"),
+        prState: document.getElementById("pr-state"),
+        prTitle: document.getElementById("pr-title"),
+        mergeState: document.getElementById("merge-state"),
+        prBranch: document.getElementById("pr-branch"),
+        checksState: document.getElementById("checks-state"),
+        checksMeta: document.getElementById("checks-meta"),
+        headSha: document.getElementById("head-sha"),
+        headUpdated: document.getElementById("head-updated"),
+        lastRefresh: document.getElementById("last-refresh"),
+        checkList: document.getElementById("check-list"),
+        snapshotSummary: document.getElementById("snapshot-summary"),
+        snapshotNote: document.getElementById("snapshot-note"),
+        timeline: document.getElementById("timeline"),
+        nextSteps: document.getElementById("next-steps"),
+        labHealth: document.getElementById("lab-health"),
+        labHealthMeta: document.getElementById("lab-health-meta"),
+        labAgents: document.getElementById("lab-agents"),
+        labAgentsMeta: document.getElementById("lab-agents-meta"),
+        labDecisions: document.getElementById("lab-decisions"),
+        labDecisionsMeta: document.getElementById("lab-decisions-meta"),
+        labPending: document.getElementById("lab-pending"),
+        labPendingMeta: document.getElementById("lab-pending-meta"),
+        labDetails: document.getElementById("lab-details"),
+      };
+
+      const storageKey = "praetorium-local-monitor-config";
+      let auto = true;
+      let timer = null;
+
+      function fmt(v) {
+        return v ? new Date(v).toLocaleString("pt-BR") : "n/a";
+      }
+      function shortSha(v) {
+        return v ? String(v).slice(0, 9) : "--";
+      }
+      function toneClass(status) {
+        if (status === "success" || status === "green" || status === "ok") return "tone-ok";
+        if (status === "failure" || status === "error" || status === "fail") return "tone-danger";
+        return "tone-warn";
+      }
+      function esc(v) {
+        return String(v)
+          .replaceAll("&", "&amp;")
+          .replaceAll("<", "&lt;")
+          .replaceAll(">", "&gt;")
+          .replaceAll('"', "&quot;");
+      }
+      function saveConfig() {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify({
+            owner: el.owner.value,
+            repo: el.repo.value,
+            pr: el.prNumber.value,
+            refresh: el.refreshSeconds.value,
+            healthUrl: el.healthUrl.value,
+            stateUrl: el.stateUrl.value,
+          }),
+        );
+      }
+      function loadConfig() {
+        try {
+          const c = JSON.parse(localStorage.getItem(storageKey) || "{}");
+          if (c.owner) el.owner.value = c.owner;
+          if (c.repo) el.repo.value = c.repo;
+          if (c.pr) el.prNumber.value = c.pr;
+          if (c.refresh) el.refreshSeconds.value = c.refresh;
+          if (c.healthUrl) el.healthUrl.value = c.healthUrl;
+          if (c.stateUrl) el.stateUrl.value = c.stateUrl;
+        } catch {}
+      }
+      function renderSnapshot() {
+        el.heroPhase.textContent = `fase: ${snapshot.phase}`;
+        el.summaryPhase.textContent = snapshot.phase;
+        el.summaryNext.textContent = snapshot.next[0][0];
+        el.snapshotSummary.textContent = snapshot.summary;
+        el.snapshotNote.textContent = snapshot.note;
+        el.timeline.innerHTML = snapshot.checkpoints
+          .map(
+            ([title, status, detail]) =>
+              `<div class="item"><strong>${esc(title)} · <span class="${toneClass(status.toLowerCase())}">${esc(status)}</span></strong><small>${esc(detail)}</small></div>`,
+          )
+          .join("");
+        el.nextSteps.innerHTML = snapshot.next
+          .map(
+            ([title, detail]) =>
+              `<div class="item"><strong>${esc(title)}</strong><small>${esc(detail)}</small></div>`,
+          )
+          .join("");
+      }
+      function setChecksSummary(checks) {
+        const total = checks.length;
+        const ok = checks.filter((x) => x.conclusion === "success").length;
+        const fail = checks.filter((x) => x.conclusion === "failure").length;
+        const pending = checks.filter((x) => x.status !== "completed").length;
+        el.summaryChecks.textContent = total ? `${ok}/${total}` : "--";
+        el.checksMeta.textContent = `${ok} ok · ${fail} fail · ${pending} pendente`;
+        if (fail > 0) {
+          el.checksState.textContent = "attention";
+          el.heroPr.textContent = `${fail} failure(s)`;
+        } else if (pending > 0) {
+          el.checksState.textContent = "running";
+          el.heroPr.textContent = `${pending} check(s) em execucao`;
+        } else {
+          el.checksState.textContent = "green";
+          el.heroPr.textContent = "PR verde";
+        }
+      }
+      async function refreshGithub() {
+        saveConfig();
+        const owner = el.owner.value.trim();
+        const repo = el.repo.value.trim();
+        const pr = Number(el.prNumber.value);
+        const headers = { Accept: "application/vnd.github+json" };
+        el.lastRefresh.textContent = "atualizando GitHub...";
+        try {
+          const prRes = await fetch(`https://api.github.com/repos/${owner}/${repo}/pulls/${pr}`, {
+            headers,
+          });
+          if (!prRes.ok) throw new Error(`PR API ${prRes.status}`);
+          const prJson = await prRes.json();
+          const checksRes = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/commits/${prJson.head.sha}/check-runs`,
+            { headers },
+          );
+          if (!checksRes.ok) throw new Error(`Checks API ${checksRes.status}`);
+          const checksJson = await checksRes.json();
+          const checks = Array.isArray(checksJson.check_runs) ? checksJson.check_runs : [];
+          el.prState.textContent = prJson.draft
+            ? "draft"
+            : String(prJson.state || "--").toLowerCase();
+          el.prTitle.textContent = prJson.title || "sem titulo";
+          el.mergeState.textContent = String(prJson.mergeable_state || "unknown").toLowerCase();
+          el.prBranch.textContent = `${prJson.head.ref} -> ${prJson.base.ref}`;
+          el.headSha.textContent = shortSha(prJson.head.sha);
+          el.headUpdated.textContent = `commit ${shortSha(prJson.head.sha)} · ${fmt(prJson.updated_at)}`;
+          setChecksSummary(checks);
+          el.checkList.innerHTML = checks.length
+            ? checks
+                .sort((a, b) => String(a.name).localeCompare(String(b.name)))
+                .map(
+                  (c) =>
+                    `<div class="item"><strong>${esc(c.name)} · <span class="${toneClass((c.conclusion || c.status || "").toLowerCase())}">${esc((c.conclusion || c.status || "unknown").toLowerCase())}</span></strong><small>${esc(c.details_url || "")}</small></div>`,
+                )
+                .join("")
+            : `<div class="item">Sem checks retornados.</div>`;
+          el.lastRefresh.textContent = `GitHub atualizado em ${fmt(new Date().toISOString())}`;
+        } catch (error) {
+          el.heroPr.textContent = "falha ao ler PR";
+          el.checkList.innerHTML = `<div class="callout tone-danger">${esc(error.message || String(error))}</div>`;
+          el.lastRefresh.textContent = `falhou em ${fmt(new Date().toISOString())}`;
+        }
+      }
+      function renderLabState(state, source) {
+        const items = Array.isArray(state?.decisions?.items) ? state.decisions.items : [];
+        const pending = items.filter((x) => String(x?.status || "").toLowerCase() === "pending");
+        const ids = Array.isArray(state?.agents?.ids) ? state.agents.ids : [];
+        el.labAgents.textContent = ids.length || "--";
+        el.labAgentsMeta.textContent = ids.length ? ids.join(", ") : "sem ids";
+        el.labDecisions.textContent = items.length || "--";
+        el.labDecisionsMeta.textContent = source;
+        el.labPending.textContent = pending.length;
+        el.labPendingMeta.textContent = pending.length ? "chairman rail ativo" : "sem pendencias";
+        el.heroLab.textContent = pending.length
+          ? `${pending.length} pendencia(s)`
+          : "LAB sem pendencias";
+        el.labDetails.innerHTML = [
+          ["generated_at", state?.generated_at || "n/a"],
+          ["meeting", JSON.stringify(state?.meeting || {})],
+          ["pendencias", pending.length ? pending.map((x) => x.id).join(", ") : "nenhuma"],
+        ]
+          .map(
+            ([a, b]) =>
+              `<div class="item"><strong>${esc(a)}</strong><small>${esc(b)}</small></div>`,
+          )
+          .join("");
+      }
+      async function refreshLab() {
+        saveConfig();
+        try {
+          const health = await fetch(el.healthUrl.value.trim());
+          el.labHealth.textContent = health.ok ? "ok" : "warn";
+          el.labHealthMeta.textContent = `${health.status} · ${el.healthUrl.value.trim()}`;
+        } catch (error) {
+          el.labHealth.textContent = "fail";
+          el.labHealthMeta.textContent = `health inacessivel: ${String(error.message || error)}`;
+        }
+        try {
+          const headers = el.apiToken.value.trim()
+            ? { Authorization: `Bearer ${el.apiToken.value.trim()}` }
+            : {};
+          const res = await fetch(el.stateUrl.value.trim(), { headers });
+          const raw = await res.text();
+          if (!res.ok) throw new Error(`${res.status} · ${raw}`);
+          const json = JSON.parse(raw);
+          el.stateJson.value = JSON.stringify(json, null, 2);
+          renderLabState(json, "fetch /state");
+        } catch (error) {
+          el.labDetails.innerHTML = `<div class="callout tone-danger">${esc(`Falha ao ler /state: ${String(error.message || error)}`)}</div>`;
+        }
+      }
+      function usePastedState() {
+        try {
+          renderLabState(JSON.parse(el.stateJson.value), "json colado");
+          el.labHealth.textContent = "manual";
+          el.labHealthMeta.textContent = "snapshot manual aplicado";
+        } catch (error) {
+          el.labDetails.innerHTML = `<div class="callout tone-danger">${esc(`JSON invalido: ${String(error.message || error)}`)}</div>`;
+        }
+      }
+      function schedule() {
+        clearInterval(timer);
+        if (!auto) {
+          el.toggleAutoRefresh.textContent = "Auto refresh: desligado";
+          return;
+        }
+        el.toggleAutoRefresh.textContent = "Auto refresh: ligado";
+        timer = setInterval(
+          () => void refreshGithub(),
+          Math.max(15, Number(el.refreshSeconds.value) || 60) * 1000,
+        );
+      }
+      el.refreshGithub.onclick = () => void refreshGithub();
+      el.refreshLab.onclick = () => void refreshLab();
+      el.usePastedState.onclick = usePastedState;
+      el.toggleAutoRefresh.onclick = () => {
+        auto = !auto;
+        schedule();
+      };
+      [el.owner, el.repo, el.prNumber, el.refreshSeconds, el.healthUrl, el.stateUrl].forEach(
+        (input) =>
+          (input.onchange = () => {
+            saveConfig();
+            schedule();
+          }),
+      );
+      loadConfig();
+      renderSnapshot();
+      schedule();
+      void refreshGithub();
+    </script>
+  </body>
+</html>

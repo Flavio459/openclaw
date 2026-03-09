@@ -96,6 +96,10 @@ function isWindowsSpawnErrorThatCanUseShell(err: unknown) {
   return code === "EINVAL" || code === "ENOENT";
 }
 
+function shouldSpawnWithShell(execPath: string) {
+  return process.platform === "win32" && /\.(cmd|bat)$/i.test(execPath);
+}
+
 async function runLobsterSubprocessOnce(
   params: {
     execPath: string;
@@ -181,10 +185,11 @@ async function runLobsterSubprocess(params: {
   timeoutMs: number;
   maxStdoutBytes: number;
 }) {
+  const preferShell = shouldSpawnWithShell(params.execPath);
   try {
-    return await runLobsterSubprocessOnce(params, false);
+    return await runLobsterSubprocessOnce(params, preferShell);
   } catch (err) {
-    if (process.platform === "win32" && isWindowsSpawnErrorThatCanUseShell(err)) {
+    if (!preferShell && process.platform === "win32" && isWindowsSpawnErrorThatCanUseShell(err)) {
       return await runLobsterSubprocessOnce(params, true);
     }
     throw err;

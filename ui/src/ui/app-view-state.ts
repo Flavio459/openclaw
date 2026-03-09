@@ -47,6 +47,7 @@ export type AppViewState = {
   hello: GatewayHelloOk | null;
   lastError: string | null;
   eventLog: EventLogEntry[];
+  eventLogBuffer: EventLogEntry[];
   assistantName: string;
   assistantAvatar: string | null;
   assistantAgentId: string | null;
