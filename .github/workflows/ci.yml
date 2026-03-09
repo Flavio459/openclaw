@@ -328,7 +328,6 @@ jobs:
         with:
           filters: |
             apple:
-              - '.github/workflows/ci.yml'
               - '.swiftformat'
               - '.swiftlint.yml'
               - 'apps/macos/**'
