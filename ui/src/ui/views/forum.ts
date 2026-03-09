@@ -162,6 +162,27 @@ export function renderForum(props: ForumProps) {
                         </div>
                       </div>
                       <div class="forum-lead-case__section">
+                        <div class="forum-lead-case__label">Scenario Matrix</div>
+                        <div class="list" style="margin-top: 8px;">
+                          ${props.domainProjection.leadCase.decisionScenarios.map(
+                            (item) => html`
+                              <div class="list-item">
+                                <div class="list-main">
+                                  <div class="list-title">${item.label}</div>
+                                  <div class="list-sub">${item.summary}</div>
+                                  <div class="muted">
+                                    protected ${item.protectedProductionUnits} · contested
+                                    ${item.contestedProductionUnits} · exposure
+                                    ${item.projectedExposure}
+                                  </div>
+                                </div>
+                                <div class="list-meta mono">${item.authorityState}</div>
+                              </div>
+                            `,
+                          )}
+                        </div>
+                      </div>
+                      <div class="forum-lead-case__section">
                         <div class="forum-lead-case__label">Evidence Trail</div>
                         <div class="list" style="margin-top: 8px;">
                           ${props.domainProjection.leadCase.evidenceTrail.map(

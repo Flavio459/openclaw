@@ -98,6 +98,9 @@ describe("forum view", () => {
     expect(container.textContent).toContain("Contested U.P.");
     expect(container.textContent).toContain("Projected Exposure");
     expect(container.textContent).toContain("chairman_pending");
+    expect(container.textContent).toContain("Scenario Matrix");
+    expect(container.textContent).toContain("Approve supervised release");
+    expect(container.textContent).toContain("protected 15 · contested 0 · exposure 2");
     expect(container.textContent).toContain("Evidence Trail");
     expect(container.textContent).toContain("pilot:pilot-bruno");
     expect(container.textContent).toContain("mobility:mob-1002");

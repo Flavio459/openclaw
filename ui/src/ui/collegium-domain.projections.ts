@@ -360,6 +360,7 @@ export function buildForumDomainProjection(
               ? "priority"
               : "monitor",
         economicImpact: buildEconomicImpact(snapshot, leadDeliberation),
+        decisionScenarios: buildDecisionScenarios(snapshot, leadDeliberation),
         evidenceTrail: buildEvidenceTrail(snapshot, leadDeliberation),
         decisionPanel: buildDecisionPanel(leadDeliberation),
       }
@@ -435,6 +436,52 @@ function buildEconomicImpact(snapshot: CollegiumDomainSnapshot, caseItem: Delibe
     projectedExposure,
     authorityState: caseItem.chairmanActionRequired ? "chairman_pending" : "board_review",
   };
+}
+
+function buildDecisionScenarios(snapshot: CollegiumDomainSnapshot, caseItem: DeliberationCase) {
+  const impact = buildEconomicImpact(snapshot, caseItem);
+  return [
+    {
+      action: "approve" as const,
+      label: "Approve supervised release",
+      protectedProductionUnits: impact.protectedProductionUnits + impact.contestedProductionUnits,
+      contestedProductionUnits: 0,
+      projectedExposure: Math.max(0, impact.projectedExposure - 3),
+      authorityState: "clear" as const,
+      summary:
+        "Releases contested production back into the protected corridor, but still assumes managed supervision cost.",
+    },
+    {
+      action: "reject" as const,
+      label: "Maintain restriction",
+      protectedProductionUnits: impact.protectedProductionUnits,
+      contestedProductionUnits: impact.contestedProductionUnits,
+      projectedExposure: impact.projectedExposure + 1,
+      authorityState: "chairman_attention" as const,
+      summary:
+        "Preserves institutional control, but keeps exposure and blocked production concentrated on the Chairman rail.",
+    },
+    {
+      action: "defer" as const,
+      label: "Defer for more evidence",
+      protectedProductionUnits: impact.protectedProductionUnits,
+      contestedProductionUnits: impact.contestedProductionUnits,
+      projectedExposure: impact.projectedExposure + 2,
+      authorityState: "board_attention" as const,
+      summary:
+        "Holds current production intact while operational uncertainty grows with every unresolved cycle.",
+    },
+    {
+      action: "escalate" as const,
+      label: "Escalate to legal corridor",
+      protectedProductionUnits: impact.protectedProductionUnits,
+      contestedProductionUnits: impact.contestedProductionUnits,
+      projectedExposure: impact.projectedExposure,
+      authorityState: "chairman_attention" as const,
+      summary:
+        "Transfers the burden to a stricter authority path without immediately reducing contested exposure.",
+    },
+  ];
 }
 
 function buildEvidenceTrail(snapshot: CollegiumDomainSnapshot, caseItem: DeliberationCase) {

@@ -65,6 +65,10 @@ describe("buildForumDomainProjection", () => {
     expect(projection.leadCase?.economicImpact.contestedProductionUnits).toBe(3);
     expect(projection.leadCase?.economicImpact.protectedProductionUnits).toBe(12);
     expect(projection.leadCase?.economicImpact.projectedExposure).toBe(5);
+    expect(projection.leadCase?.decisionScenarios).toHaveLength(4);
+    expect(projection.leadCase?.decisionScenarios[0]?.action).toBe("approve");
+    expect(projection.leadCase?.decisionScenarios[0]?.protectedProductionUnits).toBe(15);
+    expect(projection.leadCase?.decisionScenarios[0]?.projectedExposure).toBe(2);
     expect(projection.leadCase?.evidenceTrail).toHaveLength(3);
     expect(projection.leadCase?.evidenceTrail[0]?.entityRef).toBe("pilot:pilot-bruno");
     expect(projection.leadCase?.decisionPanel).toHaveLength(4);

@@ -203,6 +203,15 @@ export type ForumDomainProjection = {
           projectedExposure: number;
           authorityState: "chairman_pending" | "board_review";
         };
+        decisionScenarios: Array<{
+          action: "approve" | "reject" | "defer" | "escalate";
+          label: string;
+          protectedProductionUnits: number;
+          contestedProductionUnits: number;
+          projectedExposure: number;
+          authorityState: "clear" | "board_attention" | "chairman_attention";
+          summary: string;
+        }>;
         evidenceTrail: Array<{
           entityRef: string;
           role: "pilot" | "passenger" | "mobility";
