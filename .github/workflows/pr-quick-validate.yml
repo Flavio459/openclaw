@@ -54,12 +54,13 @@ jobs:
 
       - name: Validate Collegium UI slice
         run: |
-          pnpm --dir ui test -- \
+          pnpm --dir ui exec vitest run --config vitest.config.ts \
             src/ui/collegium.test.ts \
             src/ui/collegium-domain.test.ts \
             src/ui/collegium-domain.projections.test.ts \
             src/ui/views/command.test.ts \
-            src/ui/views/forum.test.ts
+            src/ui/views/forum.test.ts \
+            --exclude src/ui/**/*.browser.test.ts
 
       - name: Build control UI
         run: pnpm --dir ui build
