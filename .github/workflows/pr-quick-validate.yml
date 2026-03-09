@@ -30,11 +30,13 @@ jobs:
           node-version: 22.12.0
 
       - name: Setup pnpm
-        run: |
-          set -euo pipefail
-          corepack enable
-          corepack prepare pnpm@10.23.0 --activate
-          pnpm -v
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10.23.0
+          run_install: false
+
+      - name: Show pnpm version
+        run: pnpm -v
 
       - name: Install dependencies
         env:
