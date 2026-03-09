@@ -105,6 +105,22 @@ export function renderForum(props: ForumProps) {
                           ${props.domainProjection.leadCase.chairmanAction}
                         </div>
                       </div>
+                      <div class="forum-lead-case__section">
+                        <div class="forum-lead-case__label">Decision Panel</div>
+                        <div class="list" style="margin-top: 8px;">
+                          ${props.domainProjection.leadCase.decisionPanel.map(
+                            (item) => html`
+                              <div class="list-item">
+                                <div class="list-main">
+                                  <div class="list-title">${item.label}</div>
+                                  <div class="list-sub">${item.rationale}</div>
+                                </div>
+                                <div class="list-meta mono">${item.action}</div>
+                              </div>
+                            `,
+                          )}
+                        </div>
+                      </div>
                     </div>
                   `
                 : html`
@@ -289,6 +305,9 @@ function renderDeliberationCard(entry: DeliberationCase) {
       <div class="muted" style="margin-top: 10px;">Recommended path: ${entry.recommendedPath}</div>
       <div class="muted" style="margin-top: 6px;">
         options: ${entry.options.length} · evidence: ${entry.evidenceRefs.length}
+      </div>
+      <div class="muted" style="margin-top: 6px;">
+        chairman lane: ${entry.chairmanActionRequired ? "approve or reject" : "review or defer"}
       </div>
       <div class="muted" style="margin-top: 6px;">
         refs: ${[

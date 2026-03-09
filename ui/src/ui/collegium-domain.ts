@@ -109,6 +109,9 @@ export type CommandDomainProjection = {
     pilotCount: number;
     activeProductionUnits: number;
     supervisedBy?: PilotId;
+    activeMobilityCount: number;
+    contestedMobilityCount: number;
+    pressureLevel: "steady" | "elevated" | "critical";
   }>;
   governanceWatchlist: Array<{
     id: string;
@@ -166,6 +169,11 @@ export type ForumDomainProjection = {
         risks: string[];
         recommendedPath: string;
         chairmanAction: "approve" | "review" | "defer";
+        decisionPanel: Array<{
+          action: "approve" | "reject" | "defer" | "escalate";
+          label: string;
+          rationale: string;
+        }>;
       }
     | null;
   provenance: "fixture_projection";

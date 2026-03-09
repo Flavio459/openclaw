@@ -88,6 +88,8 @@ describe("forum view", () => {
     expect(container.textContent).toContain("Review fleet changes");
     expect(container.textContent).toContain("Risk Lattice");
     expect(container.textContent).toContain("cwd: /workspace/openclaw");
+    expect(container.textContent).toContain("Decision Panel");
+    expect(container.textContent).toContain("Approve supervised release");
   });
 
   it("shows both domain highlights and live strategic events", () => {
@@ -117,5 +119,6 @@ describe("forum view", () => {
     expect(container.textContent).toContain("Need authority to review fleet changes");
     expect(container.textContent).toContain("options: 3");
     expect(container.textContent).toContain("Chairman Action");
+    expect(container.textContent).toContain("chairman lane: approve or reject");
   });
 });

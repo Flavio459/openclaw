@@ -176,7 +176,7 @@ export function renderCommand(props: CommandProps) {
 
         <div class="card">
           <div class="card-title">Corridor Watch</div>
-          <div class="card-sub">
+        <div class="card-sub">
             Corredores e rede economica derivados do snapshot protocolar atual.
           </div>
           <div class="list" style="margin-top: 12px;">
@@ -187,6 +187,10 @@ export function renderCommand(props: CommandProps) {
                     <div class="list-title">${node.label}</div>
                     <div class="list-sub">
                       ${node.pilotCount} pilot(s) · supervisor ${node.supervisedBy ?? "unassigned"}
+                    </div>
+                    <div class="muted">
+                      ${node.activeMobilityCount} active mobility · ${node.contestedMobilityCount}
+                      contested · ${node.pressureLevel} pressure
                     </div>
                   </div>
                   <div class="list-meta mono">${node.activeProductionUnits} U.P.</div>
@@ -236,6 +240,32 @@ export function renderCommand(props: CommandProps) {
             ${renderCapability("The Pilots Domain", `${props.domainProjection.pilotCount} pilots mapped`)}
             ${renderCapability("Protocol Source", props.domainProjection.provenance)}
           </div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Corridor Pressure</div>
+        <div class="card-sub">
+          Pressao operacional por corredor, separando producao, mobilidade ativa e disputa institucional.
+        </div>
+        <div class="list" style="margin-top: 12px;">
+          ${props.domainProjection.networkSummary.map(
+            (node) => html`
+              <div class="list-item">
+                <div class="list-main">
+                  <div class="list-title">${node.label}</div>
+                  <div class="list-sub">
+                    ${node.activeProductionUnits} validated U.P. · ${node.activeMobilityCount}
+                    active mobility
+                  </div>
+                </div>
+                <div class="list-meta">
+                  <div class="mono">${node.pressureLevel}</div>
+                  <div class="muted">${node.contestedMobilityCount} contested</div>
+                </div>
+              </div>
+            `,
+          )}
         </div>
       </section>
 

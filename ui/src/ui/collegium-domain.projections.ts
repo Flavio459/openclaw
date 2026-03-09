@@ -65,13 +65,33 @@ export function buildCommandDomainProjection(
 
   const networkSummary = snapshot.networkNodes
     .toSorted((left, right) => right.activeProductionUnits - left.activeProductionUnits)
-    .map((node) => ({
-      id: node.id,
-      label: node.label,
-      pilotCount: node.pilotIds.length,
-      activeProductionUnits: node.activeProductionUnits,
-      supervisedBy: node.supervisedBy,
-    }));
+    .map((node) => {
+      const nodeMobility = snapshot.mobilityEvents.filter((event) =>
+        node.pilotIds.includes(event.pilotId),
+      );
+      const activeMobilityCount = nodeMobility.filter(
+        (event) => event.status === "in_progress" || event.status === "matched",
+      ).length;
+      const contestedMobilityCount = nodeMobility.filter(
+        (event) => event.status === "contested",
+      ).length;
+      const pressureLevel =
+        contestedMobilityCount > 0
+          ? "critical"
+          : activeMobilityCount > 0 || node.activeProductionUnits >= 8
+            ? "elevated"
+            : "steady";
+      return {
+        id: node.id,
+        label: node.label,
+        pilotCount: node.pilotIds.length,
+        activeProductionUnits: node.activeProductionUnits,
+        supervisedBy: node.supervisedBy,
+        activeMobilityCount,
+        contestedMobilityCount,
+        pressureLevel,
+      };
+    });
 
   const governanceWatchlist = [
     ...snapshot.pilots
@@ -245,6 +265,32 @@ export function buildForumDomainProjection(
           .map((item) => `${item.title}: ${item.summary}`),
         recommendedPath: leadDeliberation.recommendedPath,
         chairmanAction: leadDeliberation.chairmanActionRequired ? "approve" : "review",
+        decisionPanel: [
+          {
+            action: "approve",
+            label: "Approve supervised release",
+            rationale:
+              "Moves the lead case forward on the Chairman rail while preserving monitored access.",
+          },
+          {
+            action: "reject",
+            label: "Keep institutional restriction",
+            rationale:
+              "Preserves control until evidence closes the open risk and identity review.",
+          },
+          {
+            action: "defer",
+            label: "Defer until more evidence",
+            rationale:
+              "Holds the case in the room and requests additional protocol evidence before authority acts.",
+          },
+          {
+            action: "escalate",
+            label: "Escalate to legal corridor",
+            rationale:
+              "Transfers the case to a stricter compliance path when risk outweighs operational urgency.",
+          },
+        ],
       }
     : null;
 
