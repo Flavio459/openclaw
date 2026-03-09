@@ -9,6 +9,11 @@ import {
   isCollegiumTab,
   selectCollegiumEventFeed,
 } from "./collegium.ts";
+import {
+  buildCommandDomainProjection,
+  buildDefaultCollegiumDomainSnapshot,
+  buildForumDomainProjection,
+} from "./collegium-domain.projections.ts";
 import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
@@ -123,6 +128,9 @@ export function renderApp(state: AppViewState) {
   const environment = detectRuntimeEnvironment(state.settings.gatewayUrl, state.hello);
   const branding = brandingForTab(state.tab);
   const collegiumMode = isCollegiumTab(state.tab);
+  const domainSnapshot = buildDefaultCollegiumDomainSnapshot();
+  const commandDomainProjection = buildCommandDomainProjection(domainSnapshot);
+  const forumDomainProjection = buildForumDomainProjection(domainSnapshot);
   const resolvedAgentId =
     state.agentsSelectedId ??
     state.agentsList?.defaultId ??
@@ -243,6 +251,7 @@ export function renderApp(state: AppViewState) {
                 execApprovalQueue: state.execApprovalQueue,
                 cronStatus: state.cronStatus,
                 sessionsCount,
+                domainProjection: commandDomainProjection,
                 onRefresh: () => void refreshActiveTab(state),
                 onOpenForum: () => state.setTab("forum"),
                 onOpenPraetorium: () => state.setTab("praetorium"),
@@ -263,6 +272,7 @@ export function renderApp(state: AppViewState) {
                   state.eventLogBuffer,
                 ),
                 execApprovalQueue: state.execApprovalQueue,
+                domainProjection: forumDomainProjection,
                 onRefresh: () => void refreshActiveTab(state),
                 onOpenPraetorium: () => state.setTab("praetorium"),
               })

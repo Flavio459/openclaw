@@ -21,6 +21,10 @@ Documento complementar:
 - `Handoff` entre agentes endurecido com wrappers dedicados e `HMAC + TTL`.
 - `cluster_write_guard` em uso para conter escrita indevida entre áreas.
 - Dashboard/MCP consumindo estado real por `/state`, sem depender de mock.
+- Primeira camada explícita de domínio central do Collegium materializada na UI.
+- `Cortex Command` e `The Forum` agora consomem projeções de domínio além da telemetria de runtime.
+- A proveniência atual desse domínio é `fixture_projection`, declarada de forma explícita.
+- Backend definitivo e telemetria real de `The Pilots` continuam pendentes nesta etapa.
 
 ## Componentes Operacionais
 
@@ -29,6 +33,7 @@ Documento complementar:
 - `MCP do dashboard`: ponte entre frontend e estado real do LAB.
 - `Scripts PEMA`: scaffolding, smoke tests, deploy remoto e relatórios.
 - `Dashboard`: interface executiva do sistema.
+- `Domínio Collegium`: contratos, fixtures e projeções para pilotos, passageiros, mobilidade, rede e deliberação.
 
 ## Tooling de Desenvolvimento
 
@@ -49,6 +54,8 @@ Documento complementar:
 - A sala de reuniões ainda está menos madura do que o restante do fluxo.
 - A memória de origem ainda precisa continuar sendo consultada sem contaminar a execução diária.
 - Qualquer expansão visual precisa preservar o papel do `Chairman`, dos agentes e das trilhas de auditoria.
+- O domínio central ainda não possui persistência própria nem integração com eventos reais de mobilidade.
+- Projeções `fixture_projection` não podem ser tratadas como telemetria viva nem como ledger definitivo.
 
 ## Uso Recomendado
 

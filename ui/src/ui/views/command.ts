@@ -10,6 +10,7 @@ import {
   countEngineeringAgents,
   type RuntimeEnvironment,
 } from "../collegium.ts";
+import type { CommandDomainProjection } from "../collegium-domain.ts";
 import type {
   AgentsListResult,
   ChannelsStatusSnapshot,
@@ -27,6 +28,7 @@ export type CommandProps = {
   execApprovalQueue: ExecApprovalRequest[];
   cronStatus: CronStatus | null;
   sessionsCount: number | null;
+  domainProjection: CommandDomainProjection;
   onRefresh: () => void;
   onOpenForum: () => void;
   onOpenPraetorium: () => void;
@@ -40,28 +42,31 @@ export function renderCommand(props: CommandProps) {
       name: "Boardroom",
       owner: "Chairman",
       status:
-        props.execApprovalQueue.length > 0
-          ? `${props.execApprovalQueue.length} pending`
+        props.domainProjection.pendingDeliberationCount > 0
+          ? `${props.domainProjection.pendingDeliberationCount} institutional pending`
+          : props.execApprovalQueue.length > 0
+            ? `${props.execApprovalQueue.length} runtime pending`
           : "Clear for action",
       detail: "Vetos, autorização HITL e decisões que exigem autoridade formal.",
     },
     {
       name: "Operations",
       owner: "Chief Executive Agent",
-      status: `${props.presenceEntries.length} live nodes`,
-      detail: "Rede operacional observável. Telemetria específica de The Pilots ainda precisa ser conectada.",
+      status: `${props.domainProjection.activePilotCount}/${props.domainProjection.pilotCount} pilots active`,
+      detail: "A camada de domínio já projeta pilotos e mobilidade. A lattice de runtime continua ao lado como telemetria operacional.",
     },
     {
       name: "Capital & Assets",
       owner: "Chief Financial Agent",
-      status: props.sessionsCount != null ? `${props.sessionsCount} tracked sessions` : "Feed pending",
-      detail: "Fluxo financeiro real ainda não está ligado a esta superfície. Sessões já estão disponíveis como lastro operacional.",
+      status: `${props.domainProjection.validatedProductionUnits} validated U.P.`,
+      detail: "Produção econômica derivada de eventos de mobilidade completados e validados por evidência.",
     },
     {
       name: "Compliance",
       owner: "Chief Legal Agent",
-      status: props.lastError ? "Attention required" : "Nominal",
-      detail: "Contratos, seguros e normativos. Nesta etapa, o melhor sinal disponível é a saúde do runtime.",
+      status:
+        props.domainProjection.operationalAlerts.length > 0 ? "Protocol alerts raised" : "Nominal",
+      detail: "Governança protocolar, restrições e eventos contestados agora aparecem como alertas explícitos de domínio.",
     },
     {
       name: "The Foundry",
@@ -73,8 +78,6 @@ export function renderCommand(props: CommandProps) {
       detail: "R&D, stack, roteirização e evolução do sistema.",
     },
   ];
-  const channels = props.channelsSnapshot?.channelOrder?.length ?? 0;
-
   return html`
     <section class="collegium-shell">
       <section class="collegium-hero collegium-hero--command">
@@ -130,16 +133,17 @@ export function renderCommand(props: CommandProps) {
       <section class="collegium-kpi-grid">
         <div class="collegium-kpi-card">
           <div class="collegium-kpi-card__label">The Pilots</div>
-          <div class="collegium-kpi-card__value">Feed pending</div>
+          <div class="collegium-kpi-card__value">
+            ${props.domainProjection.activePilotCount}/${props.domainProjection.pilotCount}
+          </div>
           <div class="muted">
-            A superfície já reserva o domínio operacional, mas a telemetria real dos Pilots ainda
-            não está conectada ao runtime atual.
+            Fixture-backed protocol model. O domínio já mostra pilotos ativos sem fingir telemetria real de campo.
           </div>
         </div>
         <div class="collegium-kpi-card">
           <div class="collegium-kpi-card__label">Connected Networks</div>
-          <div class="collegium-kpi-card__value">${channels}</div>
-          <div class="muted">Canais configurados e disponíveis como rede institucional.</div>
+          <div class="collegium-kpi-card__value">${props.domainProjection.connectedNetworkCount}</div>
+          <div class="muted">Domain projection das redes econômicas atualmente modeladas.</div>
         </div>
         <div class="collegium-kpi-card">
           <div class="collegium-kpi-card__label">Operational Lattice</div>
@@ -147,9 +151,9 @@ export function renderCommand(props: CommandProps) {
           <div class="muted">Presença em tempo real dos nós e instâncias do ambiente.</div>
         </div>
         <div class="collegium-kpi-card">
-          <div class="collegium-kpi-card__label">Automated Routines</div>
-          <div class="collegium-kpi-card__value">${props.cronStatus?.jobs ?? 0}</div>
-          <div class="muted">Rotinas já conectadas ao Foundry e à disciplina operacional.</div>
+          <div class="collegium-kpi-card__label">Validated U.P.</div>
+          <div class="collegium-kpi-card__value">${props.domainProjection.validatedProductionUnits}</div>
+          <div class="muted">Produção validada a partir de eventos concluídos e ledger protocolar.</div>
         </div>
       </section>
 
@@ -187,9 +191,32 @@ export function renderCommand(props: CommandProps) {
             ${renderCapability("Colaboradores Digitais", `${props.agentsList?.agents.length ?? 0} loaded`)}
             ${renderCapability("Authority Rail", `${props.execApprovalQueue.length} pending decisions`)}
             ${renderCapability("Runtime Presence", `${props.presenceEntries.length} live instances`)}
-            ${renderCapability("The Pilots Telemetry", "Not yet bound")}
-            ${renderCapability("Financial Feed", "Not yet bound")}
+            ${renderCapability("The Pilots Domain", `${props.domainProjection.pilotCount} pilots mapped`)}
+            ${renderCapability("Protocol Source", props.domainProjection.provenance)}
           </div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Operational Alerts</div>
+        <div class="card-sub">
+          Alertas derivados do domínio protocolar. Não substituem runtime; complementam a leitura executiva.
+        </div>
+        <div class="list" style="margin-top: 12px;">
+          ${
+            props.domainProjection.operationalAlerts.length === 0
+              ? html`<div class="muted">No protocol alert is currently projected.</div>`
+              : props.domainProjection.operationalAlerts.map(
+                  (alert) => html`
+                    <div class="list-item">
+                      <div class="list-main">
+                        <div class="list-title">${alert}</div>
+                      </div>
+                      <div class="list-meta mono">${props.domainProjection.provenance}</div>
+                    </div>
+                  `,
+                )
+          }
         </div>
       </section>
 

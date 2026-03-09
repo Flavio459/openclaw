@@ -1,6 +1,8 @@
 import { render } from "lit";
 import { describe, expect, it } from "vitest";
 import type { EventLogEntry } from "../app-events.ts";
+import { buildDefaultCollegiumDomainSnapshot } from "../collegium-domain.fixtures.ts";
+import { buildForumDomainProjection } from "../collegium-domain.projections.ts";
 import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
 import { renderForum, type ForumProps } from "./forum.ts";
 
@@ -15,6 +17,9 @@ const AGENTS = {
   ],
 };
 
+const SNAPSHOT = buildDefaultCollegiumDomainSnapshot();
+const DOMAIN = buildForumDomainProjection(SNAPSHOT);
+
 function createProps(overrides: Partial<ForumProps> = {}): ForumProps {
   return {
     gatewayUrl: "ws://127.0.0.1:18789",
@@ -23,6 +28,7 @@ function createProps(overrides: Partial<ForumProps> = {}): ForumProps {
     agentsList: AGENTS,
     eventLog: [],
     execApprovalQueue: [],
+    domainProjection: DOMAIN,
     onRefresh: () => undefined,
     onOpenPraetorium: () => undefined,
     ...overrides,
@@ -47,12 +53,23 @@ function createApproval(overrides: Partial<ExecApprovalRequest> = {}): ExecAppro
 describe("forum view", () => {
   it("renders an empty agenda without breaking", () => {
     const container = document.createElement("div");
-    render(renderForum(createProps()), container);
+    render(
+      renderForum(
+        createProps({
+          domainProjection: {
+            deliberationQueue: [],
+            strategicHighlights: [],
+            provenance: "fixture_projection",
+          },
+        }),
+      ),
+      container,
+    );
 
     expect(container.textContent).toContain("No authority request is waiting.");
   });
 
-  it("renders pending decision cards with cwd details", () => {
+  it("renders the protocol agenda before runtime approval details", () => {
     const container = document.createElement("div");
     render(
       renderForum(
@@ -63,11 +80,13 @@ describe("forum view", () => {
       container,
     );
 
+    expect(container.textContent).toContain("Resolve Bruno restriction before demand surge");
+    expect(container.textContent).toContain("Operational authority rail");
     expect(container.textContent).toContain("Review fleet changes");
     expect(container.textContent).toContain("cwd: /workspace/openclaw");
   });
 
-  it("shows strategic traces when fed a live strategic event", () => {
+  it("shows both domain highlights and live strategic events", () => {
     const container = document.createElement("div");
     const eventLog: EventLogEntry[] = [
       {
@@ -90,6 +109,7 @@ describe("forum view", () => {
     );
 
     expect(container.textContent).toContain("Strategic Traces");
+    expect(container.textContent).toContain("Resolve Bruno restriction before demand surge");
     expect(container.textContent).toContain("Need authority to review fleet changes");
   });
 });
