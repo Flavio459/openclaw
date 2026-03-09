@@ -71,6 +71,16 @@ function fakeCtx(overrides: Partial<OpenClawPluginToolContext> = {}): OpenClawPl
   };
 }
 
+function lobsterTestTimeoutMs() {
+  if (
+    process.platform === "win32" &&
+    (process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true")
+  ) {
+    return 5_000;
+  }
+  return 1_000;
+}
+
 describe("lobster plugin tool", () => {
   it("runs lobster and returns parsed envelope in details", async () => {
     const fake = await writeFakeLobster({
@@ -85,7 +95,7 @@ describe("lobster plugin tool", () => {
       const res = await tool.execute("call1", {
         action: "run",
         pipeline: "noop",
-        timeoutMs: 1000,
+        timeoutMs: lobsterTestTimeoutMs(),
       });
 
       expect(res.details).toMatchObject({ ok: true, status: "ok" });
@@ -111,7 +121,7 @@ describe("lobster plugin tool", () => {
       const res = await tool.execute("call-noisy", {
         action: "run",
         pipeline: "noop",
-        timeoutMs: 1000,
+        timeoutMs: lobsterTestTimeoutMs(),
       });
 
       expect(res.details).toMatchObject({ ok: true, status: "ok" });
@@ -201,7 +211,7 @@ describe("lobster plugin tool", () => {
       const res = await tool.execute("call-plugin-config", {
         action: "run",
         pipeline: "noop",
-        timeoutMs: 1000,
+        timeoutMs: lobsterTestTimeoutMs(),
       });
 
       expect(res.details).toMatchObject({ ok: true, status: "ok" });
