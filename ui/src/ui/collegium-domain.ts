@@ -156,6 +156,14 @@ export type CommandDomainProjection = {
     asymmetryLevel: "contained" | "material" | "critical";
     summary: string;
   }>;
+  reconciliationBoard: Array<{
+    id: string;
+    title: string;
+    productionUnits: number;
+    riskLoad: number;
+    authorityState: "clear" | "board_attention" | "chairman_attention";
+    summary: string;
+  }>;
   provenance: "fixture_projection";
 };
 
@@ -189,6 +197,12 @@ export type ForumDomainProjection = {
         chairmanAction: "approve" | "review" | "defer";
         authorityState: "chairman_pending" | "board_review";
         urgency: "monitor" | "priority" | "immediate";
+        economicImpact: {
+          protectedProductionUnits: number;
+          contestedProductionUnits: number;
+          projectedExposure: number;
+          authorityState: "chairman_pending" | "board_review";
+        };
         evidenceTrail: Array<{
           entityRef: string;
           role: "pilot" | "passenger" | "mobility";

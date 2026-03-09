@@ -387,6 +387,29 @@ export function renderCommand(props: CommandProps) {
       </section>
 
       <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Production Reconciliation</div>
+        <div class="card-sub">
+          Quadro de reconciliação entre produção validada, carga de risco e trilha de autoridade.
+        </div>
+        <div class="list" style="margin-top: 12px;">
+          ${props.domainProjection.reconciliationBoard.map(
+            (entry) => html`
+              <div class="list-item">
+                <div class="list-main">
+                  <div class="list-title">${entry.title}</div>
+                  <div class="list-sub">
+                    ${entry.productionUnits} U.P. · risk load ${entry.riskLoad}
+                  </div>
+                  <div class="muted">${entry.summary}</div>
+                </div>
+                <div class="list-meta mono">${entry.authorityState}</div>
+              </div>
+            `,
+          )}
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
         <div class="card-title">Governance Watchlist</div>
         <div class="card-sub">
           Itens do dominio que ja pedem vigilancia institucional antes de qualquer backend real.

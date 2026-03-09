@@ -119,6 +119,32 @@ export function renderForum(props: ForumProps) {
                           </div>
                         </div>
                       </div>
+                      <div class="forum-lead-case__grid">
+                        <div class="forum-lead-case__section">
+                          <div class="forum-lead-case__label">Protected U.P.</div>
+                          <div class="forum-lead-case__value mono">
+                            ${props.domainProjection.leadCase.economicImpact.protectedProductionUnits}
+                          </div>
+                        </div>
+                        <div class="forum-lead-case__section">
+                          <div class="forum-lead-case__label">Contested U.P.</div>
+                          <div class="forum-lead-case__value mono">
+                            ${props.domainProjection.leadCase.economicImpact.contestedProductionUnits}
+                          </div>
+                        </div>
+                        <div class="forum-lead-case__section">
+                          <div class="forum-lead-case__label">Projected Exposure</div>
+                          <div class="forum-lead-case__value mono">
+                            ${props.domainProjection.leadCase.economicImpact.projectedExposure}
+                          </div>
+                        </div>
+                        <div class="forum-lead-case__section">
+                          <div class="forum-lead-case__label">Economic Authority</div>
+                          <div class="forum-lead-case__value mono">
+                            ${props.domainProjection.leadCase.economicImpact.authorityState}
+                          </div>
+                        </div>
+                      </div>
                       <div class="forum-lead-case__section">
                         <div class="forum-lead-case__label">Decision Panel</div>
                         <div class="list" style="margin-top: 8px;">

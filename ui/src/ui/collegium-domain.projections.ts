@@ -208,6 +208,47 @@ export function buildCommandDomainProjection(
       };
     });
 
+  const reconciliationBoard = [
+    {
+      id: "production",
+      title: "Validated production",
+      productionUnits: validatedProductionUnits,
+      riskLoad: contestedMobilityCount,
+      authorityState: pendingDeliberationCount > 0 ? "chairman_attention" : "clear",
+      summary:
+        pendingDeliberationCount > 0
+          ? "Production is healthy, but institutional approvals still gate full release."
+          : "Production and authority are currently aligned.",
+    },
+    {
+      id: "contested",
+      title: "Contested mobility",
+      productionUnits: snapshot.mobilityEvents
+        .filter((event) => event.status === "contested")
+        .reduce((total, event) => total + event.productionUnitsGenerated, 0),
+      riskLoad: contestedCaseBoard.length,
+      authorityState: contestedCaseBoard.length > 0 ? "board_attention" : "clear",
+      summary:
+        contestedCaseBoard.length > 0
+          ? "Disputed events are concentrating institutional attention and can distort economic confidence."
+          : "No active contested mobility is projected.",
+    },
+    {
+      id: "restricted",
+      title: "Restricted governance",
+      productionUnits: snapshot.pilots
+        .filter((pilot) => pilot.status === "restricted" || pilot.status === "suspended")
+        .reduce((total, pilot) => total + pilot.productionUnitsValidated, 0),
+      riskLoad: restrictedPilotCount + flaggedPassengerCount,
+      authorityState:
+        restrictedPilotCount > 0 || flaggedPassengerCount > 0 ? "chairman_attention" : "clear",
+      summary:
+        restrictedPilotCount > 0 || flaggedPassengerCount > 0
+          ? "Restricted actors and flagged passengers are forcing governance to absorb operational load."
+          : "No restricted governance pressure is visible.",
+    },
+  ];
+
   return {
     pilotCount: snapshot.pilots.length,
     activePilotCount,
@@ -227,6 +268,7 @@ export function buildCommandDomainProjection(
     passengerBoard,
     mobilityBoard,
     contestedCaseBoard,
+    reconciliationBoard,
     provenance: "fixture_projection",
   };
 }
@@ -317,6 +359,7 @@ export function buildForumDomainProjection(
             : leadDeliberation.riskLevel === "medium"
               ? "priority"
               : "monitor",
+        economicImpact: buildEconomicImpact(snapshot, leadDeliberation),
         evidenceTrail: buildEvidenceTrail(snapshot, leadDeliberation),
         decisionPanel: buildDecisionPanel(leadDeliberation),
       }
@@ -369,6 +412,29 @@ function buildDecisionPanel(caseItem: DeliberationCase) {
       rationale: escalationRationale,
     },
   ];
+}
+
+function buildEconomicImpact(snapshot: CollegiumDomainSnapshot, caseItem: DeliberationCase) {
+  const linkedEvents = caseItem.linkedMobilityEventIds
+    .map((id) => snapshot.mobilityEvents.find((event) => event.id === id))
+    .filter((entry): entry is NonNullable<typeof entry> => entry != null);
+  const contestedProductionUnits = linkedEvents.reduce(
+    (total, event) => total + event.productionUnitsGenerated,
+    0,
+  );
+  const protectedProductionUnits = snapshot.productionLedger.reduce(
+    (total, entry) => total + entry.amount,
+    0,
+  );
+  const projectedExposure =
+    contestedProductionUnits + linkedEvents.reduce((total, event) => total + event.riskSignals.length, 0);
+
+  return {
+    protectedProductionUnits,
+    contestedProductionUnits,
+    projectedExposure,
+    authorityState: caseItem.chairmanActionRequired ? "chairman_pending" : "board_review",
+  };
 }
 
 function buildEvidenceTrail(snapshot: CollegiumDomainSnapshot, caseItem: DeliberationCase) {

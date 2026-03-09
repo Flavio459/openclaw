@@ -30,6 +30,8 @@ describe("buildCommandDomainProjection", () => {
     expect(projection.mobilityBoard[0]?.status).toBe("contested");
     expect(projection.contestedCaseBoard[0]?.routeLabel).toBe("Hospital -> Zona Sul");
     expect(projection.contestedCaseBoard[0]?.asymmetryLevel).toBe("critical");
+    expect(projection.reconciliationBoard[0]?.authorityState).toBe("chairman_attention");
+    expect(projection.reconciliationBoard[1]?.productionUnits).toBe(3);
     expect(projection.provenance).toBe("fixture_projection");
   });
 
@@ -60,6 +62,9 @@ describe("buildForumDomainProjection", () => {
     expect(projection.leadCase?.chairmanAction).toBe("approve");
     expect(projection.leadCase?.authorityState).toBe("chairman_pending");
     expect(projection.leadCase?.urgency).toBe("immediate");
+    expect(projection.leadCase?.economicImpact.contestedProductionUnits).toBe(3);
+    expect(projection.leadCase?.economicImpact.protectedProductionUnits).toBe(12);
+    expect(projection.leadCase?.economicImpact.projectedExposure).toBe(5);
     expect(projection.leadCase?.evidenceTrail).toHaveLength(3);
     expect(projection.leadCase?.evidenceTrail[0]?.entityRef).toBe("pilot:pilot-bruno");
     expect(projection.leadCase?.decisionPanel).toHaveLength(4);

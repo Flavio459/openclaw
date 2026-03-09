@@ -94,6 +94,10 @@ describe("forum view", () => {
     expect(container.textContent).toContain("chairman_pending");
     expect(container.textContent).toContain("Urgency");
     expect(container.textContent).toContain("immediate");
+    expect(container.textContent).toContain("Protected U.P.");
+    expect(container.textContent).toContain("Contested U.P.");
+    expect(container.textContent).toContain("Projected Exposure");
+    expect(container.textContent).toContain("chairman_pending");
     expect(container.textContent).toContain("Evidence Trail");
     expect(container.textContent).toContain("pilot:pilot-bruno");
     expect(container.textContent).toContain("mobility:mob-1002");
