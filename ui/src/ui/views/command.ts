@@ -359,6 +359,34 @@ export function renderCommand(props: CommandProps) {
       </section>
 
       <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Dispute Asymmetry</div>
+        <div class="card-sub">
+          Onde piloto e passageiro entram em tensao institucional no mesmo evento contestado.
+        </div>
+        <div class="list" style="margin-top: 12px;">
+          ${
+            props.domainProjection.contestedCaseBoard.length === 0
+              ? html`<div class="muted">No contested asymmetry is currently projected.</div>`
+              : props.domainProjection.contestedCaseBoard.map(
+                  (entry) => html`
+                    <div class="list-item">
+                      <div class="list-main">
+                        <div class="list-title">${entry.routeLabel}</div>
+                        <div class="list-sub">
+                          ${entry.pilotLabel} (${entry.pilotStatus}) · ${entry.passengerLabel}
+                          (${entry.passengerStatus})
+                        </div>
+                        <div class="muted">${entry.summary}</div>
+                      </div>
+                      <div class="list-meta mono">${entry.asymmetryLevel}</div>
+                    </div>
+                  `,
+                )
+          }
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
         <div class="card-title">Governance Watchlist</div>
         <div class="card-sub">
           Itens do dominio que ja pedem vigilancia institucional antes de qualquer backend real.

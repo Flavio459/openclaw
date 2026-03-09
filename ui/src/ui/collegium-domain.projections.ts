@@ -185,6 +185,29 @@ export function buildCommandDomainProjection(
       riskSignals: event.riskSignals,
     }));
 
+  const contestedCaseBoard = snapshot.mobilityEvents
+    .filter((event) => event.status === "contested")
+    .map((event) => {
+      const pilot = snapshot.pilots.find((entry) => entry.id === event.pilotId);
+      const passenger = snapshot.passengers.find((entry) => entry.id === event.passengerId);
+      const asymmetryLevel =
+        pilot?.status === "restricted" || passenger?.status === "flagged"
+          ? "critical"
+          : event.riskSignals.length > 1
+            ? "material"
+            : "contained";
+      return {
+        id: event.id,
+        routeLabel: event.routeLabel,
+        pilotLabel: pilot?.displayName ?? event.pilotId,
+        pilotStatus: pilot?.status ?? "candidate",
+        passengerLabel: passenger?.displayName ?? event.passengerId,
+        passengerStatus: passenger?.status ?? "active",
+        asymmetryLevel,
+        summary: `pilot ${pilot?.status ?? "unknown"} · passenger ${passenger?.status ?? "unknown"} · signals ${event.riskSignals.join(", ") || "none"}`,
+      };
+    });
+
   return {
     pilotCount: snapshot.pilots.length,
     activePilotCount,
@@ -203,6 +226,7 @@ export function buildCommandDomainProjection(
     pilotBoard,
     passengerBoard,
     mobilityBoard,
+    contestedCaseBoard,
     provenance: "fixture_projection",
   };
 }
@@ -293,6 +317,7 @@ export function buildForumDomainProjection(
             : leadDeliberation.riskLevel === "medium"
               ? "priority"
               : "monitor",
+        evidenceTrail: buildEvidenceTrail(snapshot, leadDeliberation),
         decisionPanel: buildDecisionPanel(leadDeliberation),
       }
     : null;
@@ -344,6 +369,55 @@ function buildDecisionPanel(caseItem: DeliberationCase) {
       rationale: escalationRationale,
     },
   ];
+}
+
+function buildEvidenceTrail(snapshot: CollegiumDomainSnapshot, caseItem: DeliberationCase) {
+  const pilotEntries = caseItem.linkedPilotIds
+    .map((id) => snapshot.pilots.find((pilot) => pilot.id === id))
+    .filter((entry): entry is NonNullable<typeof entry> => entry != null)
+    .map((pilot) => ({
+      entityRef: `pilot:${pilot.id}`,
+      role: "pilot" as const,
+      summary:
+        pilot.flags.length > 0
+          ? `${pilot.displayName} is ${pilot.status} with flags ${pilot.flags.join(", ")}.`
+          : `${pilot.displayName} is ${pilot.status} with no active protocol flags.`,
+      evidenceRefs: pilot.flags.map((flag) => `risk:${flag}`),
+    }));
+
+  const mobilityEntries = caseItem.linkedMobilityEventIds
+    .map((id) => snapshot.mobilityEvents.find((event) => event.id === id))
+    .filter((entry): entry is NonNullable<typeof entry> => entry != null)
+    .map((event) => ({
+      entityRef: `mobility:${event.id}`,
+      role: "mobility" as const,
+      summary:
+        event.riskSignals.length > 0
+          ? `${event.routeLabel} is ${event.status} with signals ${event.riskSignals.join(", ")}.`
+          : `${event.routeLabel} is ${event.status}.`,
+      evidenceRefs: event.evidenceRefs,
+    }));
+
+  const linkedPassengerIds = new Set(
+    mobilityEntries.map((entry) => entry.entityRef.replace("mobility:", "")).flatMap((mobilityId) => {
+      const event = snapshot.mobilityEvents.find((item) => item.id === mobilityId);
+      return event ? [event.passengerId] : [];
+    }),
+  );
+  const passengerEntries = [...linkedPassengerIds]
+    .map((id) => snapshot.passengers.find((passenger) => passenger.id === id))
+    .filter((entry): entry is NonNullable<typeof entry> => entry != null)
+    .map((passenger) => ({
+      entityRef: `passenger:${passenger.id}`,
+      role: "passenger" as const,
+      summary:
+        passenger.trustFlags.length > 0
+          ? `${passenger.displayName} is ${passenger.status} with trust flags ${passenger.trustFlags.join(", ")}.`
+          : `${passenger.displayName} is ${passenger.status} with no active trust flags.`,
+      evidenceRefs: passenger.trustFlags.map((flag) => `trust:${flag}`),
+    }));
+
+  return [...pilotEntries, ...passengerEntries, ...mobilityEntries];
 }
 
 export { buildDefaultCollegiumDomainSnapshot };

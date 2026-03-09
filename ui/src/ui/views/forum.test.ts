@@ -94,6 +94,9 @@ describe("forum view", () => {
     expect(container.textContent).toContain("chairman_pending");
     expect(container.textContent).toContain("Urgency");
     expect(container.textContent).toContain("immediate");
+    expect(container.textContent).toContain("Evidence Trail");
+    expect(container.textContent).toContain("pilot:pilot-bruno");
+    expect(container.textContent).toContain("mobility:mob-1002");
   });
 
   it("shows both domain highlights and live strategic events", () => {

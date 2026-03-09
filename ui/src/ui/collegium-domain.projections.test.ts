@@ -28,6 +28,8 @@ describe("buildCommandDomainProjection", () => {
     expect(projection.passengerBoard[0]?.displayName).toBe("Noah Lima");
     expect(projection.passengerBoard[0]?.status).toBe("flagged");
     expect(projection.mobilityBoard[0]?.status).toBe("contested");
+    expect(projection.contestedCaseBoard[0]?.routeLabel).toBe("Hospital -> Zona Sul");
+    expect(projection.contestedCaseBoard[0]?.asymmetryLevel).toBe("critical");
     expect(projection.provenance).toBe("fixture_projection");
   });
 
@@ -58,6 +60,8 @@ describe("buildForumDomainProjection", () => {
     expect(projection.leadCase?.chairmanAction).toBe("approve");
     expect(projection.leadCase?.authorityState).toBe("chairman_pending");
     expect(projection.leadCase?.urgency).toBe("immediate");
+    expect(projection.leadCase?.evidenceTrail).toHaveLength(3);
+    expect(projection.leadCase?.evidenceTrail[0]?.entityRef).toBe("pilot:pilot-bruno");
     expect(projection.leadCase?.decisionPanel).toHaveLength(4);
     expect(projection.leadCase?.decisionPanel[0]?.action).toBe("approve");
     expect(projection.leadCase?.decisionPanel[3]?.label).toContain("legal corridor");

@@ -146,6 +146,16 @@ export type CommandDomainProjection = {
     productionUnitsGenerated: number;
     riskSignals: string[];
   }>;
+  contestedCaseBoard: Array<{
+    id: MobilityEventId;
+    routeLabel: string;
+    pilotLabel: string;
+    pilotStatus: PilotStatus;
+    passengerLabel: string;
+    passengerStatus: PassengerStatus;
+    asymmetryLevel: "contained" | "material" | "critical";
+    summary: string;
+  }>;
   provenance: "fixture_projection";
 };
 
@@ -179,6 +189,12 @@ export type ForumDomainProjection = {
         chairmanAction: "approve" | "review" | "defer";
         authorityState: "chairman_pending" | "board_review";
         urgency: "monitor" | "priority" | "immediate";
+        evidenceTrail: Array<{
+          entityRef: string;
+          role: "pilot" | "passenger" | "mobility";
+          summary: string;
+          evidenceRefs: string[];
+        }>;
         decisionPanel: Array<{
           action: "approve" | "reject" | "defer" | "escalate";
           label: string;

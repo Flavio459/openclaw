@@ -58,6 +58,8 @@ describe("command view", () => {
     expect(container.textContent).toContain("Ana Cruz");
     expect(container.textContent).toContain("Noah Lima");
     expect(container.textContent).toContain("Hospital -> Zona Sul");
+    expect(container.textContent).toContain("Dispute Asymmetry");
+    expect(container.textContent).toContain("critical");
     expect(container.textContent).not.toContain("Feed pending");
   });
 

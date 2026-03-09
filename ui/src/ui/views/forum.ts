@@ -135,6 +135,23 @@ export function renderForum(props: ForumProps) {
                           )}
                         </div>
                       </div>
+                      <div class="forum-lead-case__section">
+                        <div class="forum-lead-case__label">Evidence Trail</div>
+                        <div class="list" style="margin-top: 8px;">
+                          ${props.domainProjection.leadCase.evidenceTrail.map(
+                            (item) => html`
+                              <div class="list-item">
+                                <div class="list-main">
+                                  <div class="list-title">${item.entityRef}</div>
+                                  <div class="list-sub">${item.summary}</div>
+                                  <div class="muted">${item.evidenceRefs.join(", ") || "no direct refs"}</div>
+                                </div>
+                                <div class="list-meta mono">${item.role}</div>
+                              </div>
+                            `,
+                          )}
+                        </div>
+                      </div>
                     </div>
                   `
                 : html`
