@@ -49,6 +49,7 @@ Documento complementar:
 - A sala de reuniões ainda está menos madura do que o restante do fluxo.
 - A memória de origem ainda precisa continuar sendo consultada sem contaminar a execução diária.
 - Qualquer expansão visual precisa preservar o papel do `Chairman`, dos agentes e das trilhas de auditoria.
+- O upgrade do runtime OpenClaw foi deliberadamente postergado para um checkpoint limpo; ver [ADR-OPENCLAW-UPGRADE-WINDOW-2026-03.md](./ADR-OPENCLAW-UPGRADE-WINDOW-2026-03.md).
 
 ## Uso Recomendado
 
@@ -56,3 +57,4 @@ Documento complementar:
 - Consulte `CONTEXTO_OPERACIONAL_AGENTES.md` para o enquadramento operacional e arquitetural oficial.
 - Consulte `ORIGEM_PEMA_CURADA.md` para verificar coerência de direção.
 - Quando houver dúvida entre ferramenta e produto, trate `Stitch` e similares como tooling, não como parte do sistema.
+- Consulte [ADR-OPENCLAW-UPGRADE-WINDOW-2026-03.md](./ADR-OPENCLAW-UPGRADE-WINDOW-2026-03.md) antes de abrir qualquer frente de atualização do runtime.
