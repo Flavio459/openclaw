@@ -240,6 +240,66 @@ export function renderCommand(props: CommandProps) {
       </section>
 
       <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Pilot Board</div>
+        <div class="card-sub">
+          Leitura operacional por piloto, ainda derivada do snapshot protocolar atual.
+        </div>
+        <div class="list" style="margin-top: 12px;">
+          ${props.domainProjection.pilotBoard.map(
+            (pilot) => html`
+              <div class="list-item">
+                <div class="list-main">
+                  <div class="list-title">${pilot.displayName}</div>
+                  <div class="list-sub">
+                    reputation ${pilot.reputationScore} · active mobility ${pilot.activeMobilityEvents}
+                  </div>
+                  ${
+                    pilot.flags.length > 0
+                      ? html`<div class="muted">flags: ${pilot.flags.join(", ")}</div>`
+                      : html`<div class="muted">No active governance flags.</div>`
+                  }
+                </div>
+                <div class="list-meta">
+                  <div class="mono">${pilot.productionUnitsValidated} U.P.</div>
+                  <div class="muted">${pilot.status}</div>
+                </div>
+              </div>
+            `,
+          )}
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
+        <div class="card-title">Mobility Board</div>
+        <div class="card-sub">
+          Eventos de mobilidade que sustentam producao, risco e pauta institucional.
+        </div>
+        <div class="list" style="margin-top: 12px;">
+          ${props.domainProjection.mobilityBoard.map(
+            (event) => html`
+              <div class="list-item">
+                <div class="list-main">
+                  <div class="list-title">${event.routeLabel}</div>
+                  <div class="list-sub">${event.pilotLabel} · ${event.passengerLabel}</div>
+                  <div class="muted">
+                    ${
+                      event.riskSignals.length > 0
+                        ? `signals: ${event.riskSignals.join(", ")}`
+                        : "No additional risk signals."
+                    }
+                  </div>
+                </div>
+                <div class="list-meta">
+                  <div class="mono">${event.productionUnitsGenerated} U.P.</div>
+                  <div class="muted">${event.status}</div>
+                </div>
+              </div>
+            `,
+          )}
+        </div>
+      </section>
+
+      <section class="card" style="margin-top: 18px;">
         <div class="card-title">Governance Watchlist</div>
         <div class="card-sub">
           Itens do dominio que ja pedem vigilancia institucional antes de qualquer backend real.

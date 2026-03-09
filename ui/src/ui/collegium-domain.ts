@@ -117,6 +117,24 @@ export type CommandDomainProjection = {
     status: string;
     summary: string;
   }>;
+  pilotBoard: Array<{
+    id: PilotId;
+    displayName: string;
+    status: PilotStatus;
+    reputationScore: number;
+    productionUnitsValidated: number;
+    activeMobilityEvents: number;
+    flags: string[];
+  }>;
+  mobilityBoard: Array<{
+    id: MobilityEventId;
+    routeLabel: string;
+    status: MobilityEventStatus;
+    pilotLabel: string;
+    passengerLabel: string;
+    productionUnitsGenerated: number;
+    riskSignals: string[];
+  }>;
   provenance: "fixture_projection";
 };
 
@@ -138,5 +156,17 @@ export type ForumDomainProjection = {
     status: string;
     summary: string;
   }>;
+  leadCase:
+    | {
+        topic: string;
+        context: string;
+        participants: string[];
+        evidence: string[];
+        options: string[];
+        risks: string[];
+        recommendedPath: string;
+        chairmanAction: "approve" | "review" | "defer";
+      }
+    | null;
   provenance: "fixture_projection";
 };

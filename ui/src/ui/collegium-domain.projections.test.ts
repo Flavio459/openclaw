@@ -22,6 +22,8 @@ describe("buildCommandDomainProjection", () => {
     expect(projection.pendingDeliberationCount).toBe(1);
     expect(projection.networkSummary[0]?.label).toBe("Alpha Corridor");
     expect(projection.governanceWatchlist).toHaveLength(3);
+    expect(projection.pilotBoard[0]?.displayName).toBe("Ana Cruz");
+    expect(projection.mobilityBoard[0]?.status).toBe("contested");
     expect(projection.provenance).toBe("fixture_projection");
   });
 
@@ -48,6 +50,8 @@ describe("buildForumDomainProjection", () => {
     expect(projection.deliberationQueue[0].status).toBe("pending_chairman");
     expect(projection.deliberationQueue[0].chairmanActionRequired).toBe(true);
     expect(projection.riskLattice).toHaveLength(3);
+    expect(projection.leadCase?.topic).toBe("Resolve Bruno restriction before demand surge");
+    expect(projection.leadCase?.chairmanAction).toBe("approve");
   });
 
   it("creates strategic highlights linked to domain entities", () => {

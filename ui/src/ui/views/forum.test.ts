@@ -59,6 +59,8 @@ describe("forum view", () => {
           domainProjection: {
             deliberationQueue: [],
             strategicHighlights: [],
+            riskLattice: [],
+            leadCase: null,
             provenance: "fixture_projection",
           },
         }),
@@ -80,6 +82,7 @@ describe("forum view", () => {
       container,
     );
 
+    expect(container.textContent).toContain("Lead Case");
     expect(container.textContent).toContain("Resolve Bruno restriction before demand surge");
     expect(container.textContent).toContain("Operational authority rail");
     expect(container.textContent).toContain("Review fleet changes");
@@ -113,5 +116,6 @@ describe("forum view", () => {
     expect(container.textContent).toContain("Resolve Bruno restriction before demand surge");
     expect(container.textContent).toContain("Need authority to review fleet changes");
     expect(container.textContent).toContain("options: 3");
+    expect(container.textContent).toContain("Chairman Action");
   });
 });

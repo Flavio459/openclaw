@@ -71,6 +71,51 @@ export function renderForum(props: ForumProps) {
       <section class="forum-layout">
         <div class="forum-main">
           <section class="card">
+            <div class="card-title">Lead Case</div>
+            <div class="card-sub">
+              Estrutura deliberativa principal da sala: topic, context, evidence, options, risks and chairman action.
+            </div>
+            ${
+              props.domainProjection.leadCase
+                ? html`
+                    <div class="forum-lead-case">
+                      <div class="forum-lead-case__section">
+                        <div class="forum-lead-case__label">Topic</div>
+                        <div class="forum-lead-case__value">${props.domainProjection.leadCase.topic}</div>
+                      </div>
+                      <div class="forum-lead-case__section">
+                        <div class="forum-lead-case__label">Context</div>
+                        <div class="forum-lead-case__value">${props.domainProjection.leadCase.context}</div>
+                      </div>
+                      <div class="forum-lead-case__grid">
+                        ${renderLeadCaseList("Participants", props.domainProjection.leadCase.participants)}
+                        ${renderLeadCaseList("Evidence", props.domainProjection.leadCase.evidence)}
+                        ${renderLeadCaseList("Options", props.domainProjection.leadCase.options)}
+                        ${renderLeadCaseList("Risks", props.domainProjection.leadCase.risks)}
+                      </div>
+                      <div class="forum-lead-case__section">
+                        <div class="forum-lead-case__label">Recommended Path</div>
+                        <div class="forum-lead-case__value">
+                          ${props.domainProjection.leadCase.recommendedPath}
+                        </div>
+                      </div>
+                      <div class="forum-lead-case__section">
+                        <div class="forum-lead-case__label">Chairman Action</div>
+                        <div class="forum-lead-case__value mono">
+                          ${props.domainProjection.leadCase.chairmanAction}
+                        </div>
+                      </div>
+                    </div>
+                  `
+                : html`
+                    <div class="callout" style="margin-top: 14px;">
+                      No lead case is available in the current institutional queue.
+                    </div>
+                  `
+            }
+          </section>
+
+          <section class="card">
             <div class="card-title">Current Agenda</div>
             <div class="card-sub">What the room can act on right now without guessing.</div>
             <div class="forum-agenda-list">
@@ -275,5 +320,30 @@ function renderDecisionCard(entry: ExecApprovalRequest) {
           : nothing
       }
     </article>
+  `;
+}
+
+function renderLeadCaseList(label: string, items: string[]) {
+  return html`
+    <div class="forum-lead-case__section">
+      <div class="forum-lead-case__label">${label}</div>
+      ${
+        items.length === 0
+          ? html`<div class="muted">None</div>`
+          : html`
+              <div class="list" style="margin-top: 8px;">
+                ${items.map(
+                  (item) => html`
+                    <div class="list-item">
+                      <div class="list-main">
+                        <div class="list-title">${item}</div>
+                      </div>
+                    </div>
+                  `,
+                )}
+              </div>
+            `
+      }
+    </div>
   `;
 }

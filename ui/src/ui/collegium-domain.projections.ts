@@ -112,6 +112,41 @@ export function buildCommandDomainProjection(
       })),
   ];
 
+  const pilotBoard = snapshot.pilots
+    .toSorted((left, right) => right.productionUnitsValidated - left.productionUnitsValidated)
+    .map((pilot) => ({
+      id: pilot.id,
+      displayName: pilot.displayName,
+      status: pilot.status,
+      reputationScore: pilot.reputationScore,
+      productionUnitsValidated: pilot.productionUnitsValidated,
+      activeMobilityEvents: pilot.activeMobilityEvents,
+      flags: pilot.flags,
+    }));
+
+  const pilotLabelById = new Map(snapshot.pilots.map((pilot) => [pilot.id, pilot.displayName]));
+  const passengerLabelById = new Map(
+    snapshot.passengers.map((passenger) => [passenger.id, passenger.displayName]),
+  );
+
+  const mobilityBoard = snapshot.mobilityEvents
+    .toSorted((left, right) => {
+      const leftWeight =
+        left.status === "contested" ? 3 : left.status === "in_progress" ? 2 : 1;
+      const rightWeight =
+        right.status === "contested" ? 3 : right.status === "in_progress" ? 2 : 1;
+      return rightWeight - leftWeight;
+    })
+    .map((event) => ({
+      id: event.id,
+      routeLabel: event.routeLabel,
+      status: event.status,
+      pilotLabel: pilotLabelById.get(event.pilotId) ?? event.pilotId,
+      passengerLabel: passengerLabelById.get(event.passengerId) ?? event.passengerId,
+      productionUnitsGenerated: event.productionUnitsGenerated,
+      riskSignals: event.riskSignals,
+    }));
+
   return {
     pilotCount: snapshot.pilots.length,
     activePilotCount,
@@ -127,6 +162,8 @@ export function buildCommandDomainProjection(
     operationalAlerts: alerts,
     networkSummary,
     governanceWatchlist,
+    pilotBoard,
+    mobilityBoard,
     provenance: "fixture_projection",
   };
 }
@@ -188,10 +225,34 @@ export function buildForumDomainProjection(
       })),
   ];
 
+  const leadDeliberation = deliberationQueue[0] ?? null;
+  const leadCase = leadDeliberation
+    ? {
+        topic: leadDeliberation.title,
+        context: leadDeliberation.summary,
+        participants: [
+          ...leadDeliberation.linkedPilotIds.map((id) => `pilot:${id}`),
+          ...leadDeliberation.linkedMobilityEventIds.map((id) => `mobility:${id}`),
+        ],
+        evidence: leadDeliberation.evidenceRefs,
+        options: leadDeliberation.options,
+        risks: riskLattice
+          .filter(
+            (item) =>
+              leadDeliberation.linkedPilotIds.some((id) => item.id === `pilot:${id}`) ||
+              leadDeliberation.linkedMobilityEventIds.some((id) => item.id === `mobility:${id}`),
+          )
+          .map((item) => `${item.title}: ${item.summary}`),
+        recommendedPath: leadDeliberation.recommendedPath,
+        chairmanAction: leadDeliberation.chairmanActionRequired ? "approve" : "review",
+      }
+    : null;
+
   return {
     deliberationQueue,
     strategicHighlights,
     riskLattice,
+    leadCase,
     provenance: "fixture_projection",
   };
 }
