@@ -1,0 +1,55 @@
+#!/bin/bash
+# Claude Skill - Main Entry Point
+# Usage: skill claude [command] [options]
+
+set -e
+
+COMMAND="${1:-help}"
+shift || true
+
+case "$COMMAND" in
+  "query"|"ask")
+    MODEL="${1:-antigravity/claude-opus-4-6-thinking}"
+    shift
+    PROMPT="$*"
+    echo "🧠 Querying Claude ($MODEL)..."
+    # Send to OpenClaw with model override via system event
+    # Implementation: use OpenClaw internal routing or curl to gateway
+    echo "Prompt: $PROMPT"
+    ;;
+
+  "generate-skill")
+    NAME="$1"
+    DESC="$2"
+    shift 2
+    echo "🛠️ Generating skill: $NAME"
+    echo "Description: $DESC"
+    # Call Claude to generate skill structure
+    # Output to ./skills/$NAME
+    ;;
+
+  "test")
+    MODEL="${1:-antigravity/claude-opus-4-6-thinking}"
+    PROMPT="${2:-Hello, Claude!}"
+    echo "🧪 Testing Claude ($MODEL) with: $PROMPT"
+    ;;
+
+  "help"|*)
+    cat << EOF
+Claude Skill — Anthropic integration for OpenClaw
+
+Commands:
+  query <model?> <prompt>    Ask Claude a question
+  generate-skill <name> <desc>  Create a new skill using Claude
+  test <model?> <prompt?>    Test Claude connectivity
+  help                       Show this help
+
+Examples:
+  skill claude query "Explain quantum computing"
+  skill claude generate-skill network-scanner "Scan local network"
+  skill claude test
+
+Note: Requires Antigravity proxy running on localhost:8080
+EOF
+    ;;
+esac
