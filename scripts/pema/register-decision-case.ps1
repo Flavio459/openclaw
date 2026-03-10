@@ -43,9 +43,9 @@ if ($matches.Count -gt 0) {
     $nextNumber = (($used | Measure-Object -Maximum).Maximum) + 1
 }
 
-$decisionId = "DEC-$today-{0:d2}" -f $nextNumber
+$decisionId = "DEC-$today-" + $nextNumber.ToString('00')
 $readSetLines = if ($ReadSet.Count -gt 0) {
-    $ReadSet | ForEach-Object { "  - [[{0}]]" -f $_ }
+    $ReadSet | ForEach-Object { "  - [[$_]]" }
 } else {
     @('  - a definir')
 }
@@ -57,11 +57,11 @@ $entryLines = @(
     "- Estado: aberto",
     "- Camada: $Layer",
     "- Trilha dominante: [[${RoutingNote}]]",
-    "- Read set mínimo:",
-    $readSetLines,
+    "- Read set mínimo:"
+) + $readSetLines + @(
     "- Contexto curto: $Context",
-    "- Opções plausíveis:",
-    $optionLines,
+    "- Opções plausíveis:"
+) + $optionLines + @(
     "- Risco dominante: $Risk",
     "- Decisão do agente: pendente",
     "- Escalonar ao Chairman: $escalation",
