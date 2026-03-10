@@ -20,20 +20,21 @@ Se a resposta para a última pergunta for “ainda é fase de entendimento”, *
 
 ## Fonte de verdade documental
 
-A referencia central de visao do projeto fica no Obsidian, em `W:\Collegium Cortex`.
+A referência central de visão do projeto fica no Obsidian, em `W:\Collegium Cortex`.
 
-Hierarquia obrigatoria:
+Hierarquia obrigatória:
 
-1. `ESTATUTO CNP - O Protocolo e a Matematica do SPV`;
-2. `Collegium Cortex - Documento Mestre (Revisao Zero)`;
-3. documentos satelites de apoio.
+1. `ESTATUTO CNP - O Protocolo e a Matemática do SPV`;
+2. `Collegium Cortex - Documento Mestre (Revisão Zero)`;
+3. documentos satélites de apoio.
 
-Se houver conflito entre documentos satelites e o CNP:
+Se houver conflito entre documentos satélites e o CNP:
 
 - explicitar o conflito;
-- decidir qual formulacao faz mais sentido;
-- atualizar o restante da documentacao;
-- nao deixar interpretacoes concorrentes coexistindo implicitamente.
+- decidir qual formulação faz mais sentido;
+- atualizar o restante da documentação;
+- não deixar interpretações concorrentes coexistindo implicitamente.
+
 ## 1. Roteamento documental obrigatório
 
 Antes de abrir trabalho relevante:
@@ -57,6 +58,7 @@ Arquivos-ponte no repo:
 
 - `docs/context-routing/README.md`
 - `docs/context-routing/governanca.md`
+- `docs/context-routing/agentes-deliberacao.md`
 - `docs/context-routing/economia-protocolo.md`
 - `docs/context-routing/fluxos-operacionais.md`
 - `docs/context-routing/dados-memoria-auditoria.md`
@@ -142,12 +144,55 @@ Quando surgir uma decisão relevante:
 Não usar loop temporal como substituto de julgamento.
 Loop só faz sentido depois, para monitorar fila ou estado, nunca como mecanismo primário de decisão.
 
-Exemplo aceitável, se o ambiente suportar loop:
+---
 
-- `/loop 15m powershell -File scripts/pema/list-open-decisions.ps1 -AsJson`
+## 3B. Trabalho agentico normal
+
+Quando a necessidade for de construção, exploração, produção, revisão ou coordenação contínua dentro de mandato:
+
+1. decidir se o caso é `workstream`, não `DEC`;
+2. abrir ou localizar o `workstream` correspondente no vault;
+3. despachar especialista se o problema exigir foco delimitado;
+4. revisar a saída recebida;
+5. só subir para `DEC`, `pré-conselho` ou `Chairman` se houver impacto estrutural, cruzado ou sensível.
+
+Estruturas canônicas:
+
+- `WS` = frente viva de trabalho
+- `SPEC` = despacho de especialista
+- `REV` = revisão e fechamento
+- `DEC` = decisão relevante
 
 ---
-## 3. Gate de início
+
+## 3C. Envelopes de saída
+
+Nenhuma saída relevante deve terminar em conversa vaga.
+
+Toda saída precisa responder explicitamente:
+
+1. o que foi tentado;
+2. o que foi produzido ou descoberto;
+3. qual é o estado atual;
+4. qual é o principal risco ou limite;
+5. qual é a próxima ação dominante;
+6. quem é o próximo responsável.
+
+Tipos canônicos de saída aceitos:
+
+- `artefato`
+- `proposta`
+- `revisão`
+- `bloqueio`
+- `escalonamento`
+- `aprendizado`
+- `oportunidade`
+
+O formato do corpo é livre. Esses invariantes não são.
+
+---
+
+## 4. Gate de início
 
 Nenhum trabalho deve começar sem declarar, nem que seja mentalmente:
 
@@ -156,18 +201,11 @@ Nenhum trabalho deve começar sem declarar, nem que seja mentalmente:
 - `objetivo`
 - `não é isto`
 
-Exemplo:
-
-- superfície: `The Forum`
-- escopo: `produto`
-- objetivo: melhorar clareza de deliberação
-- não é isto: refatoração de runtime ou redesign do Praetorium
-
 Se isso não estiver claro, parar e enquadrar antes de tocar código.
 
 ---
 
-## 4. Tipos de trabalho permitidos
+## 5. Tipos de trabalho permitidos
 
 ### Tipo A — Entendimento
 
@@ -177,28 +215,12 @@ Use quando:
 - o usuário disser que a solução não parece com o que idealizou
 - a arquitetura estiver andando mais rápido que a clareza conceitual
 
-Entregas esperadas:
-
-- documento
-- mapa de fluxo
-- material de treinamento
-- interpretação do domínio
-
-**Não escrever feature por reflexo.**
-
 ### Tipo B — Estrutura
 
 Use quando:
 
 - o enquadramento já está claro
 - é preciso criar contratos, tipos, módulos ou separações duráveis
-
-Entregas esperadas:
-
-- tipos
-- módulos
-- projeções
-- documentação estrutural
 
 ### Tipo C — Interface
 
@@ -208,13 +230,6 @@ Use quando:
 - o fluxo já foi entendido
 - a UI já pode refletir algo decidido
 
-Entregas esperadas:
-
-- tela
-- componente
-- microfluxo
-- material visual
-
 ### Tipo D — Runtime
 
 Use quando:
@@ -222,17 +237,9 @@ Use quando:
 - o gargalo é técnico
 - a dúvida é sobre estado, integração, sessão, infraestrutura ou CI
 
-Entregas esperadas:
-
-- correção técnica
-- integração
-- testes
-- scripts
-- hardening
-
 ---
 
-## 5. Ordem correta de execução
+## 6. Ordem correta de execução
 
 Sempre que possível, trabalhar nesta ordem:
 
@@ -242,17 +249,11 @@ Sempre que possível, trabalhar nesta ordem:
 4. interface
 5. runtime fino
 
-**Não inverter isso** sem um motivo forte.
-
-O erro mais comum neste projeto é:
-
-- construir UI antes de fixar o uso real da superfície
-
 ---
 
-## 6. Regras de implementação
+## 7. Regras de implementação
 
-### 6.1 Não reduzir o projeto
+### 7.1 Não reduzir o projeto
 
 Nunca tratar Collegium como:
 
@@ -262,32 +263,25 @@ Nunca tratar Collegium como:
 - automação com agentes
 - rede por indicação
 
-### 6.2 Não esconder regra crítica na interface
+### 7.2 Não esconder regra crítica na interface
 
 Regra institucional, reputacional, econômica ou de autoridade:
 
 - não deve nascer como detalhe visual
 - deve ser modelada de forma rastreável
 
-### 6.3 Não inventar backend real
+### 7.3 Não inventar backend real
 
 Se o dado ainda é provisório:
 
 - marcar como provisório
 - explicitar `fixture_projection`, snapshot ou camada intermediária
 
-### 6.4 Não usar ferramenta como identidade
+### 7.4 Não usar ferramenta como identidade
 
-Ferramentas como:
+Ferramentas como Stitch, Playwright, scripts auxiliares e MCP local são tooling. Não são o produto.
 
-- Stitch
-- Playwright
-- scripts auxiliares
-- MCP local
-
-são tooling. Não são o produto.
-
-### 6.5 Não prosseguir sob ambiguidade forte
+### 7.5 Não prosseguir sob ambiguidade forte
 
 Se o usuário disser que “não parece nada com o que idealizou”:
 
@@ -296,7 +290,7 @@ Se o usuário disser que “não parece nada com o que idealizou”:
 
 ---
 
-## 7. Saída mínima por ciclo
+## 8. Saída mínima por ciclo
 
 Todo ciclo de trabalho deve fechar com:
 
@@ -310,7 +304,7 @@ Se não houver verificação, declarar explicitamente.
 
 ---
 
-## 8. Verificação obrigatória
+## 9. Verificação obrigatória
 
 Antes de declarar algo “pronto”:
 
@@ -336,7 +330,7 @@ Checar se a solução:
 
 ---
 
-## 9. Quando parar
+## 10. Quando parar
 
 Parar imediatamente o avanço de implementação quando ocorrer qualquer um:
 
@@ -346,15 +340,9 @@ Parar imediatamente o avanço de implementação quando ocorrer qualquer um:
 - houver necessidade de “explicar demais” o que a tela faz
 - a solução parecer útil, mas semanticamente errada
 
-Nesses casos, o próximo passo é:
-
-- revisar início
-- reabrir visão
-- reclassificar superfícies
-
 ---
 
-## 10. Workflow recomendado por sessão
+## 11. Workflow recomendado por sessão
 
 ### Sessão de entendimento
 
@@ -363,24 +351,11 @@ Objetivo:
 - reduzir ambiguidade
 - fixar função de tela, fluxo ou entidade
 
-Saída:
-
-- HTML didático
-- doc
-- mapa de fluxo
-- resumo interpretativo
-
 ### Sessão de implementação
 
 Objetivo:
 
 - executar um slice pequeno e verificável
-
-Saída:
-
-- código
-- testes/checks
-- explicação curta do que mudou
 
 ### Sessão de revisão
 
@@ -388,34 +363,17 @@ Objetivo:
 
 - verificar se o que foi feito continua coerente com a visão
 
-Saída:
-
-- findings
-- riscos
-- recomendação de continuar ou parar
-
----
-
-## 11. Regra de progresso
-
-Avançar só quando estas três condições forem verdadeiras:
-
-1. a superfície está clara
-2. o fluxo está claro
-3. a alteração melhora coerência, não só volume de entrega
-
-Se qualquer uma falhar, o correto é **não acelerar**.
-
 ---
 
 ## 12. Regra específica para o momento atual
 
 Estado atual recomendado do projeto:
 
-- segurar expansão de feature
-- consolidar entendimento dos fluxos de trabalho
-- usar material didático para treino e alinhamento
-- voltar a implementar apenas depois que a visão estiver reenquadrada pelo usuário
+- consolidar o `Motor Agentico` como camada documental e operacional interna;
+- manter `DEC` separado de `workstream`;
+- preservar saídas flexíveis com invariantes mínimos;
+- usar a frente `Comunidade/Portal do CMO` como primeiro workstream piloto;
+- não congelar cedo demais a forma final da aplicação.
 
 ---
 
@@ -423,4 +381,4 @@ Estado atual recomendado do projeto:
 
 Se precisar resumir este workflow em uma linha:
 
-**Neste projeto, clareza de visão vem antes de velocidade de implementação; separação de superfícies vem antes de refinamento visual; e coerência protocolar vem antes de automação.**
+**Neste projeto, clareza de visão vem antes de velocidade de implementação; separação entre decisão e trabalho vivo vem antes de burocracia; e coerência protocolar vem antes de automação.**

@@ -12,6 +12,7 @@ Use este diretório quando a tarefa já estiver clara no Obsidian e precisar vir
 ## Mapas disponíveis
 
 - `governanca.md`
+- `agentes-deliberacao.md`
 - `economia-protocolo.md`
 - `fluxos-operacionais.md`
 - `dados-memoria-auditoria.md`
