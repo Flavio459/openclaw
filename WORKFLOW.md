@@ -128,6 +128,25 @@ Use quando o foco for:
 
 ---
 
+## 3A. Decisão relevante
+
+Quando surgir uma decisão relevante:
+
+1. identificar a trilha dominante no vault;
+2. ler apenas o read set mínimo;
+3. consultar `Prompt do Agente de Decisão do Collegium Cortex`;
+4. registrar o caso em `Fila de Decisões do Collegium Cortex` com `scripts/pema/register-decision-case.ps1` se a decisão deslocar prioridade, interpretação, escopo ou governança;
+5. monitorar casos em aberto com `scripts/pema/list-open-decisions.ps1`;
+6. escalar ao `Chairman` se o caso for estrutural ou sensível.
+
+Não usar loop temporal como substituto de julgamento.
+Loop só faz sentido depois, para monitorar fila ou estado, nunca como mecanismo primário de decisão.
+
+Exemplo aceitável, se o ambiente suportar loop:
+
+- `/loop 15m powershell -File scripts/pema/list-open-decisions.ps1 -AsJson`
+
+---
 ## 3. Gate de início
 
 Nenhum trabalho deve começar sem declarar, nem que seja mentalmente:

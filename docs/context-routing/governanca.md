@@ -15,6 +15,8 @@ Consultar se houver conflito:
 ## Abra no repo
 
 - `WORKFLOW.md`
+- `scripts/pema/register-decision-case.ps1`
+- `scripts/pema/list-open-decisions.ps1`
 - `scripts/pema/CONTEXTO_OPERACIONAL_AGENTES.md`
 - `.claude/skills/collegium-context/SKILL.md`
 - `.claude/skills/protocol-defensability/SKILL.md`
@@ -22,4 +24,4 @@ Consultar se houver conflito:
 
 ## Entrada técnica mínima
 
-Comece pelos docs de contexto e só depois abra runtime, UI ou hooks.
+Comece pelos docs de contexto e, se o caso for relevante, registre-o na fila antes de abrir runtime, UI ou hooks.
