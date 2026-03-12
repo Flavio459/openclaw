@@ -162,10 +162,74 @@ Estruturas canônicas:
 - `SPEC` = despacho de especialista
 - `REV` = revisão e fechamento
 - `DEC` = decisão relevante
+- `IDEA` = intake obrigatório antes de virar `SPEC` ou `DEC`
+
+### 3B.1. Dois trilhos sincronizados
+
+O fluxo operacional passa a ser explicitamente dividido em:
+
+- `Trilho Aplicação`
+  - `scope`: `product + research`
+  - `surface`: `Cortex Command` + `The Forum`
+  - função: hipóteses, superfícies, fluxos, semântica, requisitos e priorização
+- `Trilho Motor`
+  - `scope`: `engine + infra`
+  - `surface`: `OpenClaw Runtime` + `Cortex Praetorium`
+  - função: runtime, agentes, worktrees, scripts, VPS dev, testes, integração e merge
+- `Trilho de Sincronismo`
+  - função: decidir quando algo da aplicação vira `SPEC` técnica e quando o motor devolve a questão para `DEC`, `WS` ou revisão estratégica
+
+Regras operacionais:
+
+- toda demanda nova entra como `IDEA`, nunca direto como branch;
+- `Trilho Aplicação` não abre branch; ele prepara `WS`, `DEC` ou `SPEC` funcional;
+- `Trilho Motor` só recebe trabalho ligado a `WS`, `SPEC` ou `DEC`;
+- toda passagem de um trilho para outro precisa preservar `Estado`, `Risco`, `Próxima ação dominante` e `Próximo responsável`.
+
+Formato mínimo de `IDEA`:
+
+- `ID`: `IDEA-YYYYMMDD-NN`
+- `Estado`: `inbox | triaged | promoted | parked | rejected`
+- `Track`: `application | motor | hybrid`
+- `Surface alvo`
+- `Descrição curta`
+- `Impacta WS atual?`
+- `Próxima ação dominante`
 
 ---
 
-## 3C. Envelopes de saída
+## 3C. Política de autonomia progressiva
+
+Dentro de um `workstream` ativo, o sistema deve continuar sozinho quando:
+
+1. existe dono claro da frente;
+2. existe `SPEC` atual ou próximo `SPEC` derivável;
+3. o próximo passo não altera constituição nem regra estrutural;
+4. o risco dominante é operacional, não soberano;
+5. o read set mínimo já existe ou é derivável;
+6. não existe conflito real entre caminhos estratégicos de peso semelhante.
+
+Se essas condições forem verdadeiras, a regra é:
+
+- não perguntar;
+- executar o ciclo;
+- registrar entrega;
+- registrar `REV`;
+- atualizar `WS`;
+- abrir o próximo `SPEC`;
+- informar `Estado`, `Risco` e `Próxima ação dominante`.
+
+O sistema só deve parar quando houver:
+
+- decisão estrutural;
+- bifurcação estratégica real;
+- falta de dado não derivável;
+- risco institucional, econômico, regulatório ou reputacional relevante;
+- necessidade de `Chairman`.
+
+---
+
+## 3D. Envelopes de saída
 
 Nenhuma saída relevante deve terminar em conversa vaga.
 
@@ -189,6 +253,223 @@ Tipos canônicos de saída aceitos:
 - `oportunidade`
 
 O formato do corpo é livre. Esses invariantes não são.
+
+Formato mínimo de atualização sem interrupção:
+
+- `Estado`
+- `Risco`
+- `Próxima ação dominante`
+
+## 3E. Execução descentralizada assistida por CLI
+
+Tarefas delimitadas podem usar CLI como substrato auxiliar quando houver ganho real de paralelismo sem perda de governança.
+
+Pré-condições:
+
+1. existe `WS` ativo com dono claro;
+2. existe `SPEC` explícito;
+3. o read set mínimo está definido;
+4. o template do especialista é aprovado;
+5. as skills obrigatórias estão nomeadas quando o substrato depender delas;
+6. a saída continua revisável por `REV`.
+
+Substratos aceitos nesta fase:
+
+- execução local humana
+- `antigravity-cli`, apenas como fallback explícito quando houver ganho líquido comprovado
+- `gemini-cli`, apenas quando instalado, autenticado e com contrato operacional conhecido
+- `codex-cli`, quando o `SPEC` já estiver no `Trilho Motor` ou quando a revisão pedir execução técnica delimitada
+
+Regra prática:
+
+- execução local humana é o padrão desta fase;
+- `Antigravity` fica suspenso para os ciclos correntes porque introduziu overhead e dependência de retorno manual;
+- `Gemini CLI` entra como auxiliar opcional de throughput, nunca como atalho de governança;
+- `Codex CLI` entra como executor técnico delimitado, nunca como inbox de ideias nem orquestrador estratégico;
+- cron ou cadência temporal podem monitorar `DEC`, `WS` e `SPEC`, mas não substituem julgamento.
+
+Usos aceitáveis:
+
+- pesquisa estruturada;
+- escrita estratégica delimitada;
+- organização de hipótese, dores, substitutos e jornadas;
+- preparação de artefatos internos revisáveis.
+
+Scripts de apoio no repo:
+
+- `scripts/pema/list-open-ideas.ps1`
+- `scripts/pema/promote-idea.ps1`
+- `scripts/pema/list-open-specialist-dispatches.ps1`
+- `scripts/pema/dispatch-open-cli-specs.ps1`
+- `scripts/pema/run-motor-agentico-checkpoint.ps1`
+- `scripts/pema/run-motor-agentico-cron.ps1`
+- `scripts/pema/new-specialist-response-template.ps1`
+- `scripts/pema/import-specialist-output.ps1`
+
+Regra operacional:
+
+- use `list-open-ideas.ps1` para manter o intake separado do backlog de execução;
+- use `promote-idea.ps1` para transformar `IDEA` em `SPEC` ou `DEC` sem perder rastreabilidade;
+- use `dispatch-open-cli-specs.ps1 -Mode preview` antes de qualquer execução real;
+- use `run-motor-agentico-checkpoint.ps1` para enxergar `DEC`, `WS` e `SPEC` na mesma cadência;
+- use `run-motor-agentico-cron.ps1` para cadência recorrente com snapshot em `.logs` e despacho automático apenas de `SPEC` CLI sem recibo prévio em `.runs`;
+- use `new-specialist-response-template.ps1` para gerar o envelope Markdown de resposta do especialista antes de consolidar a entrega;
+- use `import-specialist-output.ps1` para transformar a resposta final em `Entrega` + `REV` e fechar o `SPEC` canônico;
+- só execute `SPEC` por CLI quando o despacho já estiver canônico no vault.
+
+Usos proibidos:
+
+- decisão estrutural soberana;
+- mudança do `CNP`, de mandatos ou de política institucional;
+- publicação pública irreversível;
+- mudança econômica, regulatória ou reputacional sem gate apropriado.
+
+---
+
+## 3F. Skills operacionais desta fase
+
+As seguintes skills passam a orientar o desenvolvimento do motor e dos scripts do Collegium nesta fase `local-first`:
+
+- `ai-agents-architect`: tratar o motor como ciclo `plan-and-execute` com replanejamento controlado, limites de iteração e registro explícito de ferramentas.
+- `autonomous-agent-patterns`: reforçar permissionamento, checkpoint/resume e fronteiras `HITL` no fluxo `WS -> SPEC -> Entrega -> REV`.
+- `agent-tool-builder`: evoluir `scripts/pema/*.ps1` como tools canônicas com entradas mínimas claras, erros legíveis e saídas determinísticas.
+- `agent-memory-systems`: separar memória de trabalho do ciclo, memória episódica por workstream e memória semântica do vault.
+
+Uso futuro próximo, sem adoção obrigatória neste ciclo:
+
+- `multi-agent-patterns`: apenas para derivação paralela de análise e revisão sem colapsar contexto entre frentes.
+- `parallel-agents`: apenas quando houver subtarefas independentes e revisáveis.
+- `agent-orchestration-improve-agent`: apenas depois de baseline, métricas e casos repetidos de falha.
+
+Skills não priorizadas nesta fase:
+
+- `crewai`
+- `langgraph`
+- `computer-use-agents`
+- `agent-memory-mcp`
+
+Regra prática:
+
+- não adotar framework novo antes de estabilizar o contrato operacional `local-first`;
+- não usar paralelismo multiagente para um fluxo linear que já é derivável;
+- toda automação futura deve respeitar checkpoint/resume e não depender da memória informal do operador.
+
+---
+
+## 3G. Modelo enxuto de execução
+
+O Collegium Cortex não deve usar a mesma intensidade documental para todo tipo de trabalho.
+
+Regra:
+
+- governança forte onde há risco estrutural;
+- execução leve onde o trabalho já é derivado;
+- implementação agregada quando o problema já está decidido e só precisa ser traduzido.
+
+### Velocidade 1: `full governance cycle`
+
+Usar `WS -> SPEC -> Entrega -> REV` completo quando o trabalho tocar:
+
+- governança;
+- protocolo;
+- economia;
+- compliance;
+- narrativa sensível;
+- separação de superfícies;
+- decisão irreversível;
+- conflito entre caminhos;
+- mudança de mandato ou de interpretação.
+
+Obrigatório:
+
+- read set explícito;
+- `SPEC` completo;
+- entrega canônica;
+- `REV` formal;
+- atualização do `workstream`;
+- possível escalonamento.
+
+### Velocidade 2: `lean product cycle`
+
+Usar quando o trabalho for de aplicação interna, produto, protótipo, copy interna, arquitetura de fluxo ou refinamento de superfície já enquadrada.
+
+Forma:
+
+- manter `SPEC`, mas curto;
+- reduzir repetição de contexto já aprovado;
+- puxar por referência o que já está travado;
+- registrar apenas o risco novo, a decisão local e a próxima ação dominante.
+
+Obrigatório:
+
+- objetivo claro;
+- entradas mínimas;
+- risco dominante;
+- resultado esperado;
+- checkpoint de continuidade.
+
+Não obrigatório:
+
+- recontar toda a história do `workstream`;
+- repetir texto já aprovado sem novo valor;
+- abrir nova formulação estratégica quando o ponto é só refinamento interno.
+
+### Velocidade 3: `implementation execution cycle`
+
+Usar quando a camada estratégica e de produto já está suficientemente travada e o próximo passo é só traduzir para implementação.
+
+Forma:
+
+- não abrir `SPEC` novo para cada micro-refino técnico;
+- agrupar implementação por pacote coerente;
+- registrar checklist técnico, evidência e resultado agregado;
+- consolidar revisão ao final do pacote, não a cada microetapa.
+
+Obrigatório:
+
+- vínculo explícito ao último `SPEC` ou `REV` aprovado;
+- definição do pacote de implementação;
+- critérios de aceite;
+- verificação técnica;
+- atualização curta do `workstream`.
+
+Proibido:
+
+- usar ciclo pesado para ajustes que não criam risco novo;
+- multiplicar `SPEC` só para manter sensação de movimento.
+
+### Regra de escolha
+
+Antes de abrir um novo `SPEC`, responder:
+
+1. há risco novo de governança, narrativa, economia, compliance ou superfície?
+2. há bifurcação real entre caminhos?
+3. há necessidade de revisão formal de um novo artefato?
+4. ou o trabalho já está suficientemente decidido e só precisa ser implementado?
+
+Se a resposta para `1-3` for não, preferir `implementation execution cycle`.
+
+---
+
+## 3H. Sinais de sobrepeso processual
+
+O processo está ficando pesado demais quando:
+
+- vários `SPEC` consecutivos refinam a mesma superfície com diferença incremental pequena;
+- o texto novo repete mais contexto do que cria decisão;
+- a equipe passa mais tempo corrigindo registro, anchor, parser e envelope do que produzindo avanço real;
+- o `workstream` parece avançar na documentação, mas não muda de capacidade;
+- refinamento visual local começa a se comportar como se fosse decisão estrutural.
+
+Quando esses sinais aparecerem:
+
+1. parar de abrir novos `SPEC` por inércia;
+2. reclassificar o próximo passo para o regime mais leve compatível;
+3. manter o checkpoint mínimo:
+   - `Estado`
+   - `Risco`
+   - `Próxima ação dominante`
+4. só voltar ao ciclo completo se surgir risco novo ou bifurcação estratégica real.
 
 ---
 
@@ -374,6 +655,12 @@ Estado atual recomendado do projeto:
 - preservar saídas flexíveis com invariantes mínimos;
 - usar a frente `Comunidade/Portal do CMO` como primeiro workstream piloto;
 - não congelar cedo demais a forma final da aplicação.
+
+Aplicação imediata:
+
+- seguir `WS-20260310-01` por cadeia de `SPEC -> REV -> próximo SPEC`;
+- não interromper o operador em microetapas deriváveis;
+- só parar se surgir exposição prematura do Collegium, conflito real entre CMO/Legal/CFO/CEO, decisão pública irreversível ou nova questão estrutural.
 
 ---
 

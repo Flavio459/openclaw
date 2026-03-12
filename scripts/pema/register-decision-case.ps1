@@ -52,22 +52,21 @@ $readSetLines = if ($ReadSet.Count -gt 0) {
 $optionLines = $Options | ForEach-Object { "  - $_" }
 $escalation = if ($EscalateToChairman.IsPresent) { 'sim' } else { 'não' }
 
-$entryLines = @(
-    "### $decisionId - $Title",
-    "- Estado: aberto",
-    "- Camada: $Layer",
-    "- Trilha dominante: [[${RoutingNote}]]",
-    "- Read set mínimo:"
-) + $readSetLines + @(
-    "- Contexto curto: $Context",
-    "- Opções plausíveis:"
-) + $optionLines + @(
-    "- Risco dominante: $Risk",
-    "- Decisão do agente: pendente",
-    "- Escalonar ao Chairman: $escalation",
-    "- Próxima ação dominante: submeter ao Agente de Decisão",
-    ''
-)
+$entryLines = @()
+$entryLines += "### $decisionId - $Title"
+$entryLines += "- Estado: aberto"
+$entryLines += "- Camada: $Layer"
+$entryLines += "- Trilha dominante: [[${RoutingNote}]]"
+$entryLines += "- Read set mínimo:"
+$entryLines += $readSetLines
+$entryLines += "- Contexto curto: $Context"
+$entryLines += "- Opções plausíveis:"
+$entryLines += $optionLines
+$entryLines += "- Risco dominante: $Risk"
+$entryLines += "- Decisão do agente: pendente"
+$entryLines += "- Escalonar ao Chairman: $escalation"
+$entryLines += "- Próxima ação dominante: submeter ao Agente de Decisão"
+$entryLines += ''
 $entry = ($entryLines -join [Environment]::NewLine)
 
 if ($content -match 'Nenhum caso em aberto no momento\.') {

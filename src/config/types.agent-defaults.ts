@@ -198,14 +198,19 @@ export type AgentDefaultsConfig = {
      */
     includeReasoning?: boolean;
   };
-  /** Max concurrent agent runs across all conversations. Default: 1 (sequential). */
+  /** Max concurrent agent runs across all conversations. When omitted, runtime lane defaults apply. */
   maxConcurrent?: number;
   /** Sub-agent defaults (spawned via sessions_spawn). */
   subagents?: {
-    /** Max concurrent sub-agent runs (global lane: "subagent"). Default: 1. */
+    /** Max concurrent sub-agent runs (global lane: "subagent"). When omitted, runtime lane defaults apply. */
     maxConcurrent?: number;
-    /** Auto-archive sub-agent sessions after N minutes (default: 60). */
+    /** Auto-archive sub-agent sessions after N minutes. Omit to keep sessions unless cleanup="delete". */
     archiveAfterMinutes?: number;
+    /**
+     * Whether sub-agents inherit persona files (SOUL.md + IDENTITY.md) in their bootstrap context.
+     * Default: true.
+     */
+    inheritPersona?: boolean;
     /** Default model selection for spawned sub-agents (string or {primary,fallbacks}). */
     model?: string | { primary?: string; fallbacks?: string[] };
     /** Default thinking level for spawned sub-agents (e.g. "off", "low", "medium", "high"). */
