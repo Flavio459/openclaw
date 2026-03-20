@@ -15,6 +15,12 @@ Antes de qualquer análise, status, review, proposta de arquitetura ou implement
 
 Sem isso, o repo não é contexto suficiente.
 
+Checklist operacional:
+
+- rode `scripts/pema/collegium-bootstrap-check.ps1 -Track <trilha>`
+- para status geral, use `-Track project-status`
+- se quiser deixar evidência local de preflight, use `-WriteReceipt`
+
 ## Ordem de uso
 
 1. abra a nota temática no vault `W:\Collegium Cortex`

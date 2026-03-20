@@ -80,6 +80,7 @@ Regras:
 - não usar `scripts/pema/*` como leitura universal; abrir só o que a trilha mandar;
 - se a tarefa cruzar temas, começar pela trilha dominante e consultar as demais apenas se houver impacto real.
 - para `status geral do projeto`, a trilha dominante padrão é `Roteamento - Produto, UI e Superfícies`, seguida da leitura de `Visão do Projeto`.
+- antes de responder tarefa relevante de Collegium, rodar `scripts/pema/collegium-bootstrap-check.ps1 -Track <trilha>`; use `project-status` quando a demanda for “status geral do projeto”.
 
 ---
 
