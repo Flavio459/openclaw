@@ -18,6 +18,14 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$bootstrapScript = Join-Path $scriptDir 'collegium-bootstrap-check.ps1'
+
+if (-not (Test-Path -LiteralPath $bootstrapScript)) {
+    throw "Script obrigatório não encontrado em '$bootstrapScript'."
+}
+
+& $bootstrapScript -Track project-status | Out-Null
+
 $decisionQueue = if ([string]::IsNullOrWhiteSpace($DecisionQueuePath)) {
     Get-ChildItem -LiteralPath $VaultPath -File | Where-Object { $_.Name -like 'Fila de Decis* do Collegium Cortex.md' } | Select-Object -First 1 -ExpandProperty FullName
 } else {

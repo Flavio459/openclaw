@@ -40,6 +40,16 @@ param(
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$bootstrapScript = Join-Path $scriptDir 'collegium-bootstrap-check.ps1'
+
+if (-not (Test-Path -LiteralPath $bootstrapScript)) {
+    throw "Script obrigatório não encontrado em '$bootstrapScript'."
+}
+
+$bootstrapTrack = if ($PromoteTo -eq 'dec') { 'governance' } else { 'flows' }
+& $bootstrapScript -Track $bootstrapTrack | Out-Null
+
 function Get-IdeaBlocks {
     param([string]$Path)
 

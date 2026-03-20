@@ -21,8 +21,12 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$bootstrapScript = Join-Path $scriptDir 'collegium-bootstrap-check.ps1'
 $startScript = Join-Path $scriptDir 'start-specialist-cli.ps1'
 
+if (-not (Test-Path -LiteralPath $bootstrapScript)) {
+    throw "Script obrigatório não encontrado em '$bootstrapScript'."
+}
 if (-not (Test-Path -LiteralPath $QueuePath)) {
     throw "Registro de despachos não encontrado em '$QueuePath'."
 }
@@ -32,6 +36,8 @@ if (-not (Test-Path -LiteralPath $VaultPath)) {
 if (-not (Test-Path -LiteralPath $startScript)) {
     throw "Script start-specialist-cli.ps1 não encontrado em '$startScript'."
 }
+
+& $bootstrapScript -Track agents-deliberation | Out-Null
 
 function Resolve-ObsidianNotePath {
     param(

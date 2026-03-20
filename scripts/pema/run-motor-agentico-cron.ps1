@@ -28,11 +28,12 @@ $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$bootstrapScript = Join-Path $scriptDir 'collegium-bootstrap-check.ps1'
 $checkpointScript = Join-Path $scriptDir 'run-motor-agentico-checkpoint.ps1'
 $listSpecsScript = Join-Path $scriptDir 'list-open-specialist-dispatches.ps1'
 $dispatchScript = Join-Path $scriptDir 'dispatch-open-cli-specs.ps1'
 
-foreach ($required in @($checkpointScript, $listSpecsScript, $dispatchScript)) {
+foreach ($required in @($bootstrapScript, $checkpointScript, $listSpecsScript, $dispatchScript)) {
     if (-not (Test-Path -LiteralPath $required)) {
         throw "Script obrigatório não encontrado em '$required'."
     }
@@ -42,6 +43,7 @@ $null = New-Item -ItemType Directory -Force -Path $LogsDirectory
 $null = New-Item -ItemType Directory -Force -Path $RunsDirectory
 
 $timestamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+$null = & $bootstrapScript -Track project-status
 $checkpoint = & $checkpointScript -VaultPath $VaultPath -DecisionQueuePath $DecisionQueuePath -WorkstreamQueuePath $WorkstreamQueuePath -IdeaQueuePath $IdeaQueuePath -DispatchQueuePath $DispatchQueuePath -AsJson | ConvertFrom-Json
 $checkpointPath = Join-Path $LogsDirectory ("motor-checkpoint-" + $timestamp + ".json")
 $checkpoint | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $checkpointPath -Encoding utf8
