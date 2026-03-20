@@ -22,6 +22,16 @@ Se a resposta para a última pergunta for “ainda é fase de entendimento”, *
 
 A referência central de visão do projeto fica no Obsidian, em `W:\Collegium Cortex`.
 
+Regra de bloqueio:
+
+- se a tarefa pedir status geral do projeto, leitura estratégica, avaliação arquitetural, priorização, revisão de superfícies, ou qualquer julgamento sobre `Collegium Cortex`, `CNP`, `Cortex Command`, `The Forum`, `Cortex Praetorium` ou `OpenClaw Runtime`, não responder a partir do repo sozinho;
+- antes de qualquer resposta material, ler obrigatoriamente:
+  1. `ESTATUTO CNP - O Protocolo e a Matemática do SPV`;
+  2. `Collegium Cortex - Documento Mestre (Revisão Zero)`;
+  3. `Fonte de Verdade do Collegium Cortex`;
+  4. a nota `Roteamento - ...` dominante do tema.
+- se isso ainda não tiver sido lido, o agente deve parar e declarar que a leitura canônica é pré-condição.
+
 Hierarquia obrigatória:
 
 1. `ESTATUTO CNP - O Protocolo e a Matemática do SPV`;
@@ -69,6 +79,7 @@ Regras:
 - não reler o vault inteiro por padrão;
 - não usar `scripts/pema/*` como leitura universal; abrir só o que a trilha mandar;
 - se a tarefa cruzar temas, começar pela trilha dominante e consultar as demais apenas se houver impacto real.
+- para `status geral do projeto`, a trilha dominante padrão é `Roteamento - Produto, UI e Superfícies`, seguida da leitura de `Visão do Projeto`.
 
 ---
 

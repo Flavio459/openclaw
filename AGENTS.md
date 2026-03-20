@@ -132,6 +132,14 @@
 
 ## Agent-Specific Notes
 
+- Collegium bootstrap is mandatory. If the task mentions `Collegium`, `CNP`, `Cortex Command`, `The Forum`, `Cortex Praetorium`, `OpenClaw Runtime`, `Pilots`, `protocol governance`, `PEMA`, or asks for project-wide status/vision/strategy, stop and read the canonical Obsidian sources before analysis or implementation:
+  1. `W:\Collegium Cortex\ESTATUTO CNP - O Protocolo e a Matemática do SPV.md`
+  2. `W:\Collegium Cortex\Collegium Cortex - Documento Mestre (Revisão Zero).md`
+  3. `W:\Collegium Cortex\Fonte de Verdade do Collegium Cortex.md`
+  4. the dominant `Roteamento - ...` note for the task
+  5. the minimum read set required by that routing note
+- For Collegium work, do not give project status, architectural judgment, prioritization, or implementation guidance from repo-only context. If the canonical Obsidian read has not happened yet, the only valid response is to say that canonical context must be read first.
+- Repo files are implementation bridges, not sovereign product vision, for Collegium-related work.
 - Vocabulary: "makeup" = "mac app".
 - Never edit `node_modules` (global/Homebrew/npm/git installs too). Updates overwrite. Skill notes go in `tools.md` or `AGENTS.md`.
 - Signal: "update fly" => `fly ssh console -a flawd-bot -C "bash -lc 'cd /data/clawd/openclaw && git pull --rebase origin main'"` then `fly machines restart e825232f34d058 -a flawd-bot`.

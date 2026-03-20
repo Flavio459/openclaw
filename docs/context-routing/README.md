@@ -2,6 +2,19 @@
 
 Use este diretório quando a tarefa já estiver clara no Obsidian e precisar virar leitura técnica mínima no repo.
 
+## Bloqueio canônico
+
+Se a leitura do vault ainda não aconteceu, pare aqui.
+
+Antes de qualquer análise, status, review, proposta de arquitetura ou implementação ligada ao `Collegium Cortex`, ler no Obsidian:
+
+1. `ESTATUTO CNP - O Protocolo e a Matemática do SPV`
+2. `Collegium Cortex - Documento Mestre (Revisão Zero)`
+3. `Fonte de Verdade do Collegium Cortex`
+4. a nota `Roteamento - ...` dominante do tema
+
+Sem isso, o repo não é contexto suficiente.
+
 ## Ordem de uso
 
 1. abra a nota temática no vault `W:\Collegium Cortex`
