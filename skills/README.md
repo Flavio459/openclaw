@@ -10,6 +10,7 @@ Active in repo:
 - `forum-deliberation`
 
 Archived skills:
-- 52 skills moved to the Obsidian vault at `W:\Collegium Cortex\Skills Archive\OpenClaw Push`
+- 52 skills moved to the dedicated Obsidian vault at `W:\Openclaw\Skills Archive`
+- the archive folder inside that vault is `OpenClaw Push`
 
 Use the archive when a situational skill is needed, but keep the repository focused on the core set above.
