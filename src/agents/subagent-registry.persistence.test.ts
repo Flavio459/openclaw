@@ -100,6 +100,29 @@ describe("subagent registry persistence", () => {
     expect(first.requesterOrigin?.accountId).toBe("acct-main");
   });
 
+  it("does not auto-archive kept subagent sessions unless archiveAfterMinutes is configured", async () => {
+    tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-subagent-"));
+    process.env.OPENCLAW_STATE_DIR = tempStateDir;
+
+    vi.resetModules();
+    const mod = await import("./subagent-registry.js");
+    mod.registerSubagentRun({
+      runId: "run-no-archive",
+      childSessionKey: "agent:main:subagent:no-archive",
+      requesterSessionKey: "agent:main:main",
+      requesterDisplayKey: "main",
+      task: "keep session",
+      cleanup: "keep",
+    });
+
+    const registryPath = path.join(tempStateDir, "subagents", "runs.json");
+    const raw = await fs.readFile(registryPath, "utf8");
+    const parsed = JSON.parse(raw) as {
+      runs?: Record<string, { archiveAtMs?: number }>;
+    };
+    expect(parsed.runs?.["run-no-archive"]?.archiveAtMs).toBeUndefined();
+  });
+
   it("skips cleanup when cleanupHandled was persisted", async () => {
     tempStateDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-subagent-"));
     process.env.OPENCLAW_STATE_DIR = tempStateDir;

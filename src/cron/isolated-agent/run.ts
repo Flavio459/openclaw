@@ -19,7 +19,10 @@ import {
 } from "../../agents/date-time.js";
 import { DEFAULT_CONTEXT_TOKENS, DEFAULT_MODEL, DEFAULT_PROVIDER } from "../../agents/defaults.js";
 import { loadModelCatalog } from "../../agents/model-catalog.js";
-import { runWithModelFallback } from "../../agents/model-fallback.js";
+import {
+  resolveFallbackComplexityFromThinkLevel,
+  runWithModelFallback,
+} from "../../agents/model-fallback.js";
 import {
   getModelRefStatus,
   isCliProvider,
@@ -381,6 +384,7 @@ export async function runCronIsolatedAgentTurn(params: {
       provider,
       model,
       agentDir,
+      complexity: resolveFallbackComplexityFromThinkLevel(thinkLevel),
       fallbacksOverride: resolveAgentModelFallbacksOverride(params.cfg, agentId),
       run: (providerOverride, modelOverride) => {
         if (isCliProvider(providerOverride, cfgWithAgentDefaults)) {

@@ -1,20 +1,34 @@
 import type { IconName } from "./icons.js";
 
 export const TAB_GROUPS = [
-  { label: "Collegium", tabs: ["command", "forum", "praetorium"] },
-  { label: "Chat", tabs: ["chat"] },
   {
-    label: "Control",
+    label: "Comece Aqui",
+    tabs: ["home"],
+  },
+  {
+    label: "Superfícies Centrais",
+    tabs: ["command", "forum", "praetorium"],
+  },
+  { label: "Salas em Andamento", tabs: ["chat"] },
+  {
+    label: "Pré-visualizações Internas",
+    tabs: ["portal-preview", "cockpit-preview"],
+  },
+  {
+    label: "Runtime e Acesso",
     tabs: ["overview", "channels", "instances", "sessions", "usage", "cron"],
   },
-  { label: "Agent", tabs: ["agents", "skills", "nodes"] },
-  { label: "Settings", tabs: ["config", "debug", "logs"] },
+  { label: "Operação de Agentes", tabs: ["agents", "skills", "nodes"] },
+  { label: "Sistema", tabs: ["config", "debug", "logs"] },
 ] as const;
 
 export type Tab =
+  | "home"
   | "command"
   | "forum"
   | "praetorium"
+  | "portal-preview"
+  | "cockpit-preview"
   | "agents"
   | "overview"
   | "channels"
@@ -30,9 +44,12 @@ export type Tab =
   | "logs";
 
 const TAB_PATHS: Record<Tab, string> = {
+  home: "/",
   command: "/command",
   forum: "/command/forum",
   praetorium: "/praetorium",
+  "portal-preview": "/portal-preview",
+  "cockpit-preview": "/cockpit-preview",
   agents: "/agents",
   overview: "/overview",
   channels: "/channels",
@@ -102,7 +119,7 @@ export function tabFromPath(pathname: string, basePath = ""): Tab | null {
     normalized = "/";
   }
   if (normalized === "/") {
-    return "chat";
+    return "home";
   }
   return PATH_TO_TAB.get(normalized) ?? null;
 }
@@ -131,12 +148,18 @@ export function inferBasePathFromPathname(pathname: string): string {
 
 export function iconForTab(tab: Tab): IconName {
   switch (tab) {
+    case "home":
+      return "globe";
     case "command":
       return "brain";
     case "forum":
       return "book";
     case "praetorium":
       return "puzzle";
+    case "portal-preview":
+      return "monitor";
+    case "cockpit-preview":
+      return "smartphone";
     case "agents":
       return "folder";
     case "chat":
@@ -170,77 +193,134 @@ export function iconForTab(tab: Tab): IconName {
 
 export function titleForTab(tab: Tab) {
   switch (tab) {
+    case "home":
+      return "Comece Aqui";
     case "command":
       return "Cortex Command";
     case "forum":
       return "The Forum";
     case "praetorium":
       return "Cortex Praetorium";
+    case "portal-preview":
+      return "Prévia do Portal";
+    case "cockpit-preview":
+      return "The Cockpit";
     case "agents":
-      return "Agents";
+      return "Agentes";
     case "overview":
-      return "Overview";
+      return "Visão Geral";
     case "channels":
-      return "Channels";
+      return "Canais";
     case "instances":
-      return "Instances";
+      return "Instâncias";
     case "sessions":
-      return "Sessions";
+      return "Sessões";
     case "usage":
-      return "Usage";
+      return "Uso";
     case "cron":
-      return "Cron Jobs";
+      return "Rotinas Cron";
     case "skills":
-      return "Skills";
+      return "Habilidades";
     case "nodes":
-      return "Nodes";
+      return "Nós";
     case "chat":
-      return "Chat";
+      return "Sala Viva";
     case "config":
-      return "Config";
+      return "Configuração";
     case "debug":
-      return "Debug";
+      return "Depuração";
     case "logs":
       return "Logs";
     default:
-      return "Control";
+      return "Controle";
   }
 }
 
 export function subtitleForTab(tab: Tab) {
   switch (tab) {
+    case "home":
+      return "Comece pela intenção e entre na superfície correta do Collegium sem adivinhar nomes de sala.";
     case "command":
-      return "Executive surface for Collegium Cortex, The CORE, and The Pilots.";
+      return "Superfície executiva do Collegium Cortex, The CORE e The Pilots.";
     case "forum":
-      return "Strategic room for deliberation, incidents, finance, and Chairman decisions.";
+      return "Sala estratégica para deliberação, incidentes, finanças e decisões do Chairman.";
     case "praetorium":
-      return "Live cockpit for runtime supervision, handoffs, blockers, and evidence.";
+      return "Cockpit vivo para supervisão do runtime, repasses, bloqueios e evidências.";
+    case "portal-preview":
+      return "Superfície interna de revisão do primeiro bloco do portal antes de qualquer integração pública.";
+    case "cockpit-preview":
+      return "Superfície interna de revisão voltada ao piloto, mantida separada de Cortex Praetorium e da supervisão do runtime.";
     case "agents":
-      return "Manage agent workspaces, tools, and identities.";
+      return "Gerencie workspaces, ferramentas e identidades dos agentes.";
     case "overview":
-      return "Gateway status, entry points, and a fast health read.";
+      return "Status do gateway, pontos de entrada e leitura rápida de saúde.";
     case "channels":
-      return "Manage channels and settings.";
+      return "Gerencie canais e configurações.";
     case "instances":
-      return "Presence beacons from connected clients and nodes.";
+      return "Sinais de presença de clientes e nós conectados.";
     case "sessions":
-      return "Inspect active sessions and adjust per-session defaults.";
+      return "Inspecione sessões ativas e ajuste padrões por sessão.";
     case "usage":
       return "";
     case "cron":
-      return "Schedule wakeups and recurring agent runs.";
+      return "Agende despertares e execuções recorrentes de agentes.";
     case "skills":
-      return "Manage skill availability and API key injection.";
+      return "Gerencie disponibilidade de skills e injeção de chaves de API.";
     case "nodes":
-      return "Paired devices, capabilities, and command exposure.";
+      return "Dispositivos pareados, capacidades e exposição de comandos.";
     case "chat":
-      return "Direct gateway chat session for quick interventions.";
+      return "Superfície de continuação de uma sala viva depois de entrar pelo Fórum, Praetorium, Portal ou Cockpit.";
     case "config":
-      return "Edit ~/.openclaw/openclaw.json safely.";
+      return "Edite ~/.openclaw/openclaw.json com segurança.";
     case "debug":
-      return "Gateway snapshots, events, and manual RPC calls.";
+      return "Snapshots do gateway, eventos e chamadas RPC manuais.";
     case "logs":
-      return "Live tail of the gateway file logs.";
+      return "Acompanhamento em tempo real dos logs de arquivo do gateway.";
+    default:
+      return "";
+  }
+}
+
+export function useForTab(tab: Tab) {
+  switch (tab) {
+    case "home":
+      return "Escolha por onde começar";
+    case "command":
+      return "Prioridade e leitura executiva";
+    case "forum":
+      return "Reuniões, discussão de projeto e decisões";
+    case "praetorium":
+      return "Trabalho ativo, bloqueios e repasses";
+    case "portal-preview":
+      return "Revisar o primeiro bloco do portal";
+    case "cockpit-preview":
+      return "Revisar a superfície do app do piloto";
+    case "chat":
+      return "Continuar uma sala viva";
+    case "overview":
+      return "Conectar e corrigir acesso";
+    case "channels":
+      return "Canais de mensagem";
+    case "instances":
+      return "Clientes conectados";
+    case "sessions":
+      return "Controle por sessão";
+    case "usage":
+      return "Métricas de uso do runtime";
+    case "cron":
+      return "Execuções agendadas";
+    case "agents":
+      return "Identidades e arquivos dos agentes";
+    case "skills":
+      return "Disponibilidade de habilidades";
+    case "nodes":
+      return "Dispositivos pareados";
+    case "config":
+      return "Configuração do gateway";
+    case "debug":
+      return "Diagnóstico técnico";
+    case "logs":
+      return "Evidência operacional";
     default:
       return "";
   }

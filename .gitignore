@@ -76,9 +76,20 @@ USER.md
 .agent/*.json
 !.agent/workflows/
 local/
+local/collegium-discussions/
 
 # Local ops archive / backup noise
 .ops-archive/
 *.bak-
 *.bak-*
 *.bak_*
+
+# Local generated previews, runtime output and dev-server logs
+_preview_artifacts/
+output/
+scripts/pema/.logs/
+scripts/pema/.runs/
+ui/src/ui/views/__screenshots__/
+ui/src/ui/collegium/__screenshots__/
+ui/vite-dev.log
+ui/vite-dev.err.log

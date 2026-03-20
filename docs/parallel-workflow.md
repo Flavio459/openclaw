@@ -68,12 +68,37 @@ Saídas válidas:
 Regra:
 
 - o trilho aplicação não abre branch
+- um segundo chat no mesmo workspace só pode existir aqui como frente deliberativa `read-only`
+  para `IDEA` ou `pré-DEC`
 
 Nomes recomendados de chat:
 
 - `idea-<id>-research`
 - `ws-<id>-product`
 - `dec-<id>-forum`
+- `predec-<id>-delta`
+
+### Frentes paralelas de `pré-DEC`
+
+Quando um assunto ainda não pode virar implementação, mas precisa de uma análise adicional em
+paralelo:
+
+- abrir outro chat do Codex no mesmo workspace é permitido
+- esse chat continua no `Trilho Aplicação`
+- a superfície padrão é `The Forum`
+- o output deve ser `delta formal para DEC`
+- a política de mutação é `read-only`
+
+Esse chat não pode:
+
+- editar arquivos do repo
+- abrir branch ou worktree
+- agir como segunda frente de motor
+- tratar o material como baseline aprovada
+
+Referência canônica:
+
+- [collegium-parallel-predec-fronts.md](collegium-parallel-predec-fronts.md)
 
 ## 4. Trilho Motor
 
@@ -122,8 +147,18 @@ Regra de isolamento:
 - uma frente de motor = uma branch = uma worktree = um chat principal
 - revisão roda em chat separado
 - duas frentes não editam a mesma área sem checkpoint explícito
+- frente deliberativa paralela não edita área nenhuma; ela produz análise e delta
 
 ## 6. Ambientes
+
+Referência canônica: [docs/runtime-topology-policy.md](runtime-topology-policy.md)
+Checklist operacional: [docs/runtime-adoption-checklist.md](runtime-adoption-checklist.md)
+
+Decisão:
+
+- `local-first` para código
+- `VPS lab-first` para runtime e integração
+- `VPS prod-only` para operação estável
 
 ### Local
 
@@ -131,23 +166,36 @@ Papel:
 
 - coordenação
 - vault
-- revisão
-- edição leve
-- uma implementação principal por vez
+- branch e worktree
+- implementação
+- refactor
+- testes rápidos
+- build local
 
-### VPS dev isolada
+Regra:
+
+- local é sandbox de desenvolvimento
+- não é fonte canônica de estado durável
+
+### VPS lab
 
 Papel:
 
 - builds pesados
 - testes demorados
 - sessões longas
-- pesquisa técnica
+- auth
+- pairing
+- agentes
+- cron
+- smoke real de integração
 
 Regras:
 
 - usar diretório, usuário, state e logs separados da produção
-- exemplo: `/srv/openclaw-dev`
+- usar checkout remoto separado de `prod` sempre que a VPS operar os dois ambientes em paralelo
+- tratar `lab` como runtime canônico de validação
+- exemplo: `/srv/openclaw-lab`
 
 ### Produção
 
@@ -163,6 +211,7 @@ Proibido:
 - edição experimental
 - swarm de agentes
 - worktree de desenvolvimento no mesmo state da produção
+- validação que deveria acontecer antes em `lab`
 
 ## 7. Concorrência
 

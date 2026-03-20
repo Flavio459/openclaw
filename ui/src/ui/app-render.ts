@@ -3,7 +3,14 @@ import type { AppViewState } from "./app-view-state.ts";
 import type { UsageState } from "./controllers/usage.ts";
 import { parseAgentSessionKey } from "../../../src/routing/session-key.js";
 import { refreshChatAvatar } from "./app-chat.ts";
-import { brandingForTab, detectRuntimeEnvironment, isCollegiumTab } from "./collegium.ts";
+import {
+  brandingForTab,
+  buildDevCockpitState,
+  buildIntentDisambiguation,
+  buildPraetoriumBlockers,
+  detectRuntimeEnvironment,
+  isCollegiumTab,
+} from "./collegium.ts";
 import { renderChatControls, renderTab, renderThemeToggle } from "./app-render.helpers.ts";
 import { loadAgentFileContent, loadAgentFiles, saveAgentFile } from "./controllers/agent-files.ts";
 import { loadAgentIdentities, loadAgentIdentity } from "./controllers/agent-identity.ts";
@@ -77,14 +84,266 @@ import { renderInstances } from "./views/instances.ts";
 import { renderLogs } from "./views/logs.ts";
 import { renderNodes } from "./views/nodes.ts";
 import { renderOverview } from "./views/overview.ts";
+import { renderHome } from "./views/home.ts";
 import { renderForum } from "./views/forum.ts";
 import { renderPraetorium } from "./views/praetorium.ts";
+import { renderCockpitPreview } from "./views/cockpit-preview.ts";
+import { renderPortalPreview } from "./views/portal-preview.ts";
 import { renderSessions } from "./views/sessions.ts";
 import { renderSkills } from "./views/skills.ts";
 import { renderUsage } from "./views/usage.ts";
+import { buildCommandViewModel } from "./collegium/command.adapter.ts";
+import {
+  buildCockpitRuntimeContract,
+  type CockpitRuntimeInput,
+} from "./collegium/cockpit.adapter.ts";
+import { buildForumViewModel } from "./collegium/forum.adapter.ts";
+import {
+  buildPortalDefaultRuntimeInput,
+  buildPortalFirstBlockViewModel,
+  type PortalDefaultRuntimeInput,
+} from "./collegium/portal.adapter.ts";
+import { buildRuntimeSignals } from "./collegium/runtime-signals.ts";
 
 const AVATAR_DATA_RE = /^data:/i;
 const AVATAR_HTTP_RE = /^https?:\/\//i;
+
+type LiveRoomConfig = {
+  sessionKey: string;
+  label: string;
+  emptyStatus: string;
+  emptyNote: string;
+  activeNote: string;
+};
+
+type LiveRoomDescriptor = {
+  sessionKey: string;
+  label: string;
+  status: string;
+  note: string;
+};
+
+const FORUM_DISCUSSION_ROOM: LiveRoomConfig = {
+  sessionKey: "agent:main:forum",
+  label: "Sala Viva do The Forum",
+  emptyStatus: "Sala ainda não iniciada",
+  emptyNote: "Abra a sala viva para criar uma thread dedicada de discussão de projeto no The Forum.",
+  activeNote:
+    "Continue a mesma thread deliberativa em vez de começar do zero.",
+};
+
+const PORTAL_REVIEW_ROOM: LiveRoomConfig = {
+  sessionKey: "agent:main:portal-preview",
+  label: "Sala de Revisão da Prévia do Portal",
+  emptyStatus: "Sala de revisão ainda não iniciada",
+  emptyNote:
+    "Abra a sala de revisão para discutir os estados do primeiro bloco sem sair do runtime.",
+  activeNote:
+    "Mantenha a revisão do portal ancorada na mesma sala em vez de reiniciar a crítica a cada vez.",
+};
+
+const COCKPIT_REVIEW_ROOM: LiveRoomConfig = {
+  sessionKey: "agent:main:cockpit-preview",
+  label: "Sala de Revisão do The Cockpit",
+  emptyStatus: "Sala de revisão ainda não iniciada",
+  emptyNote:
+    "Abra a sala de revisão para discutir a prontidão da superfície do piloto sem misturá-la com o Praetorium.",
+  activeNote:
+    "Mantenha a revisão da superfície do piloto na mesma sala para que a thread de ativação permaneça coerente.",
+};
+
+const PRAETORIUM_WORKING_ROOM: LiveRoomConfig = {
+  sessionKey: "agent:main:praetorium",
+  label: "Sala de Trabalho do Praetorium",
+  emptyStatus: "Sala de trabalho ainda não iniciada",
+  emptyNote:
+    "Abra a sala de trabalho para manter bloqueios, repasses e evidência de runtime dentro de uma única thread operacional.",
+  activeNote:
+    "Continue a mesma sala de trabalho para manter bloqueios e repasses presos à thread operacional viva.",
+};
+
+function buildForumDiscussionBrief(viewModel: ReturnType<typeof buildForumViewModel>) {
+  const risks =
+    viewModel.risks.length > 0
+      ? viewModel.risks.map((risk) => `- ${risk}`).join("\n")
+      : "- Nenhum enunciado de risco ativo está aberto neste momento.";
+  const evidence =
+    viewModel.evidence.length > 0
+      ? viewModel.evidence
+          .slice(0, 4)
+          .map((entry) => `- [${entry.kind}] ${entry.summary}`)
+          .join("\n")
+      : "- Nenhuma evidência está visível na sala ainda.";
+
+  return [
+    "Brief do Fórum",
+    "",
+    `Tópico: ${viewModel.topic}`,
+    `Contexto: ${viewModel.context}`,
+    `Caminho recomendado: ${viewModel.recommendedPath.rationale}`,
+    `Ação para o Chairman: ${viewModel.chairmanAction.action}`,
+    "",
+    "Riscos",
+    risks,
+    "",
+    "Evidências",
+    evidence,
+    "",
+    "Continue a discussão viva do projeto a partir deste enquadramento do caso. Mantenha o próximo passo explícito.",
+  ].join("\n");
+}
+
+function buildPortalReviewBrief(input: PortalDefaultRuntimeInput) {
+  const viewModel = buildPortalFirstBlockViewModel(buildPortalDefaultRuntimeInput(input));
+  return [
+    "Brief de revisão do Portal",
+    "",
+    `Contexto: ${viewModel.contextLine}`,
+    `Headline: ${viewModel.primaryHeadline}`,
+    `Apoio: ${viewModel.supportingSubheadline}`,
+    `CTA primário: ${viewModel.primaryCta.label}`,
+    "",
+    "Painel de sinais",
+    `- Margem: ${viewModel.signalPanel.compressedMargin}`,
+    `- Ponto de vazamento: ${viewModel.signalPanel.leakPoint}`,
+    `- Próximo ajuste: ${viewModel.signalPanel.nextAdjustment}`,
+    "",
+    "Revise este primeiro bloco como superfície interna. Mantenha o CTA dominante, o painel sintético subordinado e o próximo ajuste explícito.",
+  ].join("\n");
+}
+
+function buildCockpitReviewBrief(input: CockpitRuntimeInput) {
+  const contract = buildCockpitRuntimeContract(input);
+  return [
+    "Brief de revisão do Cockpit",
+    "",
+    `Identidade e ativação: ${contract.identityAndActivation}`,
+    `Prontidão da cidade: ${contract.cityReadiness}`,
+    `Estado de turno: ${contract.turnState}`,
+    "",
+    "Alertas operacionais",
+    ...contract.alerts.map((entry) => `- ${entry}`),
+    "",
+    "Avisos de compliance",
+    ...contract.complianceNotices.map((entry) => `- ${entry}`),
+    "",
+    "Revise esta superfície do piloto sem colapsá-la no Praetorium e sem inventar execução econômica.",
+  ].join("\n");
+}
+
+function buildPraetoriumWorkingBrief(state: AppViewState) {
+  const cockpit = buildDevCockpitState({
+    connected: state.connected,
+    lastError: state.lastError,
+    gatewayUrl: state.settings.gatewayUrl,
+    hello: state.hello,
+    eventLog: state.eventLog,
+    agentsList: state.agentsList,
+    execApprovalQueue: state.execApprovalQueue,
+    cronJobs: state.cronJobs,
+  });
+  const blockers = buildPraetoriumBlockers(
+    state.lastError,
+    state.execApprovalQueue,
+    state.cronJobs,
+    cockpit.recent_events,
+  );
+  const ambiguity = buildIntentDisambiguation(cockpit.recent_events);
+  const evidence =
+    cockpit.recent_events
+      .flatMap((entry) => entry.evidence_refs)
+      .filter(Boolean)
+      .slice(0, 5)
+      .map((ref) => `- ${ref}`) ?? [];
+
+  return [
+    "Brief operacional do Praetorium",
+    "",
+    `Status: ${cockpit.status}`,
+    `Escopo: ${cockpit.current_scope}`,
+    `Agente ativo: ${cockpit.active_agent?.name ?? "Sistema"}`,
+    `Tarefa ativa: ${cockpit.active_agent?.current_task ?? "Nenhuma tarefa ativa detectada."}`,
+    "",
+    "Bloqueios",
+    ...(blockers.length > 0
+      ? blockers.map((entry) => `- ${entry}`)
+      : ["- Nenhum bloqueio está visível neste momento."]),
+    "",
+    "Ambiguidade",
+    ambiguity
+      ? `- ${ambiguity.interpreted_scope}: ${ambiguity.reason}`
+      : "- Nenhum evento ambíguo está visível no feed neste momento.",
+    "",
+    "Evidências",
+    ...(evidence.length > 0 ? evidence : ["- Nenhuma referência de evidência está disponível ainda."]),
+    "",
+    "Continue a thread operacional, mantenha os bloqueios explícitos e devolva qualquer tema estratégico ao The Forum em vez de enterrá-lo aqui.",
+  ].join("\n");
+}
+
+function describeLiveRoom(state: AppViewState, config: LiveRoomConfig): LiveRoomDescriptor {
+  const session = state.sessionsResult?.sessions?.find(
+    (entry) => entry.key === config.sessionKey,
+  );
+  if (!session) {
+    return {
+      sessionKey: config.sessionKey,
+      label: config.label,
+      status: config.emptyStatus,
+      note: config.emptyNote,
+    };
+  }
+  const updatedAt =
+    typeof session.updatedAt === "number" && Number.isFinite(session.updatedAt)
+      ? new Date(session.updatedAt).toLocaleString()
+      : null;
+  return {
+    sessionKey: config.sessionKey,
+    label: session.label?.trim() || config.label,
+    status: session.displayName?.trim() || session.subject?.trim() || "Room active",
+    note: updatedAt
+      ? `Última atividade ${updatedAt}. ${config.activeNote}`
+      : config.activeNote,
+  };
+}
+
+async function openLiveRoom(state: AppViewState, config: LiveRoomConfig) {
+  state.sessionKey = config.sessionKey;
+  state.chatMessage = "";
+  state.chatAttachments = [];
+  state.chatQueue = [];
+  state.chatStream = null;
+  state.chatStreamStartedAt = null;
+  state.chatRunId = null;
+  state.resetToolStream();
+  state.resetChatScroll();
+  state.applySettings({
+    ...state.settings,
+    sessionKey: config.sessionKey,
+    lastActiveSessionKey: config.sessionKey,
+  });
+  await Promise.all([loadChatHistory(state), loadSessions(state), refreshChatAvatar(state)]);
+  const room = state.sessionsResult?.sessions?.find((entry) => entry.key === config.sessionKey);
+  if (room && room.label?.trim() !== config.label) {
+    await patchSession(state, config.sessionKey, { label: config.label });
+  }
+  state.setTab("chat");
+}
+
+async function sendBriefToLiveRoom(
+  state: AppViewState,
+  config: LiveRoomConfig,
+  message: string,
+) {
+  await openLiveRoom(state, config);
+  await state.handleSendChat(message);
+  // Keep the optimistic user message visible while the gateway persists the new turn.
+  await Promise.all([loadSessions(state), refreshChatAvatar(state)]);
+  const room = state.sessionsResult?.sessions?.find((entry) => entry.key === config.sessionKey);
+  if (room && room.label?.trim() !== config.label) {
+    await patchSession(state, config.sessionKey, { label: config.label });
+  }
+}
 
 function resolveAssistantAvatarUrl(state: AppViewState): string | undefined {
   const list = state.agentsList?.agents ?? [];
@@ -106,7 +365,9 @@ export function renderApp(state: AppViewState) {
   const presenceCount = state.presenceEntries.length;
   const sessionsCount = state.sessionsResult?.count ?? null;
   const cronNext = state.cronStatus?.nextWakeAtMs ?? null;
-  const chatDisabledReason = state.connected ? null : "Disconnected from gateway.";
+  const chatDisabledReason = state.connected
+    ? null
+    : "Desconectado do gateway.";
   const isChat = state.tab === "chat";
   const chatFocus = isChat && (state.settings.chatFocusMode || state.onboarding);
   const showThinking = state.onboarding ? false : state.settings.chatShowThinking;
@@ -118,6 +379,44 @@ export function renderApp(state: AppViewState) {
   const environment = detectRuntimeEnvironment(state.settings.gatewayUrl, state.hello);
   const branding = brandingForTab(state.tab);
   const collegiumMode = isCollegiumTab(state.tab);
+  const runtimeSignals = buildRuntimeSignals({
+    connected: state.connected,
+    lastError: state.lastError,
+    presenceEntries: state.presenceEntries,
+    execApprovalQueue: state.execApprovalQueue,
+    cronStatus: state.cronStatus,
+    sessionsCount,
+    eventLog: state.eventLog,
+    gatewayUrl: state.settings.gatewayUrl,
+    hello: state.hello,
+  });
+  const forumViewModel = buildForumViewModel({
+    gatewayUrl: state.settings.gatewayUrl,
+    hello: state.hello,
+    agentsList: state.agentsList,
+    eventLog: state.eventLog,
+    execApprovalQueue: state.execApprovalQueue,
+    connected: state.connected,
+    lastError: state.lastError,
+    cronJobs: state.cronJobs,
+  });
+  const portalRuntimeDefaultInput: PortalDefaultRuntimeInput = {
+    connected: state.connected,
+    lastError: state.lastError,
+    presenceEntries: state.presenceEntries,
+    sessionsCount,
+    execApprovalQueueCount: state.execApprovalQueue.length,
+    nowMs: Date.now(),
+  };
+  const cockpitRuntimeDefaultInput: CockpitRuntimeInput = {
+    runtimeSignals,
+    presenceEntries: state.presenceEntries,
+    sessionsCount,
+  };
+  const forumDiscussionRoom = describeLiveRoom(state, FORUM_DISCUSSION_ROOM);
+  const portalReviewRoom = describeLiveRoom(state, PORTAL_REVIEW_ROOM);
+  const cockpitReviewRoom = describeLiveRoom(state, COCKPIT_REVIEW_ROOM);
+  const praetoriumWorkingRoom = describeLiveRoom(state, PRAETORIUM_WORKING_ROOM);
   const resolvedAgentId =
     state.agentsSelectedId ??
     state.agentsList?.defaultId ??
@@ -227,17 +526,31 @@ export function renderApp(state: AppViewState) {
         </section>
 
         ${
-          state.tab === "command"
-            ? renderCommand({
+          state.tab === "home"
+            ? renderHome({
                 connected: state.connected,
                 lastError: state.lastError,
-                environment,
-                agentsList: state.agentsList,
-                presenceEntries: state.presenceEntries,
-                channelsSnapshot: state.channelsSnapshot,
-                execApprovalQueue: state.execApprovalQueue,
-                cronStatus: state.cronStatus,
+                presenceCount,
                 sessionsCount,
+                onOpenForum: () => state.setTab("forum"),
+                onOpenPraetorium: () => state.setTab("praetorium"),
+                onOpenCommand: () => state.setTab("command"),
+                onOpenPortalPreview: () => state.setTab("portal-preview"),
+                onOpenCockpitPreview: () => state.setTab("cockpit-preview"),
+                onOpenChat: () => state.setTab("chat"),
+                onOpenOverview: () => state.setTab("overview"),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "command"
+            ? renderCommand({
+                viewModel: buildCommandViewModel({
+                  environment,
+                  agentsList: state.agentsList,
+                  runtimeSignals,
+                }),
                 onRefresh: () => void refreshActiveTab(state),
                 onOpenForum: () => state.setTab("forum"),
                 onOpenPraetorium: () => state.setTab("praetorium"),
@@ -248,14 +561,17 @@ export function renderApp(state: AppViewState) {
         ${
           state.tab === "forum"
             ? renderForum({
-                gatewayUrl: state.settings.gatewayUrl,
-                hello: state.hello,
-                environment,
-                agentsList: state.agentsList,
-                eventLog: state.eventLog,
-                execApprovalQueue: state.execApprovalQueue,
+                viewModel: forumViewModel,
+                discussionRoom: forumDiscussionRoom,
                 onRefresh: () => void refreshActiveTab(state),
                 onOpenPraetorium: () => state.setTab("praetorium"),
+                onOpenDiscussion: () => void openLiveRoom(state, FORUM_DISCUSSION_ROOM),
+                onSendBrief: () =>
+                  void sendBriefToLiveRoom(
+                    state,
+                    FORUM_DISCUSSION_ROOM,
+                    buildForumDiscussionBrief(forumViewModel),
+                  ),
               })
             : nothing
         }
@@ -271,8 +587,48 @@ export function renderApp(state: AppViewState) {
                 eventLog: state.eventLog,
                 execApprovalQueue: state.execApprovalQueue,
                 cronJobs: state.cronJobs,
+                workingRoom: praetoriumWorkingRoom,
                 onRefresh: () => void refreshActiveTab(state),
                 onOpenCommand: () => state.setTab("command"),
+                onOpenWorkingRoom: () => void openLiveRoom(state, PRAETORIUM_WORKING_ROOM),
+                onSendOpsBrief: () =>
+                  void sendBriefToLiveRoom(
+                    state,
+                    PRAETORIUM_WORKING_ROOM,
+                    buildPraetoriumWorkingBrief(state),
+                  ),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "cockpit-preview"
+            ? renderCockpitPreview({
+                runtimeDefaultInput: cockpitRuntimeDefaultInput,
+                reviewRoom: cockpitReviewRoom,
+                onOpenReviewRoom: () => void openLiveRoom(state, COCKPIT_REVIEW_ROOM),
+                onSendReviewBrief: () =>
+                  void sendBriefToLiveRoom(
+                    state,
+                    COCKPIT_REVIEW_ROOM,
+                    buildCockpitReviewBrief(cockpitRuntimeDefaultInput),
+                  ),
+              })
+            : nothing
+        }
+
+        ${
+          state.tab === "portal-preview"
+            ? renderPortalPreview({
+                runtimeDefaultInput: portalRuntimeDefaultInput,
+                reviewRoom: portalReviewRoom,
+                onOpenReviewRoom: () => void openLiveRoom(state, PORTAL_REVIEW_ROOM),
+                onSendReviewBrief: () =>
+                  void sendBriefToLiveRoom(
+                    state,
+                    PORTAL_REVIEW_ROOM,
+                    buildPortalReviewBrief(portalRuntimeDefaultInput),
+                  ),
               })
             : nothing
         }

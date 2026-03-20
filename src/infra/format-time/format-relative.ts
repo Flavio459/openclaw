@@ -35,11 +35,11 @@ export function formatTimeAgo(
   }
 
   const totalSeconds = Math.round(durationMs / 1000);
-  const minutes = Math.round(totalSeconds / 60);
 
-  if (minutes < 1) {
-    return suffix ? "just now" : `${totalSeconds}s`;
+  if (totalSeconds < 60) {
+    return suffix ? `${totalSeconds}s ago` : `${totalSeconds}s`;
   }
+  const minutes = Math.round(totalSeconds / 60);
   if (minutes < 60) {
     return suffix ? `${minutes}m ago` : `${minutes}m`;
   }
@@ -81,22 +81,22 @@ export function formatRelativeTimestamp(
 
   const sec = Math.round(absDiff / 1000);
   if (sec < 60) {
-    return isPast ? "just now" : "in <1m";
+    return isPast ? `${sec}s ago` : "in <1m";
   }
 
   const min = Math.round(sec / 60);
   if (min < 60) {
-    return isPast ? `${min}m ago` : `in ${min}m`;
+    return isPast ? `${min}m ago` : `${min}m from now`;
   }
 
   const hr = Math.round(min / 60);
   if (hr < 48) {
-    return isPast ? `${hr}h ago` : `in ${hr}h`;
+    return isPast ? `${hr}h ago` : `${hr}h from now`;
   }
 
   const day = Math.round(hr / 24);
   if (!options?.dateFallback || day <= 7) {
-    return isPast ? `${day}d ago` : `in ${day}d`;
+    return isPast ? `${day}d ago` : `${day}d from now`;
   }
 
   // Fall back to short date display for old timestamps

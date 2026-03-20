@@ -4,11 +4,21 @@
 
 set -e
 
-REPO_DIR="/home/deploy/openclaw"
+REPO_DIR="/home/deploy/openclaw-prod"
+LAB_REPO_DIR="/home/deploy/openclaw-lab"
 PROD_CONF="/home/deploy/.openclaw/openclaw.json"
 LAB_CONF="/home/deploy/.openclaw-lab/openclaw.json"
 
 echo "🚀 Starting deployment..."
+
+if [ ! -d "$REPO_DIR" ]; then
+  echo "❌ Error: prod checkout not found at $REPO_DIR"
+  exit 1
+fi
+
+if [ ! -d "$LAB_REPO_DIR" ]; then
+  echo "⚠️ Warning: lab checkout not found at $LAB_REPO_DIR"
+fi
 
 cd "$REPO_DIR"
 
@@ -48,8 +58,8 @@ update_config "$LAB_CONF"
 
 # Rebuild and restart
 echo "🔨 Rebuilding and restarting containers..."
-docker compose build openclaw-gateway
-docker compose up -d --force-recreate openclaw-gateway
+docker compose -p openclaw -f "$REPO_DIR/docker-compose.yml" build openclaw-gateway
+docker compose -p openclaw -f "$REPO_DIR/docker-compose.yml" up -d --force-recreate openclaw-gateway
 
 echo "✅ Deployment complete!"
 

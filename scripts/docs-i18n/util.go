@@ -79,3 +79,25 @@ func fatal(err error) {
 	_, _ = io.WriteString(os.Stderr, err.Error()+"\n")
 	os.Exit(1)
 }
+
+// TruncateOutput truncates a string to maxLen by replacing the middle with "[...]".
+// It is Unicode-safe and uses runes to calculate lengths.
+func TruncateOutput(s string, maxLen int) string {
+	runes := []rune(s)
+	if len(runes) <= maxLen {
+		return s
+	}
+
+	indicator := "[...]"
+	indicatorLen := len([]rune(indicator))
+	if maxLen <= indicatorLen {
+		return string(runes[:maxLen])
+	}
+
+	remaining := maxLen - indicatorLen
+	startLen := (remaining + 1) / 2
+	endLen := remaining / 2
+
+	return string(runes[:startLen]) + indicator + string(runes[len(runes)-endLen:])
+}
+

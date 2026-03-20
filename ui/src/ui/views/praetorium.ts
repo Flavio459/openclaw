@@ -21,8 +21,16 @@ export type PraetoriumProps = {
   eventLog: EventLogEntry[];
   execApprovalQueue: ExecApprovalRequest[];
   cronJobs: CronJob[];
+  workingRoom: {
+    sessionKey: string;
+    label: string;
+    status: string;
+    note: string;
+  };
   onRefresh: () => void;
   onOpenCommand: () => void;
+  onOpenWorkingRoom: () => void;
+  onSendOpsBrief: () => void;
 };
 
 export function renderPraetorium(props: PraetoriumProps) {
@@ -62,8 +70,10 @@ export function renderPraetorium(props: PraetoriumProps) {
             <span class="chip">${cockpit.current_scope}</span>
           </div>
           <div class="row" style="margin-top: 18px; gap: 10px;">
-            <button class="btn primary" @click=${props.onRefresh}>Refresh telemetry</button>
-            <button class="btn" @click=${props.onOpenCommand}>Back to Command</button>
+            <button class="btn primary" @click=${props.onOpenWorkingRoom}>Continuar Sala de Trabalho</button>
+            <button class="btn" @click=${props.onSendOpsBrief}>Enviar Brief Operacional</button>
+            <button class="btn primary" @click=${props.onRefresh}>Atualizar telemetria</button>
+            <button class="btn" @click=${props.onOpenCommand}>Voltar ao Command</button>
           </div>
         </div>
         <div class="collegium-hero__rail">
@@ -72,7 +82,7 @@ export function renderPraetorium(props: PraetoriumProps) {
             <div class="collegium-status-card__value ${statusTone(cockpit.status)}">
               ${cockpit.status}
             </div>
-            <div class="muted">Current scope: ${cockpit.current_scope}</div>
+            <div class="muted">Escopo atual: ${cockpit.current_scope}</div>
           </div>
           <div class="collegium-status-card">
             <div class="collegium-status-card__label">Active Agent</div>
@@ -86,7 +96,12 @@ export function renderPraetorium(props: PraetoriumProps) {
             <div class="collegium-status-card__value">
               ${cockpit.queue_counts.in_progress}/${cockpit.queue_counts.pending}/${cockpit.queue_counts.blocked}
             </div>
-            <div class="muted">in progress / pending / blocked</div>
+            <div class="muted">em progresso / pendente / bloqueado</div>
+          </div>
+          <div class="collegium-status-card">
+            <div class="collegium-status-card__label">Sala de Trabalho</div>
+            <div class="collegium-status-card__value">${props.workingRoom.status}</div>
+            <div class="muted">${props.workingRoom.note}</div>
           </div>
         </div>
       </section>
@@ -149,7 +164,7 @@ export function renderPraetorium(props: PraetoriumProps) {
           <div class="list" style="margin-top: 12px;">
             ${
               blockers.length === 0
-                ? html`<div class="muted">No blockers detected in the current read.</div>`
+                ? html`<div class="muted">Nenhum blocker detectado na leitura atual.</div>`
                 : blockers.map(
                     (blocker) => html`
                       <div class="list-item">
@@ -217,7 +232,7 @@ export function renderPraetorium(props: PraetoriumProps) {
                     (entry) => html`
                       <div class="list-item">
                         <div class="list-main">
-                          <div class="list-title">${entry.request.ask ?? "Authority request"}</div>
+                          <div class="list-title">${entry.request.ask ?? "Solicitação de autoridade"}</div>
                           <div class="list-sub mono">${entry.request.command}</div>
                         </div>
                         <div class="list-meta">
@@ -228,6 +243,20 @@ export function renderPraetorium(props: PraetoriumProps) {
                     `,
                   )
             }
+          </div>
+
+          <div class="card-title" style="margin-top: 18px;">Sala de Trabalho</div>
+          <div class="card-sub">
+            Mantenha bloqueios, repasses e evidência do runtime presos ao mesmo fio operacional vivo.
+          </div>
+          <div class="callout" style="margin-top: 12px;">
+            <div><strong>${props.workingRoom.label}</strong></div>
+            <div class="muted mono">${props.workingRoom.sessionKey}</div>
+            <div class="muted" style="margin-top: 6px;">${props.workingRoom.note}</div>
+          </div>
+          <div class="row" style="margin-top: 12px; gap: 10px;">
+            <button class="btn primary" @click=${props.onOpenWorkingRoom}>Abrir Sala de Trabalho</button>
+            <button class="btn" @click=${props.onSendOpsBrief}>Semear Sala com Brief Operacional</button>
           </div>
         </section>
       </section>

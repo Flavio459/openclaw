@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { makeTempWorkspace, writeWorkspaceFile } from "../test-helpers/workspace.js";
 import {
+  DEFAULT_AGENTS_FILENAME,
+  DEFAULT_IDENTITY_FILENAME,
   DEFAULT_MEMORY_ALT_FILENAME,
   DEFAULT_MEMORY_FILENAME,
+  DEFAULT_SOUL_FILENAME,
+  DEFAULT_TOOLS_FILENAME,
+  filterBootstrapFilesForSession,
   loadWorkspaceBootstrapFiles,
 } from "./workspace.js";
 
@@ -44,5 +49,36 @@ describe("loadWorkspaceBootstrapFiles", () => {
     );
 
     expect(memoryEntries).toHaveLength(0);
+  });
+
+  it("includes persona files for subagents by default", async () => {
+    const files = [
+      { name: DEFAULT_AGENTS_FILENAME, path: "/tmp/AGENTS.md", missing: false },
+      { name: DEFAULT_TOOLS_FILENAME, path: "/tmp/TOOLS.md", missing: false },
+      { name: DEFAULT_SOUL_FILENAME, path: "/tmp/SOUL.md", missing: false },
+      { name: DEFAULT_IDENTITY_FILENAME, path: "/tmp/IDENTITY.md", missing: false },
+    ];
+    const filtered = filterBootstrapFilesForSession(files, "agent:main:subagent:abc");
+    const names = filtered.map((file) => file.name).sort();
+    expect(names).toEqual([
+      DEFAULT_AGENTS_FILENAME,
+      DEFAULT_IDENTITY_FILENAME,
+      DEFAULT_SOUL_FILENAME,
+      DEFAULT_TOOLS_FILENAME,
+    ]);
+  });
+
+  it("can disable persona inheritance for subagents", async () => {
+    const files = [
+      { name: DEFAULT_AGENTS_FILENAME, path: "/tmp/AGENTS.md", missing: false },
+      { name: DEFAULT_TOOLS_FILENAME, path: "/tmp/TOOLS.md", missing: false },
+      { name: DEFAULT_SOUL_FILENAME, path: "/tmp/SOUL.md", missing: false },
+      { name: DEFAULT_IDENTITY_FILENAME, path: "/tmp/IDENTITY.md", missing: false },
+    ];
+    const filtered = filterBootstrapFilesForSession(files, "agent:main:subagent:abc", {
+      config: { agents: { defaults: { subagents: { inheritPersona: false } } } },
+    });
+    const names = filtered.map((file) => file.name).sort();
+    expect(names).toEqual([DEFAULT_AGENTS_FILENAME, DEFAULT_TOOLS_FILENAME]);
   });
 });

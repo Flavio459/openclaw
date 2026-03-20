@@ -17,6 +17,40 @@ type ImageBlock = {
   alt?: string;
 };
 
+function extractModelMetadata(message: unknown): string | null {
+  const m = message as Record<string, unknown>;
+  const role = typeof m.role === "string" ? m.role.toLowerCase() : "";
+  if (role !== "assistant") {
+    return null;
+  }
+
+  const provider = typeof m.provider === "string" ? m.provider.trim() : "";
+  const model = typeof m.model === "string" ? m.model.trim() : "";
+  const configuredModel =
+    typeof m.configuredModel === "string" ? m.configuredModel.trim() : "";
+  const fallbackReason =
+    typeof m.fallbackReason === "string" ? m.fallbackReason.trim() : "";
+  const didFallback = m.didFallback === true;
+
+  const effectiveModelRef = provider && model ? `${provider}/${model}` : model;
+  if (!effectiveModelRef) {
+    return null;
+  }
+
+  if (didFallback) {
+    if (configuredModel) {
+      return fallbackReason
+        ? `Fallback ${configuredModel} -> ${effectiveModelRef} (${fallbackReason})`
+        : `Fallback ${configuredModel} -> ${effectiveModelRef}`;
+    }
+    return fallbackReason
+      ? `Fallback -> ${effectiveModelRef} (${fallbackReason})`
+      : `Fallback -> ${effectiveModelRef}`;
+  }
+
+  return effectiveModelRef;
+}
+
 function extractImages(message: unknown): ImageBlock[] {
   const m = message as Record<string, unknown>;
   const content = m.content;
@@ -241,6 +275,7 @@ function renderGroupedMessage(
   const reasoningMarkdown = extractedThinking ? formatReasoningMarkdown(extractedThinking) : null;
   const markdown = markdownBase;
   const canCopyMarkdown = role === "assistant" && Boolean(markdown?.trim());
+  const modelMetadata = extractModelMetadata(message);
 
   const bubbleClasses = [
     "chat-bubble",
@@ -275,6 +310,7 @@ function renderGroupedMessage(
           ? html`<div class="chat-text">${unsafeHTML(toSanitizedMarkdownHtml(markdown))}</div>`
           : nothing
       }
+      ${modelMetadata ? html`<div class="chat-model-meta">${modelMetadata}</div>` : nothing}
       ${toolCards.map((card) => renderToolCardSidebar(card, onOpenSidebar))}
     </div>
   `;

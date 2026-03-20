@@ -76,6 +76,12 @@ export const ChatEventSchema = Type.Object(
     errorMessage: Type.Optional(Type.String()),
     usage: Type.Optional(Type.Unknown()),
     stopReason: Type.Optional(Type.String()),
+    configuredModel: Type.Optional(Type.String()),
+    effectiveModel: Type.Optional(Type.String()),
+    effectiveProvider: Type.Optional(Type.String()),
+    didFallback: Type.Optional(Type.Boolean()),
+    fallbackReason: Type.Optional(Type.String()),
+    attemptedModels: Type.Optional(Type.Array(Type.String())),
   },
   { additionalProperties: false },
 );

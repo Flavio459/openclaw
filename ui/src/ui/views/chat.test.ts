@@ -66,7 +66,7 @@ describe("chat view", () => {
 
     const indicator = container.querySelector(".compaction-indicator--active");
     expect(indicator).not.toBeNull();
-    expect(indicator?.textContent).toContain("Compacting context...");
+    expect(indicator?.textContent).toContain("Compactando contexto...");
   });
 
   it("renders completion indicator shortly after compaction", () => {
@@ -87,7 +87,7 @@ describe("chat view", () => {
 
     const indicator = container.querySelector(".compaction-indicator--complete");
     expect(indicator).not.toBeNull();
-    expect(indicator?.textContent).toContain("Context compacted");
+    expect(indicator?.textContent).toContain("Contexto compactado");
     nowSpy.mockRestore();
   });
 
@@ -125,12 +125,12 @@ describe("chat view", () => {
     );
 
     const stopButton = Array.from(container.querySelectorAll("button")).find(
-      (btn) => btn.textContent?.trim() === "Stop",
+      (btn) => btn.textContent?.trim() === "Parar",
     );
     expect(stopButton).not.toBeUndefined();
     stopButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onAbort).toHaveBeenCalledTimes(1);
-    expect(container.textContent).not.toContain("New session");
+    expect(container.textContent).not.toContain("Nova sessão");
   });
 
   it("shows a new session button when aborting is unavailable", () => {
@@ -147,11 +147,38 @@ describe("chat view", () => {
     );
 
     const newSessionButton = Array.from(container.querySelectorAll("button")).find(
-      (btn) => btn.textContent?.trim() === "New session",
+      (btn) => btn.textContent?.trim() === "Nova sessão",
     );
     expect(newSessionButton).not.toBeUndefined();
     newSessionButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     expect(onNewSession).toHaveBeenCalledTimes(1);
-    expect(container.textContent).not.toContain("Stop");
+    expect(container.textContent).not.toContain("Parar");
+  });
+
+  it("renders effective model fallback metadata for assistant messages", () => {
+    const container = document.createElement("div");
+    render(
+      renderChat(
+        createProps({
+          messages: [
+            {
+              role: "assistant",
+              content: [{ type: "text", text: "Resposta final" }],
+              timestamp: Date.now(),
+              provider: "openrouter",
+              model: "meta-llama/llama-3.3-70b-instruct:free",
+              configuredModel: "moonshot/kimi-k2.5",
+              didFallback: true,
+              fallbackReason: "billing",
+            },
+          ],
+        }),
+      ),
+      container,
+    );
+
+    expect(container.textContent).toContain(
+      "Fallback moonshot/kimi-k2.5 -> openrouter/meta-llama/llama-3.3-70b-instruct:free (billing)",
+    );
   });
 });

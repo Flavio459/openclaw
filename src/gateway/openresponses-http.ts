@@ -12,6 +12,7 @@ import type { ClientToolDefinition } from "../agents/pi-embedded-runner/run/para
 import type { ImageContent } from "../commands/agent/types.js";
 import type { GatewayHttpResponsesConfig } from "../config/types.gateway.js";
 import { buildHistoryContextFromEntries, type HistoryEntry } from "../auto-reply/reply/history.js";
+import { extractRunModelTelemetry, resolveResultEffectiveModelRef } from "../agents/model-run-telemetry.js";
 import { createDefaultDeps } from "../cli/deps.js";
 import { agentCommand } from "../commands/agent.js";
 import { emitAgentEvent, onAgentEvent } from "../infra/agent-events.js";
@@ -530,6 +531,8 @@ export async function handleOpenResponsesHttpRequest(
       );
 
       const payloads = (result as { payloads?: Array<{ text?: string }> } | null)?.payloads;
+      const effectiveModel = resolveResultEffectiveModelRef(result, model);
+      const telemetry = extractRunModelTelemetry(result);
       const usage = extractUsageFromResult(result);
       const meta = (result as { meta?: unknown } | null)?.meta;
       const stopReason =
@@ -546,7 +549,7 @@ export async function handleOpenResponsesHttpRequest(
         const functionCallItemId = `call_${randomUUID()}`;
         const response = createResponseResource({
           id: responseId,
-          model,
+          model: effectiveModel,
           status: "incomplete",
           output: [
             {
@@ -573,7 +576,7 @@ export async function handleOpenResponsesHttpRequest(
 
       const response = createResponseResource({
         id: responseId,
-        model,
+        model: effectiveModel,
         status: "completed",
         output: [
           createAssistantOutputItem({ id: outputItemId, text: content, status: "completed" }),
@@ -581,6 +584,13 @@ export async function handleOpenResponsesHttpRequest(
         usage,
       });
 
+      res.setHeader("x-openclaw-effective-model", effectiveModel);
+      if (telemetry?.fallbackReason) {
+        res.setHeader("x-openclaw-fallback-reason", telemetry.fallbackReason);
+      }
+      if (telemetry?.attemptedModels.length) {
+        res.setHeader("x-openclaw-attempted-models", telemetry.attemptedModels.join(","));
+      }
       sendJson(res, 200, response);
     } catch (err) {
       const response = createResponseResource({
@@ -607,6 +617,7 @@ export async function handleOpenResponsesHttpRequest(
   let unsubscribe = () => {};
   let finalUsage: Usage | undefined;
   let finalizeRequested: { status: ResponseResource["status"]; text: string } | null = null;
+  let responseModel = model;
 
   const maybeFinalize = () => {
     if (closed) {
@@ -653,7 +664,7 @@ export async function handleOpenResponsesHttpRequest(
 
     const finalResponse = createResponseResource({
       id: responseId,
-      model,
+      model: responseModel,
       status: finalizeRequested.status,
       output: [completedItem],
       usage,
@@ -675,7 +686,7 @@ export async function handleOpenResponsesHttpRequest(
   // Send initial events
   const initialResponse = createResponseResource({
     id: responseId,
-    model,
+    model: responseModel,
     status: "in_progress",
     output: [],
   });
@@ -769,6 +780,7 @@ export async function handleOpenResponsesHttpRequest(
       );
 
       finalUsage = extractUsageFromResult(result);
+      responseModel = resolveResultEffectiveModelRef(result, model);
       maybeFinalize();
 
       if (closed) {
@@ -845,7 +857,7 @@ export async function handleOpenResponsesHttpRequest(
 
           const incompleteResponse = createResponseResource({
             id: responseId,
-            model,
+            model: responseModel,
             status: "incomplete",
             output: [completedItem, functionCallItem],
             usage,
@@ -885,7 +897,7 @@ export async function handleOpenResponsesHttpRequest(
       finalUsage = finalUsage ?? createEmptyUsage();
       const errorResponse = createResponseResource({
         id: responseId,
-        model,
+        model: responseModel,
         status: "failed",
         output: [],
         error: { code: "api_error", message: String(err) },

@@ -305,6 +305,13 @@ export async function runReplyAgent(params: {
         `Role ordering conflict (${reason}). Restarting session ${sessionKey} -> ${nextSessionId}.`,
       cleanupTranscripts: true,
     });
+  const resetSessionAfterCorruption = async (reason: string): Promise<boolean> =>
+    resetSession({
+      failureLabel: "session corruption",
+      buildLogMessage: (nextSessionId) =>
+        `Session history corruption detected (${reason}). Restarting session ${sessionKey} -> ${nextSessionId}.`,
+      cleanupTranscripts: true,
+    });
   try {
     const runStartedAt = Date.now();
     const runOutcome = await runAgentTurnWithFallback({
@@ -323,11 +330,10 @@ export async function runReplyAgent(params: {
       pendingToolTasks,
       resetSessionAfterCompactionFailure,
       resetSessionAfterRoleOrderingConflict,
+      resetSessionAfterCorruption,
       isHeartbeat,
       sessionKey,
       getActiveSessionEntry: () => activeSessionEntry,
-      activeSessionStore,
-      storePath,
       resolvedVerboseLevel,
     });
 

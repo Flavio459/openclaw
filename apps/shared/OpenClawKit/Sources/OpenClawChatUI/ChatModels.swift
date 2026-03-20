@@ -140,6 +140,12 @@ public struct OpenClawChatMessage: Codable, Identifiable, Sendable {
     public let role: String
     public let content: [OpenClawChatMessageContent]
     public let timestamp: Double?
+    public let provider: String?
+    public let model: String?
+    public let configuredModel: String?
+    public let didFallback: Bool?
+    public let fallbackReason: String?
+    public let attemptedModels: [String]?
     public let toolCallId: String?
     public let toolName: String?
     public let usage: OpenClawChatUsage?
@@ -149,6 +155,12 @@ public struct OpenClawChatMessage: Codable, Identifiable, Sendable {
         case role
         case content
         case timestamp
+        case provider
+        case model
+        case configuredModel
+        case didFallback
+        case fallbackReason
+        case attemptedModels
         case toolCallId
         case tool_call_id
         case toolName
@@ -162,6 +174,12 @@ public struct OpenClawChatMessage: Codable, Identifiable, Sendable {
         role: String,
         content: [OpenClawChatMessageContent],
         timestamp: Double?,
+        provider: String? = nil,
+        model: String? = nil,
+        configuredModel: String? = nil,
+        didFallback: Bool? = nil,
+        fallbackReason: String? = nil,
+        attemptedModels: [String]? = nil,
         toolCallId: String? = nil,
         toolName: String? = nil,
         usage: OpenClawChatUsage? = nil,
@@ -171,6 +189,12 @@ public struct OpenClawChatMessage: Codable, Identifiable, Sendable {
         self.role = role
         self.content = content
         self.timestamp = timestamp
+        self.provider = provider
+        self.model = model
+        self.configuredModel = configuredModel
+        self.didFallback = didFallback
+        self.fallbackReason = fallbackReason
+        self.attemptedModels = attemptedModels
         self.toolCallId = toolCallId
         self.toolName = toolName
         self.usage = usage
@@ -181,6 +205,12 @@ public struct OpenClawChatMessage: Codable, Identifiable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.role = try container.decode(String.self, forKey: .role)
         self.timestamp = try container.decodeIfPresent(Double.self, forKey: .timestamp)
+        self.provider = try container.decodeIfPresent(String.self, forKey: .provider)
+        self.model = try container.decodeIfPresent(String.self, forKey: .model)
+        self.configuredModel = try container.decodeIfPresent(String.self, forKey: .configuredModel)
+        self.didFallback = try container.decodeIfPresent(Bool.self, forKey: .didFallback)
+        self.fallbackReason = try container.decodeIfPresent(String.self, forKey: .fallbackReason)
+        self.attemptedModels = try container.decodeIfPresent([String].self, forKey: .attemptedModels)
         self.toolCallId =
             try container.decodeIfPresent(String.self, forKey: .toolCallId) ??
             container.decodeIfPresent(String.self, forKey: .tool_call_id)
@@ -220,6 +250,12 @@ public struct OpenClawChatMessage: Codable, Identifiable, Sendable {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(self.role, forKey: .role)
         try container.encodeIfPresent(self.timestamp, forKey: .timestamp)
+        try container.encodeIfPresent(self.provider, forKey: .provider)
+        try container.encodeIfPresent(self.model, forKey: .model)
+        try container.encodeIfPresent(self.configuredModel, forKey: .configuredModel)
+        try container.encodeIfPresent(self.didFallback, forKey: .didFallback)
+        try container.encodeIfPresent(self.fallbackReason, forKey: .fallbackReason)
+        try container.encodeIfPresent(self.attemptedModels, forKey: .attemptedModels)
         try container.encodeIfPresent(self.toolCallId, forKey: .toolCallId)
         try container.encodeIfPresent(self.toolName, forKey: .toolName)
         try container.encodeIfPresent(self.usage, forKey: .usage)
@@ -267,6 +303,12 @@ public struct OpenClawChatEventPayload: Codable, Sendable {
     public let state: String?
     public let message: AnyCodable?
     public let errorMessage: String?
+    public let configuredModel: String?
+    public let effectiveModel: String?
+    public let effectiveProvider: String?
+    public let didFallback: Bool?
+    public let fallbackReason: String?
+    public let attemptedModels: [String]?
 }
 
 public struct OpenClawAgentEventPayload: Codable, Sendable, Identifiable {

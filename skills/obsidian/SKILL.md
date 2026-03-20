@@ -37,7 +37,9 @@ Vault structure (typical)
 
 Obsidian desktop tracks vaults here (source of truth):
 
-- `~/Library/Application Support/obsidian/obsidian.json`
+- `~/Library/Application Support/obsidian/obsidian.json` (macOS)
+- `%APPDATA%\obsidian\obsidian.json` (Windows)
+- `~/.config/obsidian/obsidian.json` (Linux)
 
 `obsidian-cli` resolves vaults from that file; vault name is typically the **folder name** (path suffix).
 

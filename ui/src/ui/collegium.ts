@@ -12,6 +12,7 @@ export const COLLEGIUM_RUNTIME_NAME = "OpenClaw Runtime" as const;
 export const COLLEGIUM_COMMAND_NAME = "Cortex Command" as const;
 export const COLLEGIUM_FORUM_NAME = "The Forum" as const;
 export const COLLEGIUM_PRAETORIUM_NAME = "Cortex Praetorium" as const;
+export const COLLEGIUM_COCKPIT_NAME = "The Cockpit" as const;
 
 export type RuntimeEnvironment = "LAB" | "DEV" | "PROD";
 export type Scope = "product" | "engine" | "infra" | "research";
@@ -97,7 +98,14 @@ type Branding = {
   subtitle: string;
 };
 
-const COLLEGIUM_TABS = new Set<Tab>(["command", "forum", "praetorium"]);
+const COLLEGIUM_TABS = new Set<Tab>([
+  "home",
+  "command",
+  "forum",
+  "praetorium",
+  "portal-preview",
+  "cockpit-preview",
+]);
 const BUSINESS_AGENT_IDS = new Set(["chairman", "ceo", "cfo", "legal"]);
 const ENGINEERING_AGENT_IDS = new Set(["main", "ped"]);
 
@@ -330,6 +338,9 @@ export function isCollegiumTab(tab: Tab): boolean {
 }
 
 export function brandingForTab(tab: Tab): Branding {
+  if (tab === "home") {
+    return { title: "COLLEGIUM CORTEX", subtitle: "Comece Aqui" };
+  }
   if (tab === "command") {
     return { title: "COLLEGIUM CORTEX", subtitle: COLLEGIUM_COMMAND_NAME };
   }
@@ -338,6 +349,12 @@ export function brandingForTab(tab: Tab): Branding {
   }
   if (tab === "praetorium") {
     return { title: "COLLEGIUM CORTEX", subtitle: COLLEGIUM_PRAETORIUM_NAME };
+  }
+  if (tab === "portal-preview") {
+    return { title: "COLLEGIUM CORTEX", subtitle: "Prévia do Portal" };
+  }
+  if (tab === "cockpit-preview") {
+    return { title: "COLLEGIUM CORTEX", subtitle: COLLEGIUM_COCKPIT_NAME };
   }
   return { title: "OPENCLAW", subtitle: "Gateway Dashboard" };
 }

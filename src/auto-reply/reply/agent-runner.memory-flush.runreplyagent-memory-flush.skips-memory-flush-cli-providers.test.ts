@@ -16,6 +16,7 @@ type EmbeddedRunParams = {
 };
 
 vi.mock("../../agents/model-fallback.js", () => ({
+  resolveFallbackComplexityFromThinkLevel: vi.fn().mockReturnValue("standard"),
   runWithModelFallback: async ({
     provider,
     model,

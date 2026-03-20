@@ -15,9 +15,28 @@ export type EmbeddedPiAgentMeta = {
   };
 };
 
+export type EmbeddedPiModelTelemetry = {
+  configuredModel: string;
+  effectiveProvider: string;
+  effectiveModel: string;
+  effectiveModelRef: string;
+  didFallback: boolean;
+  fallbackReason?: string;
+  attemptedModels?: string[];
+  attempts?: Array<{
+    provider: string;
+    model: string;
+    error: string;
+    reason?: string;
+    status?: number;
+    code?: string;
+  }>;
+};
+
 export type EmbeddedPiRunMeta = {
   durationMs: number;
   agentMeta?: EmbeddedPiAgentMeta;
+  modelTelemetry?: EmbeddedPiModelTelemetry;
   aborted?: boolean;
   systemPromptReport?: SessionSystemPromptReport;
   error?: {

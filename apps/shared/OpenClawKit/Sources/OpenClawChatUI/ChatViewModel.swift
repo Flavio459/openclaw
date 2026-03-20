@@ -187,6 +187,11 @@ public final class OpenClawChatViewModel {
         return Self.dedupeMessages(decoded)
     }
 
+    private static func decodeMessage(_ raw: AnyCodable?) -> OpenClawChatMessage? {
+        guard let raw else { return nil }
+        return try? ChatPayloadDecoding.decode(raw, as: OpenClawChatMessage.self)
+    }
+
     private static func dedupeMessages(_ messages: [OpenClawChatMessage]) -> [OpenClawChatMessage] {
         var result: [OpenClawChatMessage] = []
         result.reserveCapacity(messages.count)
@@ -401,7 +406,13 @@ public final class OpenClawChatViewModel {
             }
             self.pendingToolCallsById = [:]
             self.streamingAssistantText = nil
-            Task { await self.refreshHistoryAfterRun() }
+            if chat.state == "final",
+               let finalMessage = Self.decodeMessage(chat.message)
+            {
+                self.messages = Self.dedupeMessages(self.messages + [finalMessage])
+            } else {
+                Task { await self.refreshHistoryAfterRun() }
+            }
         default:
             break
         }

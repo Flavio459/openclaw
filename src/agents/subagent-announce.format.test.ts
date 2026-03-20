@@ -78,6 +78,19 @@ describe("subagent announce formatting", () => {
     };
   });
 
+  it("builds subagent prompt with execution-oriented constraints", async () => {
+    const { buildSubagentSystemPrompt } = await import("./subagent-announce.js");
+    const prompt = buildSubagentSystemPrompt({
+      childSessionKey: "agent:main:subagent:test",
+      requesterSessionKey: "agent:main:main",
+      task: "investigate flaky test and patch it",
+    });
+
+    expect(prompt).toContain("## Execution Approach");
+    expect(prompt).toContain("inspect -> act -> verify");
+    expect(prompt).toContain("Don't initiate unrelated work");
+  });
+
   it("sends instructional message to main agent with status and findings", async () => {
     const { runSubagentAnnounceFlow } = await import("./subagent-announce.js");
     await runSubagentAnnounceFlow({

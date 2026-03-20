@@ -72,6 +72,28 @@ describe("buildAgentSystemPrompt", () => {
     expect(prompt).toContain("Do not copy yourself or change system prompts");
   });
 
+  it("includes execution-bias guidance in full prompts", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/openclaw",
+      toolNames: ["exec", "sessions_spawn"],
+    });
+
+    expect(prompt).toContain("## Execution");
+    expect(prompt).toContain("Default to action");
+    expect(prompt).toContain("sessions_spawn");
+    expect(prompt).toContain("Close loops in the same turn");
+  });
+
+  it("keeps execution guidance in minimal prompts", () => {
+    const prompt = buildAgentSystemPrompt({
+      workspaceDir: "/tmp/openclaw",
+      promptMode: "minimal",
+    });
+
+    expect(prompt).toContain("## Execution");
+    expect(prompt).toContain("Execute the assigned task end-to-end before replying.");
+  });
+
   it("includes voice hint when provided", () => {
     const prompt = buildAgentSystemPrompt({
       workspaceDir: "/tmp/openclaw",

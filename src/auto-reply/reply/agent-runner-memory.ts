@@ -5,7 +5,10 @@ import type { VerboseLevel } from "../thinking.js";
 import type { GetReplyOptions } from "../types.js";
 import type { FollowupRun } from "./queue.js";
 import { resolveAgentModelFallbacksOverride } from "../../agents/agent-scope.js";
-import { runWithModelFallback } from "../../agents/model-fallback.js";
+import {
+  resolveFallbackComplexityFromThinkLevel,
+  runWithModelFallback,
+} from "../../agents/model-fallback.js";
 import { isCliProvider } from "../../agents/model-selection.js";
 import { runEmbeddedPiAgent } from "../../agents/pi-embedded.js";
 import { resolveSandboxConfigForAgent, resolveSandboxRuntimeStatus } from "../../agents/sandbox.js";
@@ -101,6 +104,7 @@ export async function runMemoryFlushIfNeeded(params: {
       provider: params.followupRun.run.provider,
       model: params.followupRun.run.model,
       agentDir: params.followupRun.run.agentDir,
+      complexity: resolveFallbackComplexityFromThinkLevel(params.followupRun.run.thinkLevel),
       fallbacksOverride: resolveAgentModelFallbacksOverride(
         params.followupRun.run.config,
         resolveAgentIdFromSessionKey(params.followupRun.run.sessionKey),

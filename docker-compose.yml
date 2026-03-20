@@ -7,6 +7,9 @@ services:
     image: ${OPENCLAW_IMAGE:-openclaw:local}
     user: root
     environment:
+      OPENCLAW_ENV_NAME: ${OPENCLAW_ENV_NAME_PROD:-Flavius-Prod}
+      VAULT_PATH: ${VAULT_PATH:-/home/deploy/obsidian-vault}
+      OPENCLAW_AI_REVIEW_PATH: ${OPENCLAW_AI_REVIEW_PATH:-/home/deploy/obsidian-ai-review}
       WEBUI_AUTH: "true"
       WEBUI_SECRET_KEY: "PicoOpen_MasterKey_2024_Secure_Fixed"
       WEBUI_NAME: "OpenClaw Brain"
@@ -14,15 +17,18 @@ services:
       HOME: /home/node
       TERM: xterm-256color
       OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN}
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
       CLAUDE_AI_SESSION_KEY: ${CLAUDE_AI_SESSION_KEY}
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
       PI_AI_ANTIGRAVITY_VERSION: ${PI_AI_ANTIGRAVITY_VERSION:-1.15.8}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_CONFIG_DIR:-/home/deploy/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-/home/deploy/.openclaw/workspace}:/home/node/.openclaw/workspace
       - /var/run/docker.sock:/var/run/docker.sock
+      - ${VAULT_PATH:-/home/deploy/obsidian-vault}:${VAULT_PATH:-/home/deploy/obsidian-vault}
+      - ${OPENCLAW_AI_REVIEW_PATH:-/home/deploy/obsidian-ai-review}:${OPENCLAW_AI_REVIEW_PATH:-/home/deploy/obsidian-ai-review}
     ports:
       - "127.0.0.1:${OPENCLAW_GATEWAY_PORT:-18789}:18789"
       - "127.0.0.1:${OPENCLAW_BRIDGE_PORT:-18790}:18790"
@@ -34,10 +40,14 @@ services:
     image: ${OPENCLAW_IMAGE:-openclaw:local}
     user: node
     environment:
+      OPENCLAW_ENV_NAME: ${OPENCLAW_ENV_NAME_LAB:-Flavius-Lab}
+      VAULT_PATH: ${VAULT_PATH:-/home/deploy/obsidian-vault}
+      OPENCLAW_AI_REVIEW_PATH: ${OPENCLAW_AI_REVIEW_PATH:-/home/deploy/obsidian-ai-review}
       WEBUI_AUTH: "true"
       WEBUI_SECRET_KEY: "PicoOpen_MasterKey_2024_Secure_Fixed"
       WEBUI_NAME: "OpenClaw Brain (Lab)"
       JUPYTER_TOKEN: "PicoOpen_MasterKey_2024_Secure_Fixed"
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN_LAB}
       TELEGRAM_BOT_TOKEN_LAB: ${TELEGRAM_BOT_TOKEN_LAB}
       TERM: xterm-256color
       OPENCLAW_GATEWAY_PASSWORD: ${OPENCLAW_GATEWAY_PASSWORD_LAB}
@@ -52,11 +62,13 @@ services:
       DEEPSEEK_API_KEY: ${DEEPSEEK_API_KEY}
       MOONSHOT_API_KEY: ${MOONSHOT_API_KEY}
     volumes:
-      - /home/deploy/openclaw/mcp:/home/node/mcp:ro
-      - /home/deploy/.openclaw-lab:/home/node/.openclaw
+      - ${OPENCLAW_LAB_MCP_DIR:-./mcp}:/home/node/mcp:ro
+      - ${OPENCLAW_LAB_CONFIG_DIR:-/home/deploy/.openclaw-lab}:/home/node/.openclaw
+      - ${VAULT_PATH:-/home/deploy/obsidian-vault}:${VAULT_PATH:-/home/deploy/obsidian-vault}
+      - ${OPENCLAW_AI_REVIEW_PATH:-/home/deploy/obsidian-ai-review}:${OPENCLAW_AI_REVIEW_PATH:-/home/deploy/obsidian-ai-review}
     ports:
-      - "127.0.0.1:28789:18789"
-      - "127.0.0.1:28790:18790"
+      - "127.0.0.1:${OPENCLAW_LAB_GATEWAY_PORT:-28789}:18789"
+      - "127.0.0.1:${OPENCLAW_LAB_BRIDGE_PORT:-28790}:18790"
     init: true
     restart: unless-stopped
     command: [ "node", "dist/index.js", "gateway", "--bind", "lan", "--port", "18789", "--allow-unconfigured" ]
@@ -76,11 +88,10 @@ services:
       CLAUDE_WEB_SESSION_KEY: ${CLAUDE_WEB_SESSION_KEY}
       CLAUDE_WEB_COOKIE: ${CLAUDE_WEB_COOKIE}
     volumes:
-      - ${OPENCLAW_CONFIG_DIR}:/home/node/.openclaw
-      - ${OPENCLAW_WORKSPACE_DIR}:/home/node/.openclaw/workspace
+      - ${OPENCLAW_CONFIG_DIR:-/home/deploy/.openclaw}:/home/node/.openclaw
+      - ${OPENCLAW_WORKSPACE_DIR:-/home/deploy/.openclaw/workspace}:/home/node/.openclaw/workspace
       - /var/run/docker.sock:/var/run/docker.sock
     stdin_open: true
     tty: true
     init: true
     entrypoint: [ "node", "dist/index.js" ]
-

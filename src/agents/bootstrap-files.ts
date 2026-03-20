@@ -29,6 +29,7 @@ export async function resolveBootstrapFilesForRun(params: {
   const bootstrapFiles = filterBootstrapFilesForSession(
     await loadWorkspaceBootstrapFiles(params.workspaceDir),
     sessionKey,
+    { config: params.config },
   );
   return applyBootstrapHookOverrides({
     files: bootstrapFiles,

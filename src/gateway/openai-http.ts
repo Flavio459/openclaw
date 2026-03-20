@@ -5,6 +5,7 @@ import { createDefaultDeps } from "../cli/deps.js";
 import { agentCommand } from "../commands/agent.js";
 import { emitAgentEvent, onAgentEvent } from "../infra/agent-events.js";
 import { defaultRuntime } from "../runtime.js";
+import { extractRunModelTelemetry, resolveResultEffectiveModelRef } from "../agents/model-run-telemetry.js";
 import { authorizeGatewayConnect, type ResolvedGatewayAuth } from "./auth.js";
 import {
   readJsonBodyOrError,
@@ -238,6 +239,8 @@ export async function handleOpenAiHttpRequest(
       );
 
       const payloads = (result as { payloads?: Array<{ text?: string }> } | null)?.payloads;
+      const effectiveModel = resolveResultEffectiveModelRef(result, model);
+      const telemetry = extractRunModelTelemetry(result);
       const content =
         Array.isArray(payloads) && payloads.length > 0
           ? payloads
@@ -246,11 +249,18 @@ export async function handleOpenAiHttpRequest(
               .join("\n\n")
           : "No response from OpenClaw.";
 
+      res.setHeader("x-openclaw-effective-model", effectiveModel);
+      if (telemetry?.fallbackReason) {
+        res.setHeader("x-openclaw-fallback-reason", telemetry.fallbackReason);
+      }
+      if (telemetry?.attemptedModels.length) {
+        res.setHeader("x-openclaw-attempted-models", telemetry.attemptedModels.join(","));
+      }
       sendJson(res, 200, {
         id: runId,
         object: "chat.completion",
         created: Math.floor(Date.now() / 1000),
-        model,
+        model: effectiveModel,
         choices: [
           {
             index: 0,
@@ -273,6 +283,7 @@ export async function handleOpenAiHttpRequest(
   let wroteRole = false;
   let sawAssistantDelta = false;
   let closed = false;
+  let streamModel = model;
 
   const unsubscribe = onAgentEvent((evt) => {
     if (evt.runId !== runId) {
@@ -296,7 +307,7 @@ export async function handleOpenAiHttpRequest(
           id: runId,
           object: "chat.completion.chunk",
           created: Math.floor(Date.now() / 1000),
-          model,
+          model: streamModel,
           choices: [{ index: 0, delta: { role: "assistant" } }],
         });
       }
@@ -306,7 +317,7 @@ export async function handleOpenAiHttpRequest(
         id: runId,
         object: "chat.completion.chunk",
         created: Math.floor(Date.now() / 1000),
-        model,
+        model: streamModel,
         choices: [
           {
             index: 0,
@@ -355,13 +366,14 @@ export async function handleOpenAiHttpRequest(
       }
 
       if (!sawAssistantDelta) {
+        streamModel = resolveResultEffectiveModelRef(result, model);
         if (!wroteRole) {
           wroteRole = true;
           writeSse(res, {
             id: runId,
             object: "chat.completion.chunk",
             created: Math.floor(Date.now() / 1000),
-            model,
+            model: streamModel,
             choices: [{ index: 0, delta: { role: "assistant" } }],
           });
         }
@@ -380,7 +392,7 @@ export async function handleOpenAiHttpRequest(
           id: runId,
           object: "chat.completion.chunk",
           created: Math.floor(Date.now() / 1000),
-          model,
+          model: streamModel,
           choices: [
             {
               index: 0,
@@ -398,7 +410,7 @@ export async function handleOpenAiHttpRequest(
         id: runId,
         object: "chat.completion.chunk",
         created: Math.floor(Date.now() / 1000),
-        model,
+        model: streamModel,
         choices: [
           {
             index: 0,

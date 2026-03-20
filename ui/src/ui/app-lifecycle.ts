@@ -34,6 +34,23 @@ type LifecycleHost = {
   topbarObserver: ResizeObserver | null;
 };
 
+function syncNarrowViewportNavigation(host: LifecycleHost) {
+  const root = host as unknown as Element;
+  const content = root.querySelector<HTMLElement>(".content");
+  content?.scrollTo({ top: 0, left: 0, behavior: "auto" });
+
+  if (window.innerWidth > 1100) {
+    return;
+  }
+
+  const activeNavItem = root.querySelector<HTMLElement>(".nav-item.active");
+  activeNavItem?.scrollIntoView({
+    behavior: "auto",
+    block: "nearest",
+    inline: "center",
+  });
+}
+
 export function handleConnected(host: LifecycleHost) {
   host.basePath = inferBasePath();
   applySettingsFromUrl(host as unknown as Parameters<typeof applySettingsFromUrl>[0]);
@@ -66,6 +83,10 @@ export function handleDisconnected(host: LifecycleHost) {
 }
 
 export function handleUpdated(host: LifecycleHost, changed: Map<PropertyKey, unknown>) {
+  if (changed.has("tab")) {
+    requestAnimationFrame(() => syncNarrowViewportNavigation(host));
+  }
+
   if (host.tab === "chat" && host.chatManualRefreshInFlight) {
     return;
   }

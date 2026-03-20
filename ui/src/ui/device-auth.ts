@@ -31,9 +31,9 @@ function normalizeScopes(scopes: string[] | undefined): string[] {
   return [...out].toSorted();
 }
 
-function readStore(): DeviceAuthStore | null {
+function readStoreFrom(storage: Storage): DeviceAuthStore | null {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
+    const raw = storage.getItem(STORAGE_KEY);
     if (!raw) {
       return null;
     }
@@ -53,9 +53,28 @@ function readStore(): DeviceAuthStore | null {
   }
 }
 
+function readStore(): DeviceAuthStore | null {
+  const sessionStore = readStoreFrom(window.sessionStorage);
+  if (sessionStore) {
+    return sessionStore;
+  }
+
+  const legacyStore = readStoreFrom(window.localStorage);
+  if (legacyStore) {
+    writeStore(legacyStore);
+    try {
+      window.localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // best-effort
+    }
+  }
+  return legacyStore;
+}
+
 function writeStore(store: DeviceAuthStore) {
   try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(store));
+    window.localStorage.removeItem(STORAGE_KEY);
   } catch {
     // best-effort
   }

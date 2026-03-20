@@ -1,6 +1,7 @@
 import fs from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
+import type { OpenClawConfig } from "../config/config.js";
 import { runCommandWithTimeout } from "../process/exec.js";
 import { isSubagentSessionKey } from "../routing/session-key.js";
 import { resolveUserPath } from "../utils.js";
@@ -290,14 +291,35 @@ export async function loadWorkspaceBootstrapFiles(dir: string): Promise<Workspac
   return result;
 }
 
-const SUBAGENT_BOOTSTRAP_ALLOWLIST = new Set([DEFAULT_AGENTS_FILENAME, DEFAULT_TOOLS_FILENAME]);
+const SUBAGENT_BOOTSTRAP_MINIMAL_ALLOWLIST = new Set<WorkspaceBootstrapFileName>([
+  DEFAULT_AGENTS_FILENAME,
+  DEFAULT_TOOLS_FILENAME,
+]);
+const SUBAGENT_BOOTSTRAP_PERSONA_ALLOWLIST = new Set<WorkspaceBootstrapFileName>([
+  DEFAULT_AGENTS_FILENAME,
+  DEFAULT_TOOLS_FILENAME,
+  DEFAULT_SOUL_FILENAME,
+  DEFAULT_IDENTITY_FILENAME,
+]);
+
+function shouldSubagentInheritPersona(config?: OpenClawConfig): boolean {
+  const configured = config?.agents?.defaults?.subagents?.inheritPersona;
+  if (typeof configured === "boolean") {
+    return configured;
+  }
+  return true;
+}
 
 export function filterBootstrapFilesForSession(
   files: WorkspaceBootstrapFile[],
   sessionKey?: string,
+  opts?: { config?: OpenClawConfig },
 ): WorkspaceBootstrapFile[] {
   if (!sessionKey || !isSubagentSessionKey(sessionKey)) {
     return files;
   }
-  return files.filter((file) => SUBAGENT_BOOTSTRAP_ALLOWLIST.has(file.name));
+  const allowlist = shouldSubagentInheritPersona(opts?.config)
+    ? SUBAGENT_BOOTSTRAP_PERSONA_ALLOWLIST
+    : SUBAGENT_BOOTSTRAP_MINIMAL_ALLOWLIST;
+  return files.filter((file) => allowlist.has(file.name));
 }

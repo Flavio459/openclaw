@@ -13,6 +13,7 @@ import { createMockTypingController } from "./test-helpers.js";
 const runEmbeddedPiAgentMock = vi.fn();
 
 vi.mock("../../agents/model-fallback.js", () => ({
+  resolveFallbackComplexityFromThinkLevel: vi.fn().mockReturnValue("standard"),
   runWithModelFallback: async ({
     provider,
     model,
@@ -121,7 +122,7 @@ function createMinimalRun(params?: {
 }
 
 describe("runReplyAgent typing (heartbeat)", () => {
-  it("resets corrupted Gemini sessions and deletes transcripts", async () => {
+  it("resets corrupted Gemini sessions in place and deletes old transcripts", async () => {
     const prevStateDir = process.env.OPENCLAW_STATE_DIR;
     const stateDir = await fs.mkdtemp(path.join(tmpdir(), "openclaw-session-reset-"));
     process.env.OPENCLAW_STATE_DIR = stateDir;
@@ -155,11 +156,14 @@ describe("runReplyAgent typing (heartbeat)", () => {
       expect(res).toMatchObject({
         text: expect.stringContaining("Session history was corrupted"),
       });
-      expect(sessionStore.main).toBeUndefined();
+      expect(sessionStore.main).toBeDefined();
+      expect(sessionStore.main?.sessionId).toBeDefined();
+      expect(sessionStore.main?.sessionId).not.toBe(sessionId);
       await expect(fs.access(transcriptPath)).rejects.toThrow();
 
       const persisted = JSON.parse(await fs.readFile(storePath, "utf-8"));
-      expect(persisted.main).toBeUndefined();
+      expect(persisted.main).toBeDefined();
+      expect(persisted.main.sessionId).not.toBe(sessionId);
     } finally {
       if (prevStateDir) {
         process.env.OPENCLAW_STATE_DIR = prevStateDir;

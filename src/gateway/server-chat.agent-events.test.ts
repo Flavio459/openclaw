@@ -202,4 +202,72 @@ describe("agent event handler", () => {
     expect(payload.data?.result).toEqual(result);
     resetAgentRunContextForTest();
   });
+
+  it("includes effective model telemetry in chat final payloads", () => {
+    const broadcast = vi.fn();
+    const broadcastToConnIds = vi.fn();
+    const nodeSendToSession = vi.fn();
+    const agentRunSeq = new Map<string, number>();
+    const chatRunState = createChatRunState();
+    const toolEventRecipients = createToolEventRecipientRegistry();
+
+    chatRunState.registry.add("run-final", { sessionKey: "session-1", clientRunId: "client-final" });
+    chatRunState.buffers.set("client-final", "Final answer");
+    registerAgentRunContext("client-final", {
+      sessionKey: "session-1",
+      modelTelemetry: {
+        configuredModel: "moonshot/kimi-k2.5",
+        effectiveProvider: "openrouter",
+        effectiveModel: "meta-llama/llama-3.3-70b-instruct:free",
+        effectiveModelRef: "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+        didFallback: true,
+        fallbackReason: "billing",
+        attemptedModels: [
+          "moonshot/kimi-k2.5",
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+        ],
+        attempts: [],
+      },
+    });
+
+    const handler = createAgentEventHandler({
+      broadcast,
+      broadcastToConnIds,
+      nodeSendToSession,
+      agentRunSeq,
+      chatRunState,
+      resolveSessionKeyForRun: () => "session-1",
+      clearAgentRunContext: vi.fn(),
+      toolEventRecipients,
+    });
+
+    handler({
+      runId: "run-final",
+      seq: 1,
+      stream: "lifecycle",
+      ts: Date.now(),
+      data: { phase: "end" },
+    });
+
+    const payload = broadcast.mock.calls.find(([event]) => event === "chat")?.[1] as
+      | {
+          state?: string;
+          effectiveModel?: string;
+          fallbackReason?: string;
+          attemptedModels?: string[];
+          message?: { model?: string; provider?: string; didFallback?: boolean };
+        }
+      | undefined;
+    expect(payload?.state).toBe("final");
+    expect(payload?.effectiveModel).toBe("openrouter/meta-llama/llama-3.3-70b-instruct:free");
+    expect(payload?.fallbackReason).toBe("billing");
+    expect(payload?.attemptedModels).toEqual([
+      "moonshot/kimi-k2.5",
+      "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+    ]);
+    expect(payload?.message?.provider).toBe("openrouter");
+    expect(payload?.message?.model).toBe("meta-llama/llama-3.3-70b-instruct:free");
+    expect(payload?.message?.didFallback).toBe(true);
+    resetAgentRunContextForTest();
+  });
 });

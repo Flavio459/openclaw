@@ -1239,6 +1239,16 @@
   min-width: 0;
 }
 
+.chat-model-meta {
+  margin-top: 8px;
+  color: var(--muted);
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 :root[data-theme="light"] .chat-bubble {
   border-color: var(--border);
   background: var(--bg);
@@ -2158,6 +2168,13 @@
     linear-gradient(135deg, #10161a, #1a1a22);
 }
 
+.collegium-hero--cockpit {
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.18), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(47, 97, 255, 0.18), transparent 28%),
+    linear-gradient(135deg, #0f1723, #121a29);
+}
+
 .collegium-hero__main,
 .collegium-hero__rail {
   position: relative;
@@ -2349,10 +2366,238 @@
   margin: 8px 0;
 }
 
+.portal-preview-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+}
+
+.home-shell {
+  gap: 20px;
+}
+
+.home-hero {
+  background:
+    radial-gradient(circle at top left, rgba(203, 155, 84, 0.18), transparent 34%),
+    radial-gradient(circle at bottom right, rgba(20, 184, 166, 0.16), transparent 28%),
+    linear-gradient(135deg, #141821, #1d1a19);
+}
+
+.home-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.home-card {
+  display: grid;
+  gap: 12px;
+  min-height: 220px;
+}
+
+.home-card--priority {
+  border-color: rgba(203, 155, 84, 0.3);
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.home-card__eyebrow {
+  color: rgba(255, 224, 176, 0.84);
+  font: 600 11px/1.2 var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.home-card__actions {
+  margin-top: auto;
+}
+
+.home-flow {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(280px, 0.85fr);
+}
+
+.cockpit-preview-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  align-items: start;
+}
+
+.portal-preview-card {
+  display: grid;
+  gap: 14px;
+}
+
+.cockpit-preview-card {
+  display: grid;
+  gap: 14px;
+}
+
+.portal-preview-card__surface {
+  min-width: 0;
+}
+
+.cockpit-preview-card__surface {
+  min-width: 0;
+}
+
+.portal-preview-card__surface .portal-first-block {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.cockpit-surface {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    radial-gradient(circle at top left, rgba(20, 184, 166, 0.14), transparent 30%),
+    linear-gradient(160deg, rgba(8, 14, 24, 0.94), rgba(12, 22, 36, 0.88));
+  box-shadow:
+    0 22px 48px rgba(4, 10, 19, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.cockpit-surface__topline {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.cockpit-surface__eyebrow,
+.cockpit-surface__label {
+  color: rgba(191, 219, 254, 0.86);
+  font: 600 11px/1.2 var(--mono);
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.cockpit-surface__badge {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid rgba(94, 234, 212, 0.22);
+  border-radius: 999px;
+  padding: 6px 10px;
+  color: rgba(153, 246, 228, 0.92);
+  background: rgba(15, 118, 110, 0.16);
+  font: 600 11px/1 var(--mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.cockpit-surface__badge--ok {
+  border-color: rgba(94, 234, 212, 0.22);
+  color: rgba(153, 246, 228, 0.92);
+  background: rgba(15, 118, 110, 0.16);
+}
+
+.cockpit-surface__badge--warn {
+  border-color: rgba(245, 158, 11, 0.22);
+  color: rgba(253, 224, 71, 0.92);
+  background: rgba(146, 64, 14, 0.2);
+}
+
+.cockpit-surface__headline {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(220px, 0.9fr);
+}
+
+.cockpit-surface__headline p,
+.cockpit-surface__panel p {
+  margin: 8px 0 0;
+  color: var(--text);
+}
+
+.cockpit-surface__grid,
+.cockpit-surface__rails {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.cockpit-surface__panel,
+.cockpit-surface__rail {
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  padding: 16px;
+}
+
+.cockpit-surface__rail ul {
+  display: grid;
+  gap: 10px;
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+
+.cockpit-surface__binding {
+  display: grid;
+  gap: 10px;
+}
+
+.cockpit-surface__binding-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.cockpit-surface__binding-list span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(191, 219, 254, 0.14);
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(226, 232, 240, 0.9);
+  font: 500 11px/1 var(--mono);
+}
+
+.portal-first-block {
+  display: grid;
+  gap: 10px;
+}
+
+.portal-first-block__actions,
+.portal-first-block__signal-panel,
+.portal-first-block__secondary {
+  margin-top: 16px;
+}
+
+.portal-first-block__actions {
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.portal-first-block__headline {
+  margin: 0;
+  color: var(--text-strong);
+  font-family: var(--font-display);
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 0.98;
+  letter-spacing: -0.04em;
+}
+
+.portal-first-block__subheadline {
+  margin: 0;
+  color: var(--text);
+  max-width: 56ch;
+}
+
 @media (max-width: 1120px) {
   .collegium-hero,
   .forum-layout,
-  .praetorium-grid {
+  .praetorium-grid,
+  .home-flow {
     grid-template-columns: 1fr;
   }
 }
@@ -2362,7 +2607,113 @@
     padding: 20px;
   }
 
+  .portal-preview-grid {
+    gap: 14px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .cockpit-preview-grid {
+    gap: 14px;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .portal-preview-card {
+    gap: 10px;
+  }
+
+  .cockpit-preview-card {
+    gap: 10px;
+  }
+
+  .portal-first-block__headline {
+    font-size: clamp(22px, 7vw, 30px);
+    line-height: 1.02;
+  }
+
   .praetorium-event {
     grid-template-columns: 1fr;
+  }
+
+  .cockpit-surface__headline,
+  .cockpit-surface__grid,
+  .cockpit-surface__rails {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .portal-preview-hero {
+    padding: 18px;
+    gap: 14px;
+    border-radius: 20px;
+  }
+
+  .portal-preview-hero .collegium-hero__main h2 {
+    font-size: clamp(24px, 8vw, 32px);
+  }
+
+  .portal-preview-hero .collegium-lead {
+    margin-top: 10px;
+    font-size: 14px;
+  }
+
+  .portal-preview-hero .collegium-hero__rail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .portal-preview-hero .collegium-status-card {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .portal-preview-card__surface .portal-first-block {
+    padding: 16px;
+  }
+
+  .cockpit-surface {
+    padding: 16px;
+    gap: 14px;
+  }
+
+  .portal-first-block {
+    gap: 12px;
+  }
+
+  .portal-first-block__headline {
+    font-size: clamp(20px, 8vw, 28px);
+  }
+
+  .portal-first-block__subheadline {
+    font-size: 14px;
+  }
+
+  .portal-first-block__actions,
+  .portal-first-block__signal-panel,
+  .portal-first-block__secondary {
+    margin-top: 12px;
+  }
+
+  .portal-first-block__actions {
+    align-items: stretch;
+  }
+
+  .portal-first-block__primary-cta,
+  .portal-first-block__secondary-cta {
+    width: 100%;
+  }
+}
+
+@media (max-width: 400px) {
+  .portal-preview-hero .collegium-hero__rail {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .portal-preview-grid {
+    gap: 12px;
+  }
+
+  .portal-first-block__headline {
+    font-size: 19px;
   }
 }

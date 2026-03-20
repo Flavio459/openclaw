@@ -106,10 +106,6 @@ export function applySettingsFromUrl(host: SettingsHost) {
   }
 
   if (passwordRaw != null) {
-    const password = passwordRaw.trim();
-    if (password) {
-      (host as { password: string }).password = password;
-    }
     params.delete("password");
     hashParams.delete("password");
     shouldCleanUrl = true;
@@ -182,7 +178,7 @@ export function setTheme(host: SettingsHost, next: ThemeMode, context?: ThemeTra
 }
 
 export async function refreshActiveTab(host: SettingsHost) {
-  if (host.tab === "command" || host.tab === "forum" || host.tab === "praetorium") {
+  if (host.tab === "home" || host.tab === "command" || host.tab === "forum" || host.tab === "praetorium") {
     await loadAgents(host as unknown as OpenClawApp);
     const agentIds = host.agentsList?.agents?.map((entry) => entry.id) ?? [];
     if (agentIds.length > 0) {
@@ -197,7 +193,7 @@ export async function refreshActiveTab(host: SettingsHost) {
       host.eventLog = host.eventLogBuffer;
     }
   }
-  if (host.tab === "overview") {
+  if (host.tab === "home" || host.tab === "overview") {
     await loadOverview(host);
   }
   if (host.tab === "channels") {
@@ -332,7 +328,7 @@ export function syncTabWithLocation(host: SettingsHost, replace: boolean) {
   if (typeof window === "undefined") {
     return;
   }
-  const resolved = tabFromPath(window.location.pathname, host.basePath) ?? "chat";
+  const resolved = tabFromPath(window.location.pathname, host.basePath) ?? "home";
   setTabFromRoute(host, resolved);
   syncUrlWithTab(host, resolved, replace);
 }

@@ -13,7 +13,11 @@ import { runCliAgent } from "../agents/cli-runner.js";
 import { getCliSessionId } from "../agents/cli-session.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../agents/defaults.js";
 import { loadModelCatalog } from "../agents/model-catalog.js";
-import { runWithModelFallback } from "../agents/model-fallback.js";
+import {
+  resolveFallbackComplexityFromThinkLevel,
+  runWithModelFallback,
+} from "../agents/model-fallback.js";
+import { buildRunModelTelemetry } from "../agents/model-run-telemetry.js";
 import {
   buildAllowedModelSet,
   isCliProvider,
@@ -391,6 +395,7 @@ export async function agentCommand(
         provider,
         model,
         agentDir,
+        complexity: resolveFallbackComplexityFromThinkLevel(resolvedThinkLevel),
         fallbacksOverride: resolveAgentModelFallbacksOverride(cfg, sessionAgentId),
         run: (providerOverride, modelOverride) => {
           if (isCliProvider(providerOverride, cfg)) {
@@ -471,6 +476,28 @@ export async function agentCommand(
       result = fallbackResult.result;
       fallbackProvider = fallbackResult.provider;
       fallbackModel = fallbackResult.model;
+      const effectiveProvider = result.meta.agentMeta?.provider ?? fallbackProvider ?? provider;
+      const effectiveModel = result.meta.agentMeta?.model ?? fallbackModel ?? model;
+      const modelTelemetry = buildRunModelTelemetry({
+        configuredProvider: provider,
+        configuredModel: model,
+        effectiveProvider,
+        effectiveModel,
+        attempts: fallbackResult.attempts,
+      });
+      result = {
+        ...result,
+        meta: {
+          ...result.meta,
+          modelTelemetry,
+        },
+      };
+      registerAgentRunContext(runId, { modelTelemetry });
+      if (modelTelemetry.didFallback) {
+        runtime.log(
+          `[model_fallback] run=${runId} configured=${modelTelemetry.configuredModel} effective=${modelTelemetry.effectiveModelRef} reason=${modelTelemetry.fallbackReason ?? "unknown"} attempted=${modelTelemetry.attemptedModels.join(" -> ")}`,
+        );
+      }
       if (!lifecycleEnded) {
         emitAgentEvent({
           runId,

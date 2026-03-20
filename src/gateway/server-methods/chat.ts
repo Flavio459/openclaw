@@ -6,6 +6,7 @@ import type { MsgContext } from "../../auto-reply/templating.js";
 import type { GatewayRequestContext, GatewayRequestHandlers } from "./types.js";
 import { resolveSessionAgentId } from "../../agents/agent-scope.js";
 import { resolveThinkingDefault } from "../../agents/model-selection.js";
+import type { RunModelTelemetry } from "../../agents/model-run-telemetry.js";
 import { resolveAgentTimeoutMs } from "../../agents/timeout.js";
 import { dispatchInboundMessage } from "../../auto-reply/dispatch.js";
 import { createReplyDispatcher } from "../../auto-reply/reply/reply-dispatcher.js";
@@ -39,6 +40,7 @@ import {
 } from "../session-utils.js";
 import { formatForLog } from "../ws-log.js";
 import { injectTimestamp, timestampOptsFromConfig } from "./agent-timestamp.js";
+import { getAgentRunContext } from "../../infra/agent-events.js";
 
 type TranscriptAppendResult = {
   ok: boolean;
@@ -152,14 +154,33 @@ function broadcastChatFinal(params: {
   runId: string;
   sessionKey: string;
   message?: Record<string, unknown>;
+  modelTelemetry?: RunModelTelemetry;
 }) {
   const seq = nextChatSeq({ agentRunSeq: params.context.agentRunSeq }, params.runId);
+  const telemetry = params.modelTelemetry;
+  const message = params.message
+    ? {
+        ...params.message,
+        provider: telemetry?.effectiveProvider ?? params.message.provider,
+        model: telemetry?.effectiveModel ?? params.message.model,
+        configuredModel: telemetry?.configuredModel ?? params.message.configuredModel,
+        didFallback: telemetry?.didFallback ?? params.message.didFallback,
+        fallbackReason: telemetry?.fallbackReason ?? params.message.fallbackReason,
+        attemptedModels: telemetry?.attemptedModels ?? params.message.attemptedModels,
+      }
+    : params.message;
   const payload = {
     runId: params.runId,
     sessionKey: params.sessionKey,
     seq,
     state: "final" as const,
-    message: params.message,
+    configuredModel: telemetry?.configuredModel,
+    effectiveModel: telemetry?.effectiveModelRef,
+    effectiveProvider: telemetry?.effectiveProvider,
+    didFallback: telemetry?.didFallback,
+    fallbackReason: telemetry?.fallbackReason,
+    attemptedModels: telemetry?.attemptedModels,
+    message,
   };
   params.context.broadcast("chat", payload);
   params.context.nodeSendToSession(params.sessionKey, "chat", payload);
@@ -170,14 +191,22 @@ function broadcastChatError(params: {
   runId: string;
   sessionKey: string;
   errorMessage?: string;
+  modelTelemetry?: RunModelTelemetry;
 }) {
   const seq = nextChatSeq({ agentRunSeq: params.context.agentRunSeq }, params.runId);
+  const telemetry = params.modelTelemetry;
   const payload = {
     runId: params.runId,
     sessionKey: params.sessionKey,
     seq,
     state: "error" as const,
     errorMessage: params.errorMessage,
+    configuredModel: telemetry?.configuredModel,
+    effectiveModel: telemetry?.effectiveModelRef,
+    effectiveProvider: telemetry?.effectiveProvider,
+    didFallback: telemetry?.didFallback,
+    fallbackReason: telemetry?.fallbackReason,
+    attemptedModels: telemetry?.attemptedModels,
   };
   params.context.broadcast("chat", payload);
   params.context.nodeSendToSession(params.sessionKey, "chat", payload);
@@ -477,11 +506,30 @@ export const chatHandlers: GatewayRequestHandlers = {
         sessionKey,
         config: cfg,
       });
+      const resolvedConfiguredModel = resolveSessionModelRef(cfg, entry, agentId);
+      let selectedModelTelemetry: RunModelTelemetry | undefined;
       const { onModelSelected, ...prefixOptions } = createReplyPrefixOptions({
         cfg,
         agentId,
         channel: INTERNAL_MESSAGE_CHANNEL,
       });
+      const resolveModelTelemetry = () =>
+        getAgentRunContext(clientRunId)?.modelTelemetry ?? selectedModelTelemetry;
+      const handleModelSelected: typeof onModelSelected = (selected) => {
+        onModelSelected(selected);
+        const effectiveModelRef = `${selected.provider}/${selected.model}`;
+        selectedModelTelemetry = {
+          configuredModel: `${resolvedConfiguredModel.provider}/${resolvedConfiguredModel.model}`,
+          effectiveProvider: selected.provider,
+          effectiveModel: selected.model,
+          effectiveModelRef,
+          didFallback:
+            effectiveModelRef !==
+            `${resolvedConfiguredModel.provider}/${resolvedConfiguredModel.model}`,
+          attemptedModels: [effectiveModelRef],
+          attempts: [],
+        };
+      };
       const finalReplyParts: string[] = [];
       const dispatcher = createReplyDispatcher({
         ...prefixOptions,
@@ -521,7 +569,7 @@ export const chatHandlers: GatewayRequestHandlers = {
               context.registerToolEventRecipient(runId, connId);
             }
           },
-          onModelSelected,
+          onModelSelected: handleModelSelected,
         },
       })
         .then(() => {
@@ -558,6 +606,7 @@ export const chatHandlers: GatewayRequestHandlers = {
                 runId: clientRunId,
                 sessionKey: rawSessionKey,
                 errorMessage: noPayloadError,
+                modelTelemetry: resolveModelTelemetry(),
               });
               return;
             }
@@ -592,6 +641,7 @@ export const chatHandlers: GatewayRequestHandlers = {
               runId: clientRunId,
               sessionKey: rawSessionKey,
               message,
+              modelTelemetry: resolveModelTelemetry(),
             });
           }
           context.dedupe.set(`chat:${clientRunId}`, {
@@ -629,6 +679,7 @@ export const chatHandlers: GatewayRequestHandlers = {
             runId: clientRunId,
             sessionKey: rawSessionKey,
             errorMessage: String(err),
+            modelTelemetry: resolveModelTelemetry(),
           });
         })
         .finally(() => {

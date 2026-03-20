@@ -86,6 +86,35 @@ Importante:
 - se a UI abrir em HTTP tunelado e cair em `pairing required`, use HTTPS/Tailscale
   ou habilite `gateway.controlUi.allowInsecureAuth=true` no LAB
 
+## 1.2) Abrir um monitor local simples do desenvolvimento
+
+Se você quiser acompanhar o trabalho sem depender do chat, abra:
+
+- `scripts/pema/praetorium-local-monitor.html`
+
+Esse HTML mostra:
+
+- estado da PR e dos checks remotos
+- fase atual do desenvolvimento
+- leitura opcional de `http://127.0.0.1:8787/health` e `http://127.0.0.1:8787/state`
+
+Pode abrir direto no navegador. Para leitura mais confiável dos endpoints locais, prefira servir
+a pasta por HTTP:
+
+```bash
+cd c:/Pico-Open/openclaw-push/scripts/pema
+python -m http.server 8934
+```
+
+Depois abra:
+
+```text
+http://127.0.0.1:8934/praetorium-local-monitor.html
+```
+
+Se `/state` exigir autenticação, informe o `PEMA_API_TOKEN` no próprio monitor ou cole o JSON do
+snapshot manualmente.
+
 ## 2) Validar tools MCP
 
 Com `mcporter`:

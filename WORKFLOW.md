@@ -185,6 +185,10 @@ Regras operacionais:
 - `Trilho Aplicação` não abre branch; ele prepara `WS`, `DEC` ou `SPEC` funcional;
 - `Trilho Motor` só recebe trabalho ligado a `WS`, `SPEC` ou `DEC`;
 - toda passagem de um trilho para outro precisa preservar `Estado`, `Risco`, `Próxima ação dominante` e `Próximo responsável`.
+- outro chat no mesmo workspace só pode existir como frente deliberativa `read-only` enquanto o
+  assunto ainda for `IDEA` ou `pré-DEC`;
+- se o assunto virar implementação, ele sai desse formato e ganha frente própria no
+  `Trilho Motor`.
 
 Formato mínimo de `IDEA`:
 
@@ -195,6 +199,23 @@ Formato mínimo de `IDEA`:
 - `Descrição curta`
 - `Impacta WS atual?`
 - `Próxima ação dominante`
+
+### 3B.2. Política de topologia operacional
+
+A política oficial de ambiente fica em [docs/runtime-topology-policy.md](docs/runtime-topology-policy.md).
+Checklist operacional: [docs/runtime-adoption-checklist.md](docs/runtime-adoption-checklist.md).
+
+Resumo obrigatório:
+
+- `local-first` para código
+- `VPS lab-first` para runtime e validação integradora
+- `VPS prod-only` para operação estável
+
+Regra prática:
+
+- `Trilho Aplicação` pode amadurecer localmente;
+- `Trilho Motor` pode implementar localmente, mas não fecha mudanças de runtime sem validação em `lab`;
+- `prod` nunca vira ambiente de descoberta.
 
 ---
 
@@ -312,7 +333,7 @@ Regra operacional:
 - use `promote-idea.ps1` para transformar `IDEA` em `SPEC` ou `DEC` sem perder rastreabilidade;
 - use `dispatch-open-cli-specs.ps1 -Mode preview` antes de qualquer execução real;
 - use `run-motor-agentico-checkpoint.ps1` para enxergar `DEC`, `WS` e `SPEC` na mesma cadência;
-- use `run-motor-agentico-cron.ps1` para cadência recorrente com snapshot em `.logs` e despacho automático apenas de `SPEC` CLI sem recibo prévio em `.runs`;
+- use `run-motor-agentico-cron.ps1` para cadência recorrente com snapshot em `.logs`; o modo padrão agora é higiene `read-only`, e o despacho de `SPEC` CLI só acontece com `-LaunchOpenCliSpecs`;
 - use `new-specialist-response-template.ps1` para gerar o envelope Markdown de resposta do especialista antes de consolidar a entrega;
 - use `import-specialist-output.ps1` para transformar a resposta final em `Entrega` + `REV` e fechar o `SPEC` canônico;
 - só execute `SPEC` por CLI quando o despacho já estiver canônico no vault.
@@ -353,6 +374,8 @@ Regra prática:
 - não adotar framework novo antes de estabilizar o contrato operacional `local-first`;
 - não usar paralelismo multiagente para um fluxo linear que já é derivável;
 - toda automação futura deve respeitar checkpoint/resume e não depender da memória informal do operador.
+- não usar um segundo chat do Codex como segunda frente de código disfarçada; isso só é aceitável
+  como review `read-only` de `IDEA` ou `pré-DEC`.
 
 ---
 

@@ -1,0 +1,755 @@
+{
+  "schemaVersion": "1.0.0",
+  "meta": {
+    "title": "Collegium Cortex Implantation Status",
+    "surface": "Cortex Praetorium",
+    "reason": "Superficie executiva de supervisao da implantacao do Collegium com leitura curta para Chairman e lider de desenvolvimento.",
+    "notThis": "Nao e dashboard SaaS generico, nao e runtime engine e nao e painel de tooling LAB.",
+    "statusSignal": "consolidacao ativa com base operacional real no LAB.",
+    "lastUpdated": "2026-03-16T15:59:59.577Z",
+    "scope": {
+      "covers": [
+        "Implantacao atual do Collegium Cortex dentro de c:\\Pico-Open\\openclaw-push.",
+        "Leitura executiva da frente ativa, dos bloqueios, das decisoes pendentes e das evidencias recentes.",
+        "Separacao entre base OpenClaw Runtime, superficies do produto, integracoes PEMA e tooling de LAB.",
+        "Topologia operacional entre local, VPS prod, VPS lab e PicoClaw."
+      ],
+      "doesNotCover": [
+        "O workspace inteiro de c:\\Pico-Open.",
+        "Roadmap institucional completo do protocolo.",
+        "Planejamento detalhado de sprint ou inventario tecnico exaustivo."
+      ],
+      "distinction": [
+        "OpenClaw Runtime: engine, gateway, sessoes, pairing, auth, cron, agentes e infraestrutura.",
+        "Collegium Cortex: superficies de produto e de leitura executiva usadas para operar, deliberar e supervisionar.",
+        "Cadencia: atualizacao por evento + fechamento diario + revisao semanal."
+      ]
+    }
+  },
+  "generalState": {
+    "branch": "antigravity-dev",
+    "activeFront": "consolidacao das superficies do Collegium com guardrails, contexto agentic e leitura executiva local.",
+    "overallStatus": "consolidacao ativa com base operacional real no LAB.",
+    "lastCheckpoint": "2026-03-11",
+    "agenticContract": "baseline explicita de mandato, explicabilidade, escalation e HITL agora existe no repo."
+  },
+  "summarySignals": [
+    {
+      "label": "branch ativa",
+      "value": "antigravity-dev",
+      "status": "ativo",
+      "summary": "Branch viva da implantacao em acompanhamento executivo."
+    },
+    {
+      "label": "gateway local",
+      "value": "ok",
+      "status": "ativo",
+      "summary": "Health direto do runtime local validado em 127.0.0.1:19000."
+    },
+    {
+      "label": "chairman api",
+      "value": "ok",
+      "status": "ativo",
+      "summary": "Health do Chairman API sondado; leitura de /state nao disponivel ou nao autenticada."
+    },
+    {
+      "label": "status geral",
+      "value": "consolidacao ativa com base operacional real no LAB.",
+      "status": "consolidacao ativa com base operacional real no LAB.",
+      "summary": "Leitura dominante da implantacao no ciclo atual."
+    },
+    {
+      "label": "superficies ativas",
+      "value": "1",
+      "status": "ativo",
+      "summary": "Superficies com sinal forte na implantacao atual."
+    },
+    {
+      "label": "bloqueios ativos",
+      "value": "3",
+      "status": "bloqueado",
+      "summary": "3 decisoes pendentes e 3 componentes lab/provisorios na leitura atual."
+    }
+  ],
+  "now": [
+    {
+      "id": "now-01",
+      "title": "Consolidando uma camada executiva local para acompanhar a implantacao sem depender do chat.",
+      "summary": "Consolidando uma camada executiva local para acompanhar a implantacao sem depender do chat.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-02",
+      "title": "Cortex Command, The Forum e Cortex Praetorium ja existem na UI e precisam de uma leitura operacional mais curta.",
+      "summary": "Cortex Command, The Forum e Cortex Praetorium ja existem na UI e precisam de uma leitura operacional mais curta.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-03",
+      "title": "Chairman API, handoff com HMAC + TTL e cluster_write_guard sustentam o LAB.",
+      "summary": "Chairman API, handoff com HMAC + TTL e cluster_write_guard sustentam o LAB.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-04",
+      "title": "O runtime local permanece em 2026.2.6-3 por decisao deliberada de risco.",
+      "summary": "O runtime local permanece em 2026.2.6-3 por decisao deliberada de risco.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-05",
+      "title": "A ambiguidade local entre o container Docker legado e o runtime canonico do repo atual foi removida; 19000 agora pertence ao openclaw-push.",
+      "summary": "A ambiguidade local entre o container Docker legado e o runtime canonico do repo atual foi removida; 19000 agora pertence ao openclaw-push.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-06",
+      "title": "A politica operacional agora esta formalizada: codigo nasce no local, validacao real de runtime fecha em VPS lab e prod fica restrito a operacao estavel.",
+      "summary": "A politica operacional agora esta formalizada: codigo nasce no local, validacao real de runtime fecha em VPS lab e prod fica restrito a operacao estavel.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-07",
+      "title": "A VPS nao e um bloco unico: hoje ela abriga prod, lab e picoclaw, cada um com ciclo de mudanca e diagnostico proprio.",
+      "summary": "A VPS nao e um bloco unico: hoje ela abriga prod, lab e picoclaw, cada um com ciclo de mudanca e diagnostico proprio.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-08",
+      "title": "prod e lab agora usam checkouts remotos dedicados na VPS, reduzindo drift entre validacao e release.",
+      "summary": "prod e lab agora usam checkouts remotos dedicados na VPS, reduzindo drift entre validacao e release.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-09",
+      "title": "A higiene recorrente do motor agora roda em modo read-only por padrao; despacho CLI exige opt-in explicito.",
+      "summary": "A higiene recorrente do motor agora roda em modo read-only por padrao; despacho CLI exige opt-in explicito.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-10",
+      "title": "O gate operacional de lab agora tem um preflight curto e read-only, com health, tunel local e Control UI em um unico comando.",
+      "summary": "O gate operacional de lab agora tem um preflight curto e read-only, com health, tunel local e Control UI em um unico comando.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-11",
+      "title": "O gate operacional de prod agora tem o preflight espelhado em modo read-only, pronto para entrar na promocao canônica.",
+      "summary": "O gate operacional de prod agora tem o preflight espelhado em modo read-only, pronto para entrar na promocao canônica.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-12",
+      "title": "O pacote Collegium agora tem verificacao local unica via pnpm collegium:verify, incluindo evals deterministicas de governanca agentica.",
+      "summary": "O pacote Collegium agora tem verificacao local unica via pnpm collegium:verify, incluindo evals deterministicas de governanca agentica.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-13",
+      "title": "The Forum agora renderiza uma sala deliberativa com DecisionTrace, evidencias, opcao recomendada e chairmanAction explicita.",
+      "summary": "The Forum agora renderiza uma sala deliberativa com DecisionTrace, evidencias, opcao recomendada e chairmanAction explicita.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-14",
+      "title": "RuntimeSignals agora concentram continuidade de runtime, pressao de autoridade, cadencia de automacao, continuidade de sessao e ambiguidade estrategica.",
+      "summary": "RuntimeSignals agora concentram continuidade de runtime, pressao de autoridade, cadencia de automacao, continuidade de sessao e ambiguidade estrategica.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-15",
+      "title": "The Cockpit agora existe como contrato, arquitetura e preview interno separados de Cortex Praetorium, sem abrir build amplo do produto do piloto nesta fase.",
+      "summary": "The Cockpit agora existe como contrato, arquitetura e preview interno separados de Cortex Praetorium, sem abrir build amplo do produto do piloto nesta fase.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-16",
+      "title": "Outro chat no mesmo workspace agora esta explicitamente enquadrado: so pode operar como frente",
+      "summary": "Outro chat no mesmo workspace agora esta explicitamente enquadrado: so pode operar como frente",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "now-17",
+      "title": "O foco imediato e reduzir ambiguidade entre produto, bastidor tecnico e tooling de desenvolvimento.",
+      "summary": "O foco imediato e reduzir ambiguidade entre produto, bastidor tecnico e tooling de desenvolvimento.",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "nextDominantAction": {
+    "id": "next-01",
+    "title": "Usar este painel como checkpoint unico da implantacao do Collegium, manter a higiene recorrente em read-only e promover qualquer mudanca de runtime pelo trilho local -> VPS lab -> VPS prod.",
+    "summary": "Acao dominante da leitura executiva atual do Collegium.",
+    "lastUpdated": "2026-03-16"
+  },
+  "weeklyTop3": [
+    {
+      "id": "top-01",
+      "title": "Consolidar a leitura executiva diaria da implantacao do Collegium.",
+      "summary": "Consolidar a leitura executiva diaria da implantacao do Collegium.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "top-02",
+      "title": "Reduzir dependencia de snapshots intermediarios nas superficies de produto.",
+      "summary": "Reduzir dependencia de snapshots intermediarios nas superficies de produto.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "top-03",
+      "title": "Preparar a janela limpa que permitira abrir a trilha isolada de upgrade para 2026.3.8.",
+      "summary": "Preparar a janela limpa que permitira abrir a trilha isolada de upgrade para 2026.3.8.",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "operations": [
+    {
+      "id": "op-1",
+      "title": "Quero desenvolver e escrever codigo",
+      "environmentScope": "local",
+      "status": "ativo",
+      "doHere": "branch, worktree, implementacao, refactor, testes rapidos, build local e revisao antes de promover qualquer mudanca.",
+      "dontHere": "tratar o runtime local como estado operacional autoritativo ou usar este ambiente como release final.",
+      "access": "http://127.0.0.1:19000",
+      "command": "start http://127.0.0.1:19000",
+      "preflight": "",
+      "sourceOfTruth": "repo para codigo; local e sandbox de desenvolvimento.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "op-2",
+      "title": "Quero registrar decisao e contexto",
+      "environmentScope": "vault",
+      "status": "ativo",
+      "doHere": "IDEA, DEC, WS, SPEC, REV, checkpoint, memoria operacional e observacoes do Chairman.",
+      "dontHere": "codigo de aplicacao, ajuste manual de runtime ou estado de sessao.",
+      "access": "W:\\\\Collegium Cortex",
+      "command": "explorer.exe \"W:\\\\Collegium Cortex\"",
+      "preflight": "",
+      "sourceOfTruth": "vault para decisao, rastreabilidade e contexto.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "op-3",
+      "title": "Quero validar runtime real",
+      "environmentScope": "VPS lab",
+      "status": "ativo",
+      "doHere": "auth, pairing, sessoes, agentes, cron, smoke real e validacao integradora antes de prod.",
+      "dontHere": "experimento solto sem branch, hotfix esquecido fora do repo ou uso do LAB como substituto de prod.",
+      "access": "depois do tunel, http://127.0.0.1:28789/",
+      "command": "ssh -N -L 28789:127.0.0.1:28789 openclaw-vps-ts",
+      "preflight": "pnpm collegium:lab:preflight",
+      "sourceOfTruth": "estado operacional de lab.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "op-4",
+      "title": "Quero operar producao",
+      "environmentScope": "VPS prod",
+      "status": "ativo",
+      "doHere": "release aprovada, smoke pos-release, observabilidade e verificacao final de estabilidade.",
+      "dontHere": "desenvolvimento, descoberta, experimento livre ou correcao que nao volte para o repo.",
+      "access": "depois do tunel, http://127.0.0.1:18789/",
+      "command": "ssh -N -L 18789:127.0.0.1:18789 openclaw-vps-ts",
+      "preflight": "",
+      "sourceOfTruth": "estado operacional de prod.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "op-5",
+      "title": "Quero diagnosticar PicoClaw",
+      "environmentScope": "PicoClaw remoto",
+      "status": "separado",
+      "doHere": "troubleshooting do gateway picoclaw, incidente proprio e verificacao do servico remoto separado.",
+      "dontHere": "assumir que restart de prod ou lab cobre automaticamente este servico.",
+      "access": "via openclaw-vps-ts; servico systemd separado na VPS.",
+      "command": "ssh openclaw-vps-ts",
+      "preflight": "",
+      "sourceOfTruth": "servico remoto picoclaw-gateway.service.",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "blockers": [
+    {
+      "id": "B1",
+      "title": "Sala deliberativa menos madura do que o restante do fluxo",
+      "status": "bloqueado",
+      "summary": "The Forum ainda nao entrega o mesmo grau de consolidacao que Cortex Praetorium.",
+      "effect": "The Forum ainda nao entrega o mesmo grau de consolidacao que Cortex Praetorium.",
+      "dependency": "amadurecer caso, evidencia, opcao recomendada e trilha de autoridade.",
+      "needsHumanDecision": false,
+      "owner": "lider de desenvolvimento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "B2",
+      "title": "Upgrade do runtime congelado ate checkpoint limpo",
+      "status": "parcial",
+      "summary": "novas capacidades do OpenClaw ficam fora da implantacao atual.",
+      "effect": "novas capacidades do OpenClaw ficam fora da implantacao atual.",
+      "dependency": "PR atual mergeada, worktree limpo, LAB sem mudanca estrutural concorrente e preflight de auth/config concluido.",
+      "needsHumanDecision": true,
+      "owner": "Chairman",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "B3",
+      "title": "Parte do dominio ainda aparece por snapshot intermediario",
+      "status": "bloqueado",
+      "summary": "Cortex Command e The Forum ainda misturam leitura real com consolidacao parcial de dominio.",
+      "effect": "Cortex Command e The Forum ainda misturam leitura real com consolidacao parcial de dominio.",
+      "dependency": "ligar fontes de dominio mais diretas e preservar auditoria da camada protocolar.",
+      "needsHumanDecision": false,
+      "owner": "lider de desenvolvimento",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "pendingDecisions": [
+    {
+      "id": "D1",
+      "title": "Quando abrir a trilha isolada de upgrade para `2026.3.8`",
+      "impact": "mexe em auth, pairing, Control UI, contexto e runtime.",
+      "urgency": "media",
+      "owner": "Chairman + lider de desenvolvimento",
+      "summary": "mexe em auth, pairing, Control UI, contexto e runtime.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "D2",
+      "title": "O que vem primeiro entre amadurecer `The Forum` e aprofundar fonte real de dominio",
+      "impact": "define se a proxima fase fortalece deliberacao ou reduz intermediacao tecnica nas superficies.",
+      "urgency": "alta",
+      "owner": "lider de desenvolvimento",
+      "summary": "define se a proxima fase fortalece deliberacao ou reduz intermediacao tecnica nas superficies.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "D3",
+      "title": "Qual o checkpoint que marca saida do modo consolidacao",
+      "impact": "libera nova janela de runtime, reduz ambiguidade operacional e muda o ritual de acompanhamento.",
+      "urgency": "media",
+      "owner": "Chairman",
+      "summary": "libera nova janela de runtime, reduz ambiguidade operacional e muda o ritual de acompanhamento.",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "surfaces": [
+    {
+      "name": "Cortex Command",
+      "status": "parcial",
+      "realData": "parcial",
+      "dependency": "snapshot do dominio + estado do LAB",
+      "maturity": "leitura executiva em consolidacao",
+      "summary": "leitura executiva em consolidacao",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "The Forum",
+      "status": "parcial",
+      "realData": "parcial",
+      "dependency": "fila de autoridade + eventos estrategicos",
+      "maturity": "deliberacao funcional, sala ainda menos madura",
+      "summary": "deliberacao funcional, sala ainda menos madura",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Cortex Praetorium",
+      "status": "ativo",
+      "realData": "sim",
+      "dependency": "runtime OpenClaw + event log + fila + cron",
+      "maturity": "cockpit tecnico mais consolidado",
+      "summary": "cockpit tecnico mais consolidado",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "components": [
+    {
+      "name": "OpenClaw Runtime",
+      "componentType": "base",
+      "status": "ativo",
+      "source": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/overview.ts",
+      "nextStep": "manter congelado ate checkpoint limpo",
+      "environmentScope": "local",
+      "summary": "manter congelado ate checkpoint limpo",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Cortex Command",
+      "componentType": "produto",
+      "status": "parcial",
+      "source": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/overview.ts",
+      "nextStep": "separar melhor leitura executiva de sinais tecnicos",
+      "environmentScope": "vps-prod",
+      "summary": "separar melhor leitura executiva de sinais tecnicos",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "The Forum",
+      "componentType": "produto",
+      "status": "parcial",
+      "source": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/forum.ts",
+      "nextStep": "amadurecer casos, evidencias e decisao recomendada",
+      "environmentScope": "vps-prod",
+      "summary": "amadurecer casos, evidencias e decisao recomendada",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Cortex Praetorium",
+      "componentType": "produto",
+      "status": "ativo",
+      "source": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/praetorium.ts",
+      "nextStep": "manter como cockpit de supervisao e prova tecnica",
+      "environmentScope": "vps-prod",
+      "summary": "manter como cockpit de supervisao e prova tecnica",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "RuntimeSignals",
+      "componentType": "integracao",
+      "status": "ativo",
+      "source": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/collegium/runtime-signals.ts",
+      "nextStep": "reduzir composicao ad hoc nas superficies executivas",
+      "environmentScope": "local",
+      "summary": "reduzir composicao ad hoc nas superficies executivas",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "The Cockpit",
+      "componentType": "produto",
+      "status": "experimental",
+      "source": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/cockpit-preview.ts",
+      "nextStep": "manter preview interno antes de binding operacional",
+      "environmentScope": "vps-prod",
+      "summary": "manter preview interno antes de binding operacional",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Chairman API",
+      "componentType": "integracao",
+      "status": "ativo",
+      "source": "file:///C:/Pico-Open/openclaw-push/scripts/pema/MEMORIA_OPERACIONAL_PEMA.md",
+      "nextStep": "preservar gate de decisao e leitura de pendencias",
+      "environmentScope": "vps-lab",
+      "summary": "preservar gate de decisao e leitura de pendencias",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Dashboard MCP",
+      "componentType": "integracao",
+      "status": "ativo",
+      "source": "file:///C:/Pico-Open/openclaw-push/scripts/pema/README.stitch-mcp-dashboard.md",
+      "nextStep": "manter leitura via /state e evitar mocks",
+      "environmentScope": "local",
+      "summary": "manter leitura via /state e evitar mocks",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Handoff wrappers com HMAC + TTL",
+      "componentType": "integracao",
+      "status": "ativo",
+      "source": "file:///C:/Pico-Open/openclaw-push/scripts/pema/MEMORIA_OPERACIONAL_PEMA.md",
+      "nextStep": "manter rastreabilidade entre agentes",
+      "environmentScope": "vps-lab",
+      "summary": "manter rastreabilidade entre agentes",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "cluster_write_guard",
+      "componentType": "integracao",
+      "status": "ativo",
+      "source": "file:///C:/Pico-Open/openclaw-push/scripts/pema/MEMORIA_OPERACIONAL_PEMA.md",
+      "nextStep": "sustentar separacao de escrita entre areas",
+      "environmentScope": "vps-lab",
+      "summary": "sustentar separacao de escrita entre areas",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Stitch",
+      "componentType": "lab",
+      "status": "experimental",
+      "source": "file:///C:/Pico-Open/openclaw-push/scripts/pema/README.stitch-mcp-dashboard.md",
+      "nextStep": "manter como tooling de layout, nao como arquitetura",
+      "environmentScope": "local",
+      "summary": "manter como tooling de layout, nao como arquitetura",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Praetorium local monitor",
+      "componentType": "lab",
+      "status": "experimental",
+      "source": "file:///C:/Pico-Open/openclaw-push/scripts/pema/praetorium-local-monitor.html",
+      "nextStep": "absorver aprendizados na camada executiva local",
+      "environmentScope": "local",
+      "summary": "absorver aprendizados na camada executiva local",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "name": "Snapshot de dominio inicial",
+      "componentType": "provisorio",
+      "status": "parcial",
+      "source": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/collegium.ts",
+      "nextStep": "substituir por fontes mais diretas e auditaveis",
+      "environmentScope": "local",
+      "summary": "substituir por fontes mais diretas e auditaveis",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R1",
+      "title": "Mistura entre consolidacao do Collegium e evolucao do runtime OpenClaw",
+      "status": "bloqueado",
+      "effect": "mascara causalidade e aumenta risco de regressao em auth, pairing e control UI.",
+      "mitigation": "manter upgrade isolado para outra janela e separar claramente produto, integracao e engine.",
+      "summary": "mascara causalidade e aumenta risco de regressao em auth, pairing e control UI.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "R2",
+      "title": "Tratar tooling de LAB como se fosse produto",
+      "status": "parcial",
+      "effect": "gera leitura errada da implantacao e empurra decisoes estruturais para ferramentas temporarias.",
+      "mitigation": "marcar Stitch e monitores locais como lab ou experimental em toda leitura executiva.",
+      "summary": "gera leitura errada da implantacao e empurra decisoes estruturais para ferramentas temporarias.",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "id": "R3",
+      "title": "Deixar observacoes e decisoes morrerem no chat",
+      "status": "parcial",
+      "effect": "perda de contexto, repeticao de alinhamento e baixa rastreabilidade para a IA lider.",
+      "mitigation": "registrar observacoes neste documento e exigir resposta operacional da IA lider no proprio artefato.",
+      "summary": "perda de contexto, repeticao de alinhamento e baixa rastreabilidade para a IA lider.",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "evidence": [
+    {
+      "label": "WORKFLOW.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/WORKFLOW.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "runtime-topology-policy.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/docs/runtime-topology-policy.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "runtime-adoption-checklist.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/docs/runtime-adoption-checklist.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "collegium-agentic-operating-contract.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/docs/collegium-agentic-operating-contract.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "cockpit.architecture.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/docs/cockpit.architecture.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "cockpit-preview.ts",
+      "href": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/cockpit-preview.ts",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "preflight_collegium_lab.ps1",
+      "href": "file:///C:/Pico-Open/openclaw-push/scripts/preflight_collegium_lab.ps1",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "preflight_collegium_prod.ps1",
+      "href": "file:///C:/Pico-Open/openclaw-push/scripts/preflight_collegium_prod.ps1",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "gateway.cmd",
+      "href": "file:///C:/Users/flavi/.openclaw/gateway.cmd",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "node.cmd",
+      "href": "file:///C:/Users/flavi/.openclaw/node.cmd",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "openclaw.json",
+      "href": "file:///C:/Users/flavi/.openclaw/openclaw.json",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "openclaw-2026-03-12.log",
+      "href": "file:///C:/tmp/openclaw/openclaw-2026-03-12.log",
+      "kind": "log",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "CONTEXTO_OPERACIONAL_AGENTES.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/scripts/pema/CONTEXTO_OPERACIONAL_AGENTES.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "MEMORIA_OPERACIONAL_PEMA.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/scripts/pema/MEMORIA_OPERACIONAL_PEMA.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "GUIA_FLUXOS_DE_TRABALHO_COLLEGIUM.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/scripts/pema/GUIA_FLUXOS_DE_TRABALHO_COLLEGIUM.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "ADR-OPENCLAW-UPGRADE-WINDOW-2026-03.md",
+      "href": "file:///C:/Pico-Open/openclaw-push/scripts/pema/ADR-OPENCLAW-UPGRADE-WINDOW-2026-03.md",
+      "kind": "documento",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "collegium.ts",
+      "href": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/collegium.ts",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "agentic-governance.ts",
+      "href": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/collegium/agentic-governance.ts",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "runtime-signals.ts",
+      "href": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/collegium/runtime-signals.ts",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "forum.adapter.ts",
+      "href": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/collegium/forum.adapter.ts",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "forum.ts",
+      "href": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/forum.ts",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "praetorium.ts",
+      "href": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/praetorium.ts",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "overview.ts",
+      "href": "file:///C:/Pico-Open/openclaw-push/ui/src/ui/views/overview.ts",
+      "kind": "script",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "gateway-local-health",
+      "href": "http://127.0.0.1:19000/health",
+      "kind": "endpoint",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "chairman-api-health",
+      "href": "http://127.0.0.1:8787/health",
+      "kind": "endpoint",
+      "lastUpdated": "2026-03-16"
+    },
+    {
+      "label": "chairman-api-state",
+      "href": "http://127.0.0.1:8787/state",
+      "kind": "endpoint",
+      "lastUpdated": "2026-03-16"
+    }
+  ],
+  "chairmanObservations": [
+    {
+      "id": "OBS-2026-03-11-01",
+      "date": "2026-03-11",
+      "type": "direcao",
+      "text": "manter a leitura executiva focada na implantacao do Collegium dentro de openclaw-push, sem diluir a leitura no workspace inteiro.",
+      "expectedImpact": "separar claramente base OpenClaw, produto Collegium, integracoes PEMA e tooling de LAB.",
+      "status": "em_acao",
+      "response": {
+        "reading": "a observacao corrige o enquadramento e elimina a ambiguidade entre workspace, engine e produto.",
+        "impact": "reorganiza o acompanhamento em torno da implantacao real, da branch viva e das superficies oficiais.",
+        "actionTaken": "documento e HTML passaram a classificar cada componente por tipo, status, dependencia e proximo passo.",
+        "needsHumanDecision": false
+      }
+    },
+    {
+      "id": "OBS-2026-03-11-02",
+      "date": "2026-03-11",
+      "type": "direcao",
+      "text": "quando for adequado, cogitar a separacao explicita entre workspace, base OpenClaw, operacao local e runtime VPS.",
+      "expectedImpact": "reduzir drift entre ambientes, diminuir ambiguidade operacional e preparar uma topologia canonica entre laboratorio local e host remoto.",
+      "status": "em_acao",
+      "response": {
+        "reading": "a observacao reforca uma separacao que ja apareceu no troubleshooting do LAB e evita colapsar codigo, estado, runtime e ambiente de validacao no mesmo plano.",
+        "impact": "melhora diagnostico, reduz risco de configuracao cruzada e ajuda a decidir quando o runtime canonico deve ficar remoto enquanto o local permanece como laboratorio.",
+        "actionTaken": "melhoria registrada neste artefato como diretriz operacional para proximas mudancas de runtime, onboarding e manutencao.",
+        "needsHumanDecision": false
+      }
+    },
+    {
+      "id": "OBS-2026-03-11-03",
+      "date": "2026-03-11",
+      "type": "correcao",
+      "text": "na VPS, considerar explicitamente tres trilhas remotas distintas: prod, lab e picoclaw.",
+      "expectedImpact": "evitar leitura simplificada do host remoto como um unico ambiente e melhorar roteamento de diagnostico, mudanca e validacao.",
+      "status": "em_acao",
+      "response": {
+        "reading": "essa informacao corrige a topologia operacional da VPS e impede que prod, lab e picoclaw sejam tratados como variacoes menores do mesmo runtime.",
+        "impact": "melhora a precisao de troubleshooting, reduz risco de aplicar ajuste no alvo errado e reforca a necessidade de documentar o papel de cada trilha remota antes de upgrades ou mudancas estruturais.",
+        "actionTaken": "observacao registrada neste artefato como regra de contexto para as proximas intervencoes no runtime remoto.",
+        "needsHumanDecision": false
+      }
+    },
+    {
+      "id": "OBS-2026-03-11-04",
+      "date": "2026-03-11",
+      "type": "correcao",
+      "text": "picoclaw nao esta acoplado ao mesmo runtime Docker do OpenClaw na VPS; ele roda como servico systemd separado.",
+      "expectedImpact": "impedir que manutencao de prod ou lab seja tratada como se cobrisse automaticamente o gateway picoclaw.",
+      "status": "em_acao",
+      "response": {
+        "reading": "a verificacao da VPS confirmou picoclaw-gateway.service ativo em paralelo ao stack Docker do OpenClaw.",
+        "impact": "reforca que a topologia remota tem pelo menos dois mecanismos de runtime na mesma VPS: Docker Compose para prod/lab e systemd para picoclaw.",
+        "actionTaken": "estado remoto consolidado neste artefato para orientar futuras janelas de upgrade, restart e troubleshooting.",
+        "needsHumanDecision": false
+      }
+    },
+    {
+      "id": "OBS-2026-03-12-01",
+      "date": "2026-03-12",
+      "type": "correcao",
+      "text": "o gateway canonico local agora deve ser tratado como o runtime direto do openclaw-push em 127.0.0.1:19000; o container Docker legado montado sobre W:\\\\workspaces antigravity\\\\OpenClaw foi desativado para eliminar ambiguidade local.",
+      "expectedImpact": "fixar uma unica referencia local de runtime, reduzir drift entre repo atual e workspace antigo e impedir diagnostico enganoso na porta 19000.",
+      "status": "em_acao",
+      "response": {
+        "reading": "a ambiguidade local era real porque a porta 19000 ainda estava publicada por um container legado enquanto os launchers ja precisavam apontar para C:\\\\Pico-Open\\\\openclaw-push.",
+        "impact": "onboarding, troubleshooting e validacao local passam a ler o repo atual como unica base canonica, sem colisao com o workspace antigo.",
+        "actionTaken": "Node local atualizado, pnpm install --force executado no repo atual, gateway.cmd e node.cmd reapontados para openclaw-push, container legado parado com restart=no e gateway validado com health=200 em 127.0.0.1:19000.",
+        "needsHumanDecision": false
+      }
+    }
+  ]
+}

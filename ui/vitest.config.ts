@@ -10,6 +10,11 @@ export default defineConfig({
       instances: [{ browser: "chromium", name: "chromium" }],
       headless: true,
       ui: false,
+      api: {
+        host: "127.0.0.1",
+        port: 39015,
+        strictPort: false,
+      },
     },
   },
 });

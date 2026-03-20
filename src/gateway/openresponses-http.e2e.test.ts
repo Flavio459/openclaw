@@ -407,6 +407,36 @@ describe("OpenResponses HTTP API (e2e)", () => {
       expect(content[0]?.text).toBe("hello");
       await ensureResponseConsumed(resShape);
 
+      mockAgentOnce([{ text: "hello" }], {
+        modelTelemetry: {
+          configuredModel: "moonshot/kimi-k2.5",
+          effectiveProvider: "openrouter",
+          effectiveModel: "meta-llama/llama-3.3-70b-instruct:free",
+          effectiveModelRef: "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+          didFallback: true,
+          fallbackReason: "billing",
+          attemptedModels: [
+            "moonshot/kimi-k2.5",
+            "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+          ],
+          attempts: [],
+        },
+      });
+      const resEffectiveModel = await postResponses(port, {
+        stream: false,
+        model: "openclaw",
+        input: "hi",
+      });
+      expect(resEffectiveModel.status).toBe(200);
+      expect(resEffectiveModel.headers.get("x-openclaw-effective-model")).toBe(
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+      );
+      const effectiveModelJson = (await resEffectiveModel.json()) as Record<string, unknown>;
+      expect(effectiveModelJson.model).toBe(
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+      );
+      await ensureResponseConsumed(resEffectiveModel);
+
       const resNoUser = await postResponses(port, {
         model: "openclaw",
         input: [{ type: "message", role: "system", content: "yo" }],

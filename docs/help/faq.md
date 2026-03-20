@@ -2224,6 +2224,8 @@ Failover happens in two stages:
 
 Cooldowns apply to failing profiles (exponential backoff), so OpenClaw can keep responding even when a provider is rate-limited or temporarily failing.
 
+OpenClaw traverses the full configured fallback chain for failover-worthy errors.
+
 ### What does this error mean
 
 ```

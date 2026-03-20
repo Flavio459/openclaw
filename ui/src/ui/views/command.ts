@@ -1,79 +1,28 @@
 import { html } from "lit";
-import type { ExecApprovalRequest } from "../controllers/exec-approval.ts";
 import {
   COLLEGIUM_BRAND_NAME,
   COLLEGIUM_COMMAND_NAME,
   COLLEGIUM_PROTOCOL_NAME,
   COLLEGIUM_RUNTIME_NAME,
   COLLEGIUM_SLOGAN,
-  countBusinessAgents,
-  countEngineeringAgents,
-  type RuntimeEnvironment,
 } from "../collegium.ts";
-import type {
-  AgentsListResult,
-  ChannelsStatusSnapshot,
-  CronStatus,
-  PresenceEntry,
-} from "../types.ts";
+import type { CommandViewModel } from "../collegium/command.contract.ts";
 
 export type CommandProps = {
-  connected: boolean;
-  lastError: string | null;
-  environment: RuntimeEnvironment;
-  agentsList: AgentsListResult | null;
-  presenceEntries: PresenceEntry[];
-  channelsSnapshot: ChannelsStatusSnapshot | null;
-  execApprovalQueue: ExecApprovalRequest[];
-  cronStatus: CronStatus | null;
-  sessionsCount: number | null;
+  viewModel: CommandViewModel;
   onRefresh: () => void;
   onOpenForum: () => void;
   onOpenPraetorium: () => void;
 };
 
 export function renderCommand(props: CommandProps) {
-  const businessAgents = countBusinessAgents(props.agentsList);
-  const engineeringAgents = countEngineeringAgents(props.agentsList);
-  const departments = [
-    {
-      name: "Boardroom",
-      owner: "Chairman",
-      status:
-        props.execApprovalQueue.length > 0
-          ? `${props.execApprovalQueue.length} pending`
-          : "Clear for action",
-      detail: "Vetos, autorização HITL e decisões que exigem autoridade formal.",
-    },
-    {
-      name: "Operations",
-      owner: "Chief Executive Agent",
-      status: `${props.presenceEntries.length} live nodes`,
-      detail: "Rede operacional observável. Telemetria específica de The Pilots ainda precisa ser conectada.",
-    },
-    {
-      name: "Capital & Assets",
-      owner: "Chief Financial Agent",
-      status: props.sessionsCount != null ? `${props.sessionsCount} tracked sessions` : "Feed pending",
-      detail: "Fluxo financeiro real ainda não está ligado a esta superfície. Sessões já estão disponíveis como lastro operacional.",
-    },
-    {
-      name: "Compliance",
-      owner: "Chief Legal Agent",
-      status: props.lastError ? "Attention required" : "Nominal",
-      detail: "Contratos, seguros e normativos. Nesta etapa, o melhor sinal disponível é a saúde do runtime.",
-    },
-    {
-      name: "The Foundry",
-      owner: "Chief Product/Eng. Agent",
-      status:
-        props.cronStatus?.jobs != null
-          ? `${props.cronStatus.jobs} routines`
-          : `${engineeringAgents} engineering agents`,
-      detail: "R&D, stack, roteirização e evolução do sistema.",
-    },
-  ];
-  const channels = props.channelsSnapshot?.channelOrder?.length ?? 0;
+  const { viewModel } = props;
+  const institutionTone =
+    viewModel.institutionState.status === "operational"
+      ? "ok"
+      : viewModel.institutionState.status === "attention_required"
+        ? "warn"
+        : "warn";
 
   return html`
     <section class="collegium-shell">
@@ -89,39 +38,50 @@ export function renderCommand(props: CommandProps) {
           <div class="chip-row">
             <span class="chip">${COLLEGIUM_PROTOCOL_NAME}</span>
             <span class="chip">${COLLEGIUM_RUNTIME_NAME}</span>
-            <span class="chip">${props.environment}</span>
+            <span class="chip">${viewModel.environment}</span>
+          </div>
+          <div class="callout" style="margin-top: 18px;">
+            <div class="card-title">${viewModel.commandPriority.headline}</div>
+            <div class="muted">${viewModel.commandPriority.tension}</div>
+          </div>
+          <div class="callout" style="margin-top: 12px;">
+            <div class="card-title">${viewModel.dominantWorkstream.label}</div>
+            <div class="muted">${viewModel.dominantWorkstream.summary}</div>
           </div>
           <div class="row" style="margin-top: 18px; gap: 10px;">
-            <button class="btn primary" @click=${props.onOpenForum}>Enter The Forum</button>
-            <button class="btn" @click=${props.onOpenPraetorium}>Open Praetorium</button>
-            <button class="btn" @click=${props.onRefresh}>Refresh</button>
+            <button class="btn primary" @click=${props.onOpenForum}>
+              ${viewModel.bridges.forumLabel}
+            </button>
+            <button class="btn" @click=${props.onOpenPraetorium}>
+              ${viewModel.bridges.praetoriumLabel}
+            </button>
+            <button class="btn" @click=${props.onRefresh}>Atualizar</button>
           </div>
         </div>
 
         <div class="collegium-hero__rail">
           <div class="collegium-status-card">
-            <div class="collegium-status-card__label">Institution State</div>
-            <div class="collegium-status-card__value ${props.connected ? "ok" : "warn"}">
-              ${props.connected ? "Operational" : "Awaiting Runtime"}
+            <div class="collegium-status-card__label">Estado Institucional</div>
+            <div class="collegium-status-card__value ${institutionTone}">
+              ${formatInstitutionState(viewModel.institutionState.status)}
             </div>
-            <div class="muted">
-              ${props.lastError ?? "Runtime and protocol are responding without a blocking error."}
-            </div>
+            <div class="muted">${viewModel.institutionState.detail}</div>
           </div>
           <div class="collegium-status-card">
-            <div class="collegium-status-card__label">Chairman Rail</div>
+            <div class="collegium-status-card__label">Trilho do Chairman</div>
             <div class="collegium-status-card__value">
-              ${props.execApprovalQueue.length}
+              ${viewModel.chairmanRail.pendingAuthorityCount}
             </div>
-            <div class="muted">Pending authority requests waiting for a decision.</div>
+            <div class="muted">Solicitações de autoridade pendentes aguardando decisão.</div>
           </div>
           <div class="collegium-status-card">
-            <div class="collegium-status-card__label">Digital Collaborators</div>
+            <div class="collegium-status-card__label">Colaboradores Digitais</div>
             <div class="collegium-status-card__value">
-              ${props.agentsList?.agents.length ?? 0}
+              ${viewModel.collaborators.total}
             </div>
             <div class="muted">
-              ${businessAgents} business · ${engineeringAgents} engineering
+              ${viewModel.collaborators.business} negócio ·
+              ${viewModel.collaborators.engineering} engenharia
             </div>
           </div>
         </div>
@@ -129,27 +89,26 @@ export function renderCommand(props: CommandProps) {
 
       <section class="collegium-kpi-grid">
         <div class="collegium-kpi-card">
-          <div class="collegium-kpi-card__label">The Pilots</div>
-          <div class="collegium-kpi-card__value">Feed pending</div>
+          <div class="collegium-kpi-card__label">Faixa de Prioridade</div>
+          <div class="collegium-kpi-card__value">${viewModel.commandPriority.headline}</div>
           <div class="muted">
-            A superfície já reserva o domínio operacional, mas a telemetria real dos Pilots ainda
-            não está conectada ao runtime atual.
+            ${viewModel.commandPriority.tension}
           </div>
         </div>
         <div class="collegium-kpi-card">
-          <div class="collegium-kpi-card__label">Connected Networks</div>
-          <div class="collegium-kpi-card__value">${channels}</div>
-          <div class="muted">Canais configurados e disponíveis como rede institucional.</div>
+          <div class="collegium-kpi-card__label">Workstream Dominante</div>
+          <div class="collegium-kpi-card__value">${viewModel.dominantWorkstream.label}</div>
+          <div class="muted">${viewModel.dominantWorkstream.summary}</div>
         </div>
         <div class="collegium-kpi-card">
-          <div class="collegium-kpi-card__label">Operational Lattice</div>
-          <div class="collegium-kpi-card__value">${props.presenceEntries.length}</div>
-          <div class="muted">Presença em tempo real dos nós e instâncias do ambiente.</div>
+          <div class="collegium-kpi-card__label">Malha Operacional</div>
+          <div class="collegium-kpi-card__value">${viewModel.executionEnvelope.runtimePresence}</div>
+          <div class="muted">A evidência viva do runtime permanece subordinada à leitura executiva.</div>
         </div>
         <div class="collegium-kpi-card">
-          <div class="collegium-kpi-card__label">Automated Routines</div>
-          <div class="collegium-kpi-card__value">${props.cronStatus?.jobs ?? 0}</div>
-          <div class="muted">Rotinas já conectadas ao Foundry e à disciplina operacional.</div>
+          <div class="collegium-kpi-card__label">Trilho de Autoridade</div>
+          <div class="collegium-kpi-card__value">${viewModel.executionEnvelope.authorityRail}</div>
+          <div class="muted">Decisões e riscos aprofundam a leitura sem substituir a prioridade principal.</div>
         </div>
       </section>
 
@@ -161,34 +120,36 @@ export function renderCommand(props: CommandProps) {
           </div>
           <div class="forum-callout">
             <div class="forum-callout__title">
-              ${props.execApprovalQueue.length > 0
+              ${viewModel.chairmanRail.pendingAuthorityCount > 0
                 ? "A pauta já exige decisão humana"
                 : "A sala está pronta para deliberação"}
             </div>
             <div class="muted">
               ${
-                props.execApprovalQueue.length > 0
-                  ? `Há ${props.execApprovalQueue.length} item(ns) na trilha de decisão.`
-                  : "Sem decisões pendentes nesta leitura. Use a sala para abrir contexto estratégico."
+                viewModel.chairmanRail.pendingAuthorityCount > 0
+                  ? `Há ${viewModel.chairmanRail.pendingAuthorityCount} item(ns) na trilha de decisão.`
+                  : viewModel.signalContext.strategicAmbiguity
               }
             </div>
           </div>
           <div class="row" style="margin-top: 14px;">
-            <button class="btn primary" @click=${props.onOpenForum}>Open The Forum</button>
+            <button class="btn primary" @click=${props.onOpenForum}>
+              ${viewModel.bridges.forumLabel}
+            </button>
           </div>
         </div>
 
         <div class="card collegium-capability-card">
-          <div class="card-title">Execution Envelope</div>
+          <div class="card-title">Envelope de Execução</div>
           <div class="card-sub">
             O que já está ligado agora, sem inventar backend que ainda não existe.
           </div>
           <div class="list" style="margin-top: 12px;">
-            ${renderCapability("Colaboradores Digitais", `${props.agentsList?.agents.length ?? 0} loaded`)}
-            ${renderCapability("Authority Rail", `${props.execApprovalQueue.length} pending decisions`)}
-            ${renderCapability("Runtime Presence", `${props.presenceEntries.length} live instances`)}
-            ${renderCapability("The Pilots Telemetry", "Not yet bound")}
-            ${renderCapability("Financial Feed", "Not yet bound")}
+            ${renderCapability("Colaboradores Digitais", `${viewModel.collaborators.total} carregado(s)`)}
+            ${renderCapability("Trilho de Autoridade", viewModel.executionEnvelope.authorityRail)}
+            ${renderCapability("Presença do Runtime", viewModel.executionEnvelope.runtimePresence)}
+            ${renderCapability("Telemetria de The Pilots", viewModel.executionEnvelope.pilotsTelemetry)}
+            ${renderCapability("Feed Financeiro", viewModel.executionEnvelope.financialFeed)}
           </div>
         </div>
       </section>
@@ -199,7 +160,7 @@ export function renderCommand(props: CommandProps) {
           Governança comercial do Collegium Cortex, com leitura honesta do que já está disponível.
         </div>
         <div class="collegium-module-grid">
-          ${departments.map(
+          ${viewModel.modules.map(
             (department) => html`
               <article class="collegium-module-card">
                 <div class="collegium-module-card__title">${department.name}</div>
@@ -214,6 +175,16 @@ export function renderCommand(props: CommandProps) {
     </section>
   `;
 }
+
+const formatInstitutionState = (status: CommandViewModel["institutionState"]["status"]) => {
+  if (status === "operational") {
+    return "Operacional";
+  }
+  if (status === "attention_required") {
+    return "Atenção necessária";
+  }
+  return "Aguardando Runtime";
+};
 
 function renderCapability(label: string, value: string) {
   return html`

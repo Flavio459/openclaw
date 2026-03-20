@@ -329,6 +329,40 @@ describe("OpenAI-compatible HTTP API (e2e)", () => {
       }
 
       {
+        agentCommand.mockReset();
+        agentCommand.mockResolvedValueOnce({
+          payloads: [{ text: "hello" }],
+          meta: {
+            modelTelemetry: {
+              configuredModel: "moonshot/kimi-k2.5",
+              effectiveProvider: "openrouter",
+              effectiveModel: "meta-llama/llama-3.3-70b-instruct:free",
+              effectiveModelRef: "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+              didFallback: true,
+              fallbackReason: "billing",
+              attemptedModels: [
+                "moonshot/kimi-k2.5",
+                "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+              ],
+              attempts: [],
+            },
+          },
+        } as never);
+        const res = await postChatCompletions(port, {
+          stream: false,
+          model: "openclaw",
+          messages: [{ role: "user", content: "hi" }],
+        });
+        expect(res.status).toBe(200);
+        expect(res.headers.get("x-openclaw-effective-model")).toBe(
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+        );
+        expect(res.headers.get("x-openclaw-fallback-reason")).toBe("billing");
+        const json = (await res.json()) as Record<string, unknown>;
+        expect(json.model).toBe("openrouter/meta-llama/llama-3.3-70b-instruct:free");
+      }
+
+      {
         const res = await postChatCompletions(port, {
           model: "openclaw",
           messages: [{ role: "system", content: "yo" }],

@@ -9,6 +9,7 @@ import {
   subtitleForTab,
   tabFromPath,
   titleForTab,
+  useForTab,
   type Tab,
 } from "./navigation.ts";
 
@@ -26,9 +27,12 @@ describe("iconForTab", () => {
   });
 
   it("returns stable icons for known tabs", () => {
+    expect(iconForTab("home")).toBe("globe");
     expect(iconForTab("command")).toBe("brain");
     expect(iconForTab("forum")).toBe("book");
     expect(iconForTab("praetorium")).toBe("puzzle");
+    expect(iconForTab("portal-preview")).toBe("monitor");
+    expect(iconForTab("cockpit-preview")).toBe("smartphone");
     expect(iconForTab("chat")).toBe("messageSquare");
     expect(iconForTab("overview")).toBe("barChart");
     expect(iconForTab("channels")).toBe("link");
@@ -59,12 +63,15 @@ describe("titleForTab", () => {
   });
 
   it("returns expected titles", () => {
+    expect(titleForTab("home")).toBe("Comece Aqui");
     expect(titleForTab("command")).toBe("Cortex Command");
     expect(titleForTab("forum")).toBe("The Forum");
     expect(titleForTab("praetorium")).toBe("Cortex Praetorium");
-    expect(titleForTab("chat")).toBe("Chat");
-    expect(titleForTab("overview")).toBe("Overview");
-    expect(titleForTab("cron")).toBe("Cron Jobs");
+    expect(titleForTab("portal-preview")).toBe("Prévia do Portal");
+    expect(titleForTab("cockpit-preview")).toBe("The Cockpit");
+    expect(titleForTab("chat")).toBe("Sala Viva");
+    expect(titleForTab("overview")).toBe("Visão Geral");
+    expect(titleForTab("cron")).toBe("Rotinas Cron");
   });
 });
 
@@ -77,10 +84,32 @@ describe("subtitleForTab", () => {
   });
 
   it("returns descriptive subtitles", () => {
+    expect(subtitleForTab("home")).toContain("Comece pela intenção");
     expect(subtitleForTab("command")).toContain("Collegium Cortex");
-    expect(subtitleForTab("praetorium")).toContain("runtime supervision");
-    expect(subtitleForTab("chat")).toContain("chat session");
+    expect(subtitleForTab("praetorium")).toContain("supervisão do runtime");
+    expect(subtitleForTab("portal-preview")).toContain("Superfície interna de revisão");
+    expect(subtitleForTab("cockpit-preview")).toContain("voltada ao piloto");
+    expect(subtitleForTab("chat")).toContain("Superfície de continuação");
     expect(subtitleForTab("config")).toContain("openclaw.json");
+  });
+});
+
+describe("useForTab", () => {
+  it("returns a non-empty usage hint for every tab", () => {
+    for (const tab of ALL_TABS) {
+      const hint = useForTab(tab);
+      expect(hint).toBeTruthy();
+      expect(typeof hint).toBe("string");
+    }
+  });
+
+  it("makes discussion and execution surfaces explicit", () => {
+    expect(useForTab("home")).toContain("Escolha");
+    expect(useForTab("forum")).toContain("Reuniões");
+    expect(useForTab("forum")).toContain("discussão");
+    expect(useForTab("praetorium")).toContain("bloqueios");
+    expect(useForTab("command")).toContain("Prioridade");
+    expect(useForTab("overview")).toContain("Conectar");
   });
 });
 
@@ -123,9 +152,12 @@ describe("normalizePath", () => {
 
 describe("pathForTab", () => {
   it("returns correct path without base", () => {
+    expect(pathForTab("home")).toBe("/");
     expect(pathForTab("command")).toBe("/command");
     expect(pathForTab("forum")).toBe("/command/forum");
     expect(pathForTab("praetorium")).toBe("/praetorium");
+    expect(pathForTab("portal-preview")).toBe("/portal-preview");
+    expect(pathForTab("cockpit-preview")).toBe("/cockpit-preview");
     expect(pathForTab("chat")).toBe("/chat");
     expect(pathForTab("overview")).toBe("/overview");
   });
@@ -141,13 +173,15 @@ describe("tabFromPath", () => {
     expect(tabFromPath("/command")).toBe("command");
     expect(tabFromPath("/command/forum")).toBe("forum");
     expect(tabFromPath("/praetorium")).toBe("praetorium");
+    expect(tabFromPath("/portal-preview")).toBe("portal-preview");
+    expect(tabFromPath("/cockpit-preview")).toBe("cockpit-preview");
     expect(tabFromPath("/chat")).toBe("chat");
     expect(tabFromPath("/overview")).toBe("overview");
     expect(tabFromPath("/sessions")).toBe("sessions");
   });
 
-  it("returns chat for root path", () => {
-    expect(tabFromPath("/")).toBe("chat");
+  it("returns home for root path", () => {
+    expect(tabFromPath("/")).toBe("home");
   });
 
   it("handles base paths", () => {
@@ -189,11 +223,13 @@ describe("inferBasePathFromPathname", () => {
 describe("TAB_GROUPS", () => {
   it("contains all expected groups", () => {
     const labels = TAB_GROUPS.map((g) => g.label);
-    expect(labels).toContain("Collegium");
-    expect(labels).toContain("Chat");
-    expect(labels).toContain("Control");
-    expect(labels).toContain("Agent");
-    expect(labels).toContain("Settings");
+    expect(labels).toContain("Comece Aqui");
+    expect(labels).toContain("Superfícies Centrais");
+    expect(labels).toContain("Salas em Andamento");
+    expect(labels).toContain("Pré-visualizações Internas");
+    expect(labels).toContain("Runtime e Acesso");
+    expect(labels).toContain("Operação de Agentes");
+    expect(labels).toContain("Sistema");
   });
 
   it("all tabs are unique", () => {

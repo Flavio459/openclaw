@@ -125,7 +125,10 @@ function restoreSubagentRunsOnce() {
 
 function resolveArchiveAfterMs(cfg?: ReturnType<typeof loadConfig>) {
   const config = cfg ?? loadConfig();
-  const minutes = config.agents?.defaults?.subagents?.archiveAfterMinutes ?? 60;
+  const minutes = config.agents?.defaults?.subagents?.archiveAfterMinutes;
+  if (minutes === undefined || minutes === null) {
+    return undefined;
+  }
   if (!Number.isFinite(minutes) || minutes <= 0) {
     return undefined;
   }

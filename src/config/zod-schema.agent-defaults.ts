@@ -141,6 +141,7 @@ export const AgentDefaultsSchema = z
       .object({
         maxConcurrent: z.number().int().positive().optional(),
         archiveAfterMinutes: z.number().int().positive().optional(),
+        inheritPersona: z.boolean().optional(),
         model: z
           .union([
             z.string(),

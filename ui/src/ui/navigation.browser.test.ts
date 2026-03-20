@@ -35,6 +35,14 @@ afterEach(() => {
 });
 
 describe("control UI routing", () => {
+  it("opens the root path on Start Here", async () => {
+    const app = mountApp("/");
+    await app.updateComplete;
+
+    expect(app.tab).toBe("home");
+    expect(window.location.pathname).toBe("/");
+  });
+
   it("hydrates the tab from the location", async () => {
     const app = mountApp("/sessions");
     await app.updateComplete;
@@ -82,6 +90,79 @@ describe("control UI routing", () => {
     await app.updateComplete;
     expect(app.tab).toBe("channels");
     expect(window.location.pathname).toBe("/channels");
+  });
+
+  it("keeps the active mobile nav item visible for portal preview", async () => {
+    const app = mountApp("/chat");
+    await app.updateComplete;
+
+    const nav = app.querySelector<HTMLElement>(".nav");
+    const link = app.querySelector<HTMLAnchorElement>('a.nav-item[href="/portal-preview"]');
+    expect(nav).not.toBeNull();
+    expect(link).not.toBeNull();
+    if (!nav || !link) {
+      return;
+    }
+
+    nav.scrollLeft = 0;
+    link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+
+    await app.updateComplete;
+    await nextFrame();
+    await nextFrame();
+
+    const active = app.querySelector<HTMLElement>('a.nav-item.active[href="/portal-preview"]');
+    expect(active).not.toBeNull();
+    expect(nav.scrollLeft).toBeGreaterThan(0);
+  });
+
+  it("keeps the active mobile nav item visible for cockpit preview", async () => {
+    const app = mountApp("/chat");
+    await app.updateComplete;
+
+    const nav = app.querySelector<HTMLElement>(".nav");
+    const link = app.querySelector<HTMLAnchorElement>('a.nav-item[href="/cockpit-preview"]');
+    expect(nav).not.toBeNull();
+    expect(link).not.toBeNull();
+    if (!nav || !link) {
+      return;
+    }
+
+    nav.scrollLeft = 0;
+    link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+
+    await app.updateComplete;
+    await nextFrame();
+    await nextFrame();
+
+    const active = app.querySelector<HTMLElement>('a.nav-item.active[href="/cockpit-preview"]');
+    expect(active).not.toBeNull();
+    expect(nav.scrollLeft).toBeGreaterThan(0);
+  });
+
+  it("resets content scroll when switching tabs", async () => {
+    const app = mountApp("/portal-preview");
+    await app.updateComplete;
+    await nextFrame();
+
+    const content = app.querySelector<HTMLElement>(".content");
+    const link = app.querySelector<HTMLAnchorElement>('a.nav-item[href="/command"]');
+    expect(content).not.toBeNull();
+    expect(link).not.toBeNull();
+    if (!content || !link) {
+      return;
+    }
+
+    content.scrollTop = 320;
+    expect(content.scrollTop).toBeGreaterThan(0);
+
+    link.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, button: 0 }));
+
+    await app.updateComplete;
+    await nextFrame();
+    await nextFrame();
+
+    expect(content.scrollTop).toBe(0);
   });
 
   it("keeps chat and nav usable on narrow viewports", async () => {

@@ -1,0 +1,24 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "moonshot/kimi-k2.5",
+        "fallbacks": [
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+          "openrouter/google/gemini-2.0-flash-vision:free",
+          "openrouter/deepseek/deepseek-r1:free",
+          "google-antigravity/gemini-3-pro-high",
+          "deepseek/deepseek-chat"
+        ]
+      },
+      "models": {
+        "moonshot/kimi-k2.5": { "alias": "main" },
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free": { "alias": "router-free-1" },
+        "openrouter/deepseek/deepseek-r1:free": { "alias": "router-free-2" },
+        "google-antigravity/gemini-3-pro-high": { "alias": "emergency" },
+        "deepseek/deepseek-chat": { "alias": "deepseek-last" },
+        "synthetic/nemotron-candidate": { "alias": "nemotron-candidate" }
+      }
+    }
+  }
+}

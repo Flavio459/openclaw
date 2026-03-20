@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://collegium.local/schemas/collegium-status.schema.json",
+  "title": "Collegium Cortex Status Snapshot",
+  "type": "object",
+  "required": ["schemaVersion", "meta", "generalState", "summarySignals", "now", "nextDominantAction", "weeklyTop3", "operations", "blockers", "pendingDecisions", "surfaces", "components", "risks", "evidence", "chairmanObservations"],
+  "properties": {
+    "schemaVersion": { "type": "string" },
+    "meta": {
+      "type": "object",
+      "required": ["title", "surface", "statusSignal", "lastUpdated", "scope"],
+      "properties": {
+        "title": { "type": "string" },
+        "surface": { "type": "string" },
+        "reason": { "type": "string" },
+        "notThis": { "type": "string" },
+        "statusSignal": { "type": "string" },
+        "lastUpdated": { "type": "string" },
+        "scope": {
+          "type": "object",
+          "required": ["covers", "doesNotCover", "distinction"],
+          "properties": {
+            "covers": { "type": "array", "items": { "type": "string" } },
+            "doesNotCover": { "type": "array", "items": { "type": "string" } },
+            "distinction": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    },
+    "generalState": {
+      "type": "object",
+      "required": ["branch", "activeFront", "overallStatus", "lastCheckpoint"],
+      "properties": {
+        "branch": { "type": "string" },
+        "activeFront": { "type": "string" },
+        "overallStatus": { "type": "string" },
+        "lastCheckpoint": { "type": "string" },
+        "agenticContract": { "type": "string" }
+      }
+    },
+    "summarySignals": { "type": "array", "items": { "$ref": "#/$defs/signal" } },
+    "now": { "type": "array", "items": { "$ref": "#/$defs/summaryItem" } },
+    "nextDominantAction": { "$ref": "#/$defs/summaryItem" },
+    "weeklyTop3": { "type": "array", "items": { "$ref": "#/$defs/summaryItem" } },
+    "operations": { "type": "array", "items": { "$ref": "#/$defs/operation" } },
+    "blockers": { "type": "array", "items": { "$ref": "#/$defs/blocker" } },
+    "pendingDecisions": { "type": "array", "items": { "$ref": "#/$defs/decision" } },
+    "surfaces": { "type": "array", "items": { "$ref": "#/$defs/surface" } },
+    "components": { "type": "array", "items": { "$ref": "#/$defs/component" } },
+    "risks": { "type": "array", "items": { "$ref": "#/$defs/risk" } },
+    "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } },
+    "chairmanObservations": { "type": "array", "items": { "$ref": "#/$defs/observation" } }
+  },
+  "$defs": {
+    "summaryItem": {
+      "type": "object",
+      "required": ["id", "title", "summary", "lastUpdated"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "summary": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
+    "signal": {
+      "type": "object",
+      "required": ["label", "value", "status", "summary"],
+      "properties": {
+        "label": { "type": "string" },
+        "value": { "type": "string" },
+        "status": { "type": "string" },
+        "summary": { "type": "string" }
+      }
+    },
+    "operation": {
+      "type": "object",
+      "required": ["id", "title", "environmentScope", "status", "doHere", "dontHere", "sourceOfTruth", "lastUpdated"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "environmentScope": { "type": "string" },
+        "status": { "type": "string" },
+        "doHere": { "type": "string" },
+        "dontHere": { "type": "string" },
+        "access": { "type": "string" },
+        "command": { "type": "string" },
+        "preflight": { "type": "string" },
+        "sourceOfTruth": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
+    "blocker": {
+      "type": "object",
+      "required": ["id", "title", "status", "effect", "dependency", "needsHumanDecision", "lastUpdated"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string" },
+        "summary": { "type": "string" },
+        "effect": { "type": "string" },
+        "dependency": { "type": "string" },
+        "needsHumanDecision": { "type": "boolean" },
+        "owner": { "type": "string" },
+        "source": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "required": ["id", "title", "impact", "urgency", "owner", "lastUpdated"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "impact": { "type": "string" },
+        "urgency": { "type": "string" },
+        "owner": { "type": "string" },
+        "summary": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
+    "surface": {
+      "type": "object",
+      "required": ["name", "status", "realData", "dependency", "maturity", "lastUpdated"],
+      "properties": {
+        "name": { "type": "string" },
+        "status": { "type": "string" },
+        "realData": { "type": "string" },
+        "dependency": { "type": "string" },
+        "maturity": { "type": "string" },
+        "summary": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
+    "component": {
+      "type": "object",
+      "required": ["name", "componentType", "status", "source", "nextStep", "environmentScope", "lastUpdated"],
+      "properties": {
+        "name": { "type": "string" },
+        "componentType": { "type": "string" },
+        "status": { "type": "string" },
+        "source": { "type": "string" },
+        "nextStep": { "type": "string" },
+        "environmentScope": { "type": "string" },
+        "summary": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
+    "risk": {
+      "type": "object",
+      "required": ["id", "title", "status", "effect", "mitigation", "lastUpdated"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "status": { "type": "string" },
+        "effect": { "type": "string" },
+        "mitigation": { "type": "string" },
+        "summary": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "required": ["label", "href", "kind", "lastUpdated"],
+      "properties": {
+        "label": { "type": "string" },
+        "href": { "type": "string" },
+        "kind": { "type": "string" },
+        "lastUpdated": { "type": "string" }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "required": ["id", "date", "type", "text", "expectedImpact", "status", "response"],
+      "properties": {
+        "id": { "type": "string" },
+        "date": { "type": "string" },
+        "type": { "type": "string" },
+        "text": { "type": "string" },
+        "expectedImpact": { "type": "string" },
+        "status": { "type": "string" },
+        "response": {
+          "type": "object",
+          "required": ["reading", "impact", "actionTaken", "needsHumanDecision"],
+          "properties": {
+            "reading": { "type": "string" },
+            "impact": { "type": "string" },
+            "actionTaken": { "type": "string" },
+            "needsHumanDecision": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -143,6 +143,31 @@ function buildVoiceSection(params: { isMinimal: boolean; ttsHint?: string }) {
   return ["## Voice (TTS)", hint, ""];
 }
 
+function buildExecutionBiasSection(params: { isMinimal: boolean; availableTools: Set<string> }) {
+  const subagentLine = params.availableTools.has("sessions_spawn")
+    ? "- For larger tasks, delegate parallelizable chunks via `sessions_spawn`, then integrate and verify outputs."
+    : "- For larger tasks, break work into concrete chunks and execute them sequentially.";
+  if (params.isMinimal) {
+    return [
+      "## Execution",
+      "- Execute the assigned task end-to-end before replying.",
+      "- Prefer action over questions: use available tools first.",
+      "- Ask only for hard blockers (missing access/credentials, destructive ambiguity, or conflicting constraints).",
+      "",
+    ];
+  }
+  return [
+    "## Execution",
+    "- Default to action: when tools can advance the request safely, use them instead of asking the user to do routine steps.",
+    "- For non-trivial requests, silently form a short plan (2-4 steps), execute it, and verify critical outputs.",
+    "- If details are missing but risk is low, state a brief assumption and continue.",
+    "- Ask the user only for hard blockers (missing access/credentials, destructive ambiguity, or conflicting constraints).",
+    "- Close loops in the same turn whenever possible: complete the task, confirm outcomes, and avoid passive hand-offs.",
+    subagentLine,
+    "",
+  ];
+}
+
 function buildDocsSection(params: { docsPath?: string; isMinimal: boolean; readToolName: string }) {
   const docsPath = params.docsPath?.trim();
   if (!docsPath || params.isMinimal) {
@@ -411,6 +436,7 @@ export function buildAgentSystemPrompt(params: {
     "Keep narration brief and value-dense; avoid repeating obvious steps.",
     "Use plain human language for narration unless in a technical context.",
     "",
+    ...buildExecutionBiasSection({ isMinimal, availableTools }),
     ...safetySection,
     "## OpenClaw CLI Quick Reference",
     "OpenClaw is controlled via subcommands. Do not invent commands.",

@@ -1,0 +1,26 @@
+{
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "openrouter/qwen/qwen-2.5-72b-instruct",
+        "fallbacks": [
+          "moonshot/kimi-k2.5",
+          "openrouter/meta-llama/llama-3.3-70b-instruct:free",
+          "openrouter/google/gemini-2.0-flash-vision:free",
+          "openrouter/deepseek/deepseek-r1:free",
+          "google-antigravity/gemini-3-pro-high",
+          "deepseek/deepseek-chat"
+        ]
+      },
+      "models": {
+        "openrouter/qwen/qwen-2.5-72b-instruct": { "alias": "main" },
+        "moonshot/kimi-k2.5": { "alias": "backup-main" },
+        "openrouter/meta-llama/llama-3.3-70b-instruct:free": { "alias": "router-free-1" },
+        "openrouter/deepseek/deepseek-r1:free": { "alias": "router-free-2" },
+        "google-antigravity/gemini-3-pro-high": { "alias": "emergency" },
+        "deepseek/deepseek-chat": { "alias": "deepseek-last" },
+        "ollama/qwen3.5-coder:14b": { "alias": "local-fast" }
+      }
+    }
+  }
+}

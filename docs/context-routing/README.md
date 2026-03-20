@@ -22,3 +22,25 @@ Use este diretório quando a tarefa já estiver clara no Obsidian e precisar vir
 
 Estes arquivos não substituem o vault.
 Eles existem para reduzir reabertura de contexto e apontar a entrada técnica mínima no repo.
+
+## Regra de autonomia progressiva
+
+Depois que a trilha dominante e o read set mínimo estiverem claros:
+
+- o sistema deve continuar sozinho dentro do `workstream` quando o próximo passo for derivável;
+- o sistema só deve parar em gatilhos fortes de decisão, risco ou falta de dado não derivável;
+- todo checkpoint curto deve usar:
+  - `Estado`
+  - `Risco`
+  - `Próxima ação dominante`
+
+Execução descentralizada por CLI só entra quando houver `SPEC` delimitado, dono claro, read set mínimo, skills nomeadas quando necessário e revisão posterior.
+
+Entrada técnica mínima para isso:
+
+- `scripts/pema/list-open-specialist-dispatches.ps1`
+- `scripts/pema/dispatch-open-cli-specs.ps1`
+- `scripts/pema/run-motor-agentico-checkpoint.ps1`
+- `scripts/pema/run-motor-agentico-cron.ps1` (`read-only` por padrão; despacho CLI só com `-LaunchOpenCliSpecs`)
+- `scripts/pema/new-specialist-response-template.ps1`
+- `scripts/pema/import-specialist-output.ps1`

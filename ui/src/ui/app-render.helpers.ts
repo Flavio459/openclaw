@@ -1,4 +1,5 @@
 import { html } from "lit";
+import { live } from "lit/directives/live.js";
 import { repeat } from "lit/directives/repeat.js";
 import type { AppViewState } from "./app-view-state.ts";
 import type { ThemeTransitionContext } from "./theme-transition.ts";
@@ -9,7 +10,7 @@ import { syncUrlWithSessionKey } from "./app-settings.ts";
 import { OpenClawApp } from "./app.ts";
 import { ChatState, loadChatHistory } from "./controllers/chat.ts";
 import { icons } from "./icons.ts";
-import { iconForTab, pathForTab, titleForTab, type Tab } from "./navigation.ts";
+import { iconForTab, pathForTab, titleForTab, type Tab, useForTab } from "./navigation.ts";
 
 export function renderTab(state: AppViewState, tab: Tab) {
   const href = pathForTab(tab, state.basePath);
@@ -34,7 +35,10 @@ export function renderTab(state: AppViewState, tab: Tab) {
       title=${titleForTab(tab)}
     >
       <span class="nav-item__icon" aria-hidden="true">${icons[iconForTab(tab)]}</span>
-      <span class="nav-item__text">${titleForTab(tab)}</span>
+      <span class="nav-item__body">
+        <span class="nav-item__text">${titleForTab(tab)}</span>
+        <span class="nav-item__hint">${useForTab(tab)}</span>
+      </span>
     </a>
   `;
 }
@@ -88,7 +92,7 @@ export function renderChatControls(state: AppViewState) {
     <div class="chat-controls">
       <label class="field chat-controls__session">
         <select
-          .value=${state.sessionKey}
+          .value=${live(state.sessionKey)}
           ?disabled=${!state.connected}
           @change=${(e: Event) => {
             const next = (e.target as HTMLSelectElement).value;

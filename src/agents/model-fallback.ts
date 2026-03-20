@@ -16,6 +16,7 @@ import {
   buildConfiguredAllowlistKeys,
   buildModelAliasIndex,
   modelKey,
+  normalizeProviderId,
   resolveConfiguredModelRef,
   resolveModelRefFromString,
 } from "./model-selection.js";
@@ -25,6 +26,8 @@ type ModelCandidate = {
   model: string;
 };
 
+export type FallbackComplexity = "simple" | "standard" | "complex";
+
 type FallbackAttempt = {
   provider: string;
   model: string;
@@ -33,6 +36,122 @@ type FallbackAttempt = {
   status?: number;
   code?: string;
 };
+
+type ModelCost = {
+  input: number;
+  output: number;
+};
+
+function parsePositiveNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value > 0 ? value : undefined;
+}
+
+function parseNonNegativeNumber(value: unknown): number | undefined {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : undefined;
+}
+
+function resolveFallbackBudgetLimits(params: {
+  maxInputCostPerMToken?: number;
+  maxOutputCostPerMToken?: number;
+}) {
+  const envMaxInput = parsePositiveNumber(
+    Number(process.env.OPENCLAW_MODEL_MAX_INPUT_COST_PER_MTOK),
+  );
+  const envMaxOutput = parsePositiveNumber(
+    Number(process.env.OPENCLAW_MODEL_MAX_OUTPUT_COST_PER_MTOK),
+  );
+  return {
+    maxInputCostPerMToken: parsePositiveNumber(params.maxInputCostPerMToken) ?? envMaxInput,
+    maxOutputCostPerMToken: parsePositiveNumber(params.maxOutputCostPerMToken) ?? envMaxOutput,
+  };
+}
+
+function resolveConfiguredModelCost(params: {
+  cfg: OpenClawConfig | undefined;
+  provider: string;
+  model: string;
+}): ModelCost | null {
+  const providers = params.cfg?.models?.providers;
+  if (!providers) {
+    return null;
+  }
+  const providerId = normalizeProviderId(params.provider);
+  for (const [key, value] of Object.entries(providers)) {
+    if (normalizeProviderId(key) !== providerId) {
+      continue;
+    }
+    const models = (value as { models?: unknown } | undefined)?.models;
+    if (!Array.isArray(models)) {
+      continue;
+    }
+    const modelEntry = models.find((entry) => {
+      const id = String((entry as { id?: unknown } | undefined)?.id ?? "").trim();
+      return id === params.model;
+    }) as { cost?: { input?: unknown; output?: unknown } } | undefined;
+    if (!modelEntry) {
+      continue;
+    }
+    const input = parseNonNegativeNumber(modelEntry.cost?.input);
+    const output = parseNonNegativeNumber(modelEntry.cost?.output);
+    if (input === undefined || output === undefined) {
+      return null;
+    }
+    return { input, output };
+  }
+  return null;
+}
+
+export function resolveFallbackComplexityFromThinkLevel(
+  thinkLevel: string | null | undefined,
+): FallbackComplexity {
+  const normalized = String(thinkLevel ?? "")
+    .trim()
+    .toLowerCase();
+  if (normalized === "off" || normalized === "minimal" || normalized === "low") {
+    return "simple";
+  }
+  if (normalized === "high" || normalized === "xhigh") {
+    return "complex";
+  }
+  return "standard";
+}
+
+function resolveFallbackLimit(complexity: FallbackComplexity | undefined): number {
+  void complexity;
+  // Reliability-first routing: always traverse the full configured failover chain.
+  // Task complexity classification should not cap model recovery paths.
+  return Number.POSITIVE_INFINITY;
+}
+
+function applyCandidateBudgetGuard(params: {
+  cfg: OpenClawConfig | undefined;
+  candidates: ModelCandidate[];
+  maxInputCostPerMToken?: number;
+  maxOutputCostPerMToken?: number;
+}): ModelCandidate[] {
+  const { maxInputCostPerMToken, maxOutputCostPerMToken } = params;
+  if (maxInputCostPerMToken === undefined && maxOutputCostPerMToken === undefined) {
+    return params.candidates;
+  }
+
+  return params.candidates.filter((candidate) => {
+    const cost = resolveConfiguredModelCost({
+      cfg: params.cfg,
+      provider: candidate.provider,
+      model: candidate.model,
+    });
+    if (!cost) {
+      return true;
+    }
+    if (maxInputCostPerMToken !== undefined && cost.input > maxInputCostPerMToken) {
+      return false;
+    }
+    if (maxOutputCostPerMToken !== undefined && cost.output > maxOutputCostPerMToken) {
+      return false;
+    }
+    return true;
+  });
+}
 
 function isAbortError(err: unknown): boolean {
   if (!err || typeof err !== "object") {
@@ -129,6 +248,9 @@ function resolveFallbackCandidates(params: {
   cfg: OpenClawConfig | undefined;
   provider: string;
   model: string;
+  complexity?: FallbackComplexity;
+  maxInputCostPerMToken?: number;
+  maxOutputCostPerMToken?: number;
   /** Optional explicit fallbacks list; when provided (even empty), replaces agents.defaults.model.fallbacks. */
   fallbacksOverride?: string[];
 }): ModelCandidate[] {
@@ -201,7 +323,18 @@ function resolveFallbackCandidates(params: {
     addCandidate({ provider: primary.provider, model: primary.model }, false);
   }
 
-  return candidates;
+  const maxFallbacks = resolveFallbackLimit(params.complexity);
+  const limitedCandidates =
+    Number.isFinite(maxFallbacks) && candidates.length > 1
+      ? [candidates[0] as ModelCandidate, ...candidates.slice(1, 1 + maxFallbacks)]
+      : candidates;
+
+  return applyCandidateBudgetGuard({
+    cfg: params.cfg,
+    candidates: limitedCandidates,
+    maxInputCostPerMToken: params.maxInputCostPerMToken,
+    maxOutputCostPerMToken: params.maxOutputCostPerMToken,
+  });
 }
 
 export async function runWithModelFallback<T>(params: {
@@ -209,6 +342,9 @@ export async function runWithModelFallback<T>(params: {
   provider: string;
   model: string;
   agentDir?: string;
+  complexity?: FallbackComplexity;
+  maxInputCostPerMToken?: number;
+  maxOutputCostPerMToken?: number;
   /** Optional explicit fallbacks list; when provided (even empty), replaces agents.defaults.model.fallbacks. */
   fallbacksOverride?: string[];
   run: (provider: string, model: string) => Promise<T>;
@@ -225,12 +361,24 @@ export async function runWithModelFallback<T>(params: {
   model: string;
   attempts: FallbackAttempt[];
 }> {
+  const budget = resolveFallbackBudgetLimits({
+    maxInputCostPerMToken: params.maxInputCostPerMToken,
+    maxOutputCostPerMToken: params.maxOutputCostPerMToken,
+  });
   const candidates = resolveFallbackCandidates({
     cfg: params.cfg,
     provider: params.provider,
     model: params.model,
+    complexity: params.complexity,
+    maxInputCostPerMToken: budget.maxInputCostPerMToken,
+    maxOutputCostPerMToken: budget.maxOutputCostPerMToken,
     fallbacksOverride: params.fallbacksOverride,
   });
+  if (candidates.length === 0) {
+    throw new Error(
+      "No model candidates available within the configured cost budget. Adjust OPENCLAW_MODEL_MAX_INPUT_COST_PER_MTOK or OPENCLAW_MODEL_MAX_OUTPUT_COST_PER_MTOK, or raise the model budget in config.",
+    );
+  }
   const authStore = params.cfg
     ? ensureAuthProfileStore(params.agentDir, { allowKeychainPrompt: false })
     : null;

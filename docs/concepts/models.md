@@ -19,6 +19,7 @@ OpenClaw selects models in this order:
 
 1. **Primary** model (`agents.defaults.model.primary` or `agents.defaults.model`).
 2. **Fallbacks** in `agents.defaults.model.fallbacks` (in order).
+   - OpenClaw traverses the full fallback list when failover-worthy errors occur.
 3. **Provider auth failover** happens inside a provider before moving to the
    next model.
 

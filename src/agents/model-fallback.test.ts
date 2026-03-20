@@ -7,7 +7,7 @@ import type { OpenClawConfig } from "../config/config.js";
 import type { AuthProfileStore } from "./auth-profiles.js";
 import { saveAuthProfileStore } from "./auth-profiles.js";
 import { AUTH_STORE_VERSION } from "./auth-profiles/constants.js";
-import { runWithModelFallback } from "./model-fallback.js";
+import { resolveFallbackComplexityFromThinkLevel, runWithModelFallback } from "./model-fallback.js";
 
 function makeCfg(overrides: Partial<OpenClawConfig> = {}): OpenClawConfig {
   return {
@@ -540,5 +540,219 @@ describe("runWithModelFallback", () => {
     expect(run).toHaveBeenCalledTimes(2);
     expect(result.provider).toBe("openai");
     expect(result.model).toBe("gpt-4.1-mini");
+  });
+
+  it("keeps full fallback chain for simple complexity", async () => {
+    const cfg = {
+      agents: {
+        defaults: {
+          model: {
+            primary: "openai/gpt-4.1-mini",
+            fallbacks: ["openai/gpt-4.1-nano", "openai/gpt-5.2"],
+          },
+        },
+      },
+    } as OpenClawConfig;
+
+    const run = vi.fn().mockImplementation(async (_provider: string, model: string) => {
+      if (model === "gpt-5.2") {
+        return "ok";
+      }
+      throw Object.assign(new Error("retry"), { status: 429 });
+    });
+
+    const result = await runWithModelFallback({
+      cfg,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      complexity: "simple",
+      run,
+    });
+
+    expect(result.result).toBe("ok");
+    expect(run.mock.calls).toEqual([
+      ["openai", "gpt-4.1-mini"],
+      ["openai", "gpt-4.1-nano"],
+      ["openai", "gpt-5.2"],
+    ]);
+  });
+
+  it("keeps full fallback chain for standard complexity", async () => {
+    const cfg = {
+      agents: {
+        defaults: {
+          model: {
+            primary: "openai/gpt-4.1-mini",
+            fallbacks: ["openai/gpt-4.1-nano", "openai/gpt-5.2"],
+          },
+        },
+      },
+    } as OpenClawConfig;
+
+    const run = vi.fn().mockImplementation(async (_provider: string, model: string) => {
+      if (model === "gpt-5.2") {
+        return "ok";
+      }
+      throw Object.assign(new Error("retry"), { status: 429 });
+    });
+
+    const result = await runWithModelFallback({
+      cfg,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      complexity: "standard",
+      run,
+    });
+
+    expect(result.result).toBe("ok");
+    expect(run.mock.calls).toEqual([
+      ["openai", "gpt-4.1-mini"],
+      ["openai", "gpt-4.1-nano"],
+      ["openai", "gpt-5.2"],
+    ]);
+  });
+
+  it("skips over-budget fallbacks when model costs are configured", async () => {
+    const cfg = {
+      agents: {
+        defaults: {
+          model: {
+            primary: "openai/gpt-4.1-mini",
+            fallbacks: ["openai/gpt-5.2", "openai/gpt-4.1-nano"],
+          },
+        },
+      },
+      models: {
+        providers: {
+          openai: {
+            baseUrl: "https://api.openai.com/v1",
+            models: [
+              {
+                id: "gpt-4.1-mini",
+                name: "GPT-4.1 mini",
+                reasoning: false,
+                input: ["text"],
+                cost: { input: 0.4, output: 1.6, cacheRead: 0, cacheWrite: 0 },
+                contextWindow: 128000,
+                maxTokens: 8192,
+              },
+              {
+                id: "gpt-5.2",
+                name: "GPT-5.2",
+                reasoning: true,
+                input: ["text"],
+                cost: { input: 5, output: 20, cacheRead: 0, cacheWrite: 0 },
+                contextWindow: 200000,
+                maxTokens: 8192,
+              },
+              {
+                id: "gpt-4.1-nano",
+                name: "GPT-4.1 nano",
+                reasoning: false,
+                input: ["text"],
+                cost: { input: 0.1, output: 0.4, cacheRead: 0, cacheWrite: 0 },
+                contextWindow: 128000,
+                maxTokens: 8192,
+              },
+            ],
+          },
+        },
+      },
+    } as OpenClawConfig;
+
+    const run = vi.fn().mockImplementation(async (_provider: string, model: string) => {
+      if (model === "gpt-4.1-mini") {
+        throw Object.assign(new Error("quota"), { status: 429 });
+      }
+      if (model === "gpt-4.1-nano") {
+        return "ok";
+      }
+      throw new Error(`unexpected model call: ${model}`);
+    });
+
+    const result = await runWithModelFallback({
+      cfg,
+      provider: "openai",
+      model: "gpt-4.1-mini",
+      maxInputCostPerMToken: 1,
+      run,
+    });
+
+    expect(result.result).toBe("ok");
+    expect(run.mock.calls).toEqual([
+      ["openai", "gpt-4.1-mini"],
+      ["openai", "gpt-4.1-nano"],
+    ]);
+  });
+
+  it("fails closed when every candidate exceeds the configured budget", async () => {
+    const cfg = {
+      agents: {
+        defaults: {
+          model: {
+            primary: "openai/gpt-4.1-mini",
+            fallbacks: ["openai/gpt-5.2", "openai/gpt-4.1-nano"],
+          },
+        },
+      },
+      models: {
+        providers: {
+          openai: {
+            baseUrl: "https://api.openai.com/v1",
+            models: [
+              {
+                id: "gpt-4.1-mini",
+                name: "GPT-4.1 mini",
+                reasoning: false,
+                input: ["text"],
+                cost: { input: 0.4, output: 1.6, cacheRead: 0, cacheWrite: 0 },
+                contextWindow: 128000,
+                maxTokens: 8192,
+              },
+              {
+                id: "gpt-5.2",
+                name: "GPT-5.2",
+                reasoning: true,
+                input: ["text"],
+                cost: { input: 5, output: 20, cacheRead: 0, cacheWrite: 0 },
+                contextWindow: 200000,
+                maxTokens: 8192,
+              },
+              {
+                id: "gpt-4.1-nano",
+                name: "GPT-4.1 nano",
+                reasoning: false,
+                input: ["text"],
+                cost: { input: 0.1, output: 0.4, cacheRead: 0, cacheWrite: 0 },
+                contextWindow: 128000,
+                maxTokens: 8192,
+              },
+            ],
+          },
+        },
+      },
+    } as OpenClawConfig;
+
+    const run = vi.fn();
+
+    await expect(
+      runWithModelFallback({
+        cfg,
+        provider: "openai",
+        model: "gpt-4.1-mini",
+        maxInputCostPerMToken: 0.05,
+        run,
+      }),
+    ).rejects.toThrow("No model candidates available within the configured cost budget");
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it("maps think levels to fallback complexity", () => {
+    expect(resolveFallbackComplexityFromThinkLevel("off")).toBe("simple");
+    expect(resolveFallbackComplexityFromThinkLevel("low")).toBe("simple");
+    expect(resolveFallbackComplexityFromThinkLevel("medium")).toBe("standard");
+    expect(resolveFallbackComplexityFromThinkLevel("high")).toBe("complex");
+    expect(resolveFallbackComplexityFromThinkLevel("xhigh")).toBe("complex");
+    expect(resolveFallbackComplexityFromThinkLevel(undefined)).toBe("standard");
   });
 });

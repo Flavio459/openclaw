@@ -133,6 +133,9 @@ If all profiles for a provider fail, OpenClaw moves to the next model in
 `agents.defaults.model.fallbacks`. This applies to auth failures, rate limits, and
 timeouts that exhausted profile rotation (other errors do not advance fallback).
 
+OpenClaw traverses the full configured fallback chain for model failover.
+Thinking level does not cap fallback depth.
+
 When a run starts with a model override (hooks or CLI), fallbacks still end at
 `agents.defaults.model.primary` after trying any configured fallbacks.
 

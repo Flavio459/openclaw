@@ -24,6 +24,8 @@ describe("isCollegiumTab", () => {
     expect(isCollegiumTab("command")).toBe(true);
     expect(isCollegiumTab("forum")).toBe(true);
     expect(isCollegiumTab("praetorium")).toBe(true);
+    expect(isCollegiumTab("portal-preview")).toBe(true);
+    expect(isCollegiumTab("cockpit-preview")).toBe(true);
     expect(isCollegiumTab("overview")).toBe(false);
   });
 });
@@ -33,6 +35,8 @@ describe("brandingForTab", () => {
     expect(brandingForTab("command").title).toBe("COLLEGIUM CORTEX");
     expect(brandingForTab("forum").subtitle).toBe("The Forum");
     expect(brandingForTab("praetorium").subtitle).toBe("Cortex Praetorium");
+    expect(brandingForTab("portal-preview").subtitle).toBe("Prévia do Portal");
+    expect(brandingForTab("cockpit-preview").subtitle).toBe("The Cockpit");
   });
 });
 

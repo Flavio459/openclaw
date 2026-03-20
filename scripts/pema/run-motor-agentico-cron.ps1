@@ -16,7 +16,7 @@ param(
 
     [string]$RunsDirectory = 'C:\Pico-Open\openclaw-push\scripts\pema\.runs',
 
-    [switch]$LaunchOpenCliSpecs = $true,
+    [switch]$LaunchOpenCliSpecs = $false,
 
     [switch]$ForceRelaunch,
 
@@ -53,7 +53,13 @@ $dispatchListQueuePath = if ([string]::IsNullOrWhiteSpace($DispatchQueuePath)) {
 }
 
 $dispatches = @(& $listSpecsScript -QueuePath $dispatchListQueuePath -AsJson | ConvertFrom-Json)
-$dispatches = @($dispatches | Where-Object { $_.Substrate -in @('antigravity-cli', 'gemini-cli', 'codex-cli') })
+$dispatches = @(
+    $dispatches | Where-Object {
+        $_ -and
+        ($_.PSObject.Properties.Name -contains 'Substrate') -and
+        $_.Substrate -in @('antigravity-cli', 'gemini-cli', 'codex-cli')
+    }
+)
 
 $launchResults = @()
 
@@ -76,6 +82,7 @@ if ($LaunchOpenCliSpecs) {
 
 $summary = [pscustomobject]@{
     Timestamp = $timestamp
+    Mode = if ($LaunchOpenCliSpecs) { 'dispatch-enabled' } else { 'hygiene-read-only' }
     CheckpointPath = $checkpointPath
     OpenIdeaCount = $checkpoint.OpenIdeaCount
     OpenWorkstreamCount = $checkpoint.OpenWorkstreamCount
@@ -95,6 +102,7 @@ if ($AsJson) {
 }
 
 Write-Output ('Motor Agentico cron checkpoint: ' + $timestamp)
+Write-Output ('  Mode: ' + $summary.Mode)
 Write-Output ('  CheckpointPath: ' + $checkpointPath)
 Write-Output ('  OpenIdeas: ' + $checkpoint.OpenIdeaCount)
 Write-Output ('  OpenWorkstreams: ' + $checkpoint.OpenWorkstreamCount)

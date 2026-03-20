@@ -1,4 +1,5 @@
 import { normalizeVerboseLevel } from "../auto-reply/thinking.js";
+import type { RunModelTelemetry } from "../agents/model-run-telemetry.js";
 import { loadConfig } from "../config/config.js";
 import { type AgentEventPayload, getAgentRunContext } from "../infra/agent-events.js";
 import { resolveHeartbeatVisibility } from "../infra/heartbeat-visibility.js";
@@ -201,6 +202,25 @@ export type ChatEventBroadcast = (
 
 export type NodeSendToSession = (sessionKey: string, event: string, payload: unknown) => void;
 
+function withModelTelemetry(
+  message: Record<string, unknown> | undefined,
+  telemetry: RunModelTelemetry | undefined,
+) {
+  if (!telemetry) {
+    return message;
+  }
+  const nextMessage = message ? { ...message } : undefined;
+  if (nextMessage) {
+    nextMessage.provider = telemetry.effectiveProvider;
+    nextMessage.model = telemetry.effectiveModel;
+    nextMessage.configuredModel = telemetry.configuredModel;
+    nextMessage.didFallback = telemetry.didFallback;
+    nextMessage.fallbackReason = telemetry.fallbackReason;
+    nextMessage.attemptedModels = telemetry.attemptedModels;
+  }
+  return nextMessage;
+}
+
 export type AgentEventHandlerOptions = {
   broadcast: ChatEventBroadcast;
   broadcastToConnIds: (
@@ -261,6 +281,7 @@ export function createAgentEventHandler({
     error?: unknown,
   ) => {
     const text = chatRunState.buffers.get(clientRunId)?.trim() ?? "";
+    const telemetry = getAgentRunContext(clientRunId)?.modelTelemetry;
     chatRunState.buffers.delete(clientRunId);
     chatRunState.deltaSentAt.delete(clientRunId);
     if (jobState === "done") {
@@ -269,13 +290,22 @@ export function createAgentEventHandler({
         sessionKey,
         seq,
         state: "final" as const,
-        message: text
-          ? {
-              role: "assistant",
-              content: [{ type: "text", text }],
-              timestamp: Date.now(),
-            }
-          : undefined,
+        configuredModel: telemetry?.configuredModel,
+        effectiveModel: telemetry?.effectiveModelRef,
+        effectiveProvider: telemetry?.effectiveProvider,
+        didFallback: telemetry?.didFallback,
+        fallbackReason: telemetry?.fallbackReason,
+        attemptedModels: telemetry?.attemptedModels,
+        message: withModelTelemetry(
+          text
+            ? {
+                role: "assistant",
+                content: [{ type: "text", text }],
+                timestamp: Date.now(),
+              }
+            : undefined,
+          telemetry,
+        ),
       };
       // Suppress webchat broadcast for heartbeat runs when showOk is false
       if (!shouldSuppressHeartbeatBroadcast(clientRunId)) {
@@ -290,6 +320,12 @@ export function createAgentEventHandler({
       seq,
       state: "error" as const,
       errorMessage: error ? formatForLog(error) : undefined,
+      configuredModel: telemetry?.configuredModel,
+      effectiveModel: telemetry?.effectiveModelRef,
+      effectiveProvider: telemetry?.effectiveProvider,
+      didFallback: telemetry?.didFallback,
+      fallbackReason: telemetry?.fallbackReason,
+      attemptedModels: telemetry?.attemptedModels,
     };
     broadcast("chat", payload);
     nodeSendToSession(sessionKey, "chat", payload);

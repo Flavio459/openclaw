@@ -210,6 +210,12 @@ private struct ChatMessageBody: View {
                         isUser: self.isUser)
                 }
             }
+
+            if let metadataText = self.metadataText {
+                Text(metadataText)
+                    .font(.caption2.monospaced())
+                    .foregroundStyle(OpenClawChatTheme.assistantText.opacity(0.66))
+            }
         }
         .textSelection(.enabled)
         .padding(.vertical, 10)
@@ -263,6 +269,33 @@ private struct ChatMessageBody: View {
     private var isToolResultMessage: Bool {
         let role = self.message.role.lowercased()
         return role == "toolresult" || role == "tool_result"
+    }
+
+    private var metadataText: String? {
+        guard !self.isUser else { return nil }
+        let effectiveModelRef = {
+            if let provider = self.message.provider, let model = self.message.model {
+                return "\(provider)/\(model)"
+            }
+            if let model = self.message.model {
+                return model
+            }
+            return nil
+        }()
+        guard let effectiveModelRef else { return nil }
+        if self.message.didFallback == true {
+            if let configured = self.message.configuredModel, !configured.isEmpty {
+                if let reason = self.message.fallbackReason, !reason.isEmpty {
+                    return "fallback \(configured) -> \(effectiveModelRef) (\(reason))"
+                }
+                return "fallback \(configured) -> \(effectiveModelRef)"
+            }
+            if let reason = self.message.fallbackReason, !reason.isEmpty {
+                return "fallback -> \(effectiveModelRef) (\(reason))"
+            }
+            return "fallback -> \(effectiveModelRef)"
+        }
+        return effectiveModelRef
     }
 
     private var toolResultTitle: String {
