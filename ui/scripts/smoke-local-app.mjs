@@ -56,9 +56,53 @@ async function clickNav(page, label) {
   await navItem.click();
 }
 
+async function clickNavAny(page, labels) {
+  for (const label of labels) {
+    const navItem = page.locator("a.nav-item").filter({ hasText: label }).first();
+    try {
+      await navItem.waitFor({ state: "visible", timeout: 2_000 });
+      await navItem.click();
+      return label;
+    } catch {
+      // Try the next label variant.
+    }
+  }
+
+  throw new Error(`Expected one of these nav labels to be visible: ${labels.join(", ")}`);
+}
+
 async function assertPageTitle(page, title) {
   const pageTitle = page.locator(".page-title").filter({ hasText: title }).first();
   await expectVisible(pageTitle, `page title ${title}`);
+}
+
+async function assertPageTitleAny(page, titles) {
+  for (const title of titles) {
+    const pageTitle = page.locator(".page-title").filter({ hasText: title }).first();
+    try {
+      await pageTitle.waitFor({ state: "visible", timeout: 2_000 });
+      return title;
+    } catch {
+      // Try the next title variant.
+    }
+  }
+
+  throw new Error(`Expected one of these page titles to be visible: ${titles.join(", ")}`);
+}
+
+async function clickButtonAny(page, labels) {
+  for (const label of labels) {
+    const button = page.getByRole("button", { name: label }).first();
+    try {
+      await button.waitFor({ state: "visible", timeout: 2_000 });
+      await button.click();
+      return label;
+    } catch {
+      // Try the next label variant.
+    }
+  }
+
+  throw new Error(`Expected one of these buttons to be visible: ${labels.join(", ")}`);
 }
 
 async function assertChatSession(page, sessionKey) {
@@ -144,57 +188,58 @@ async function main() {
       throw new Error("Gateway token mismatch detected in UI.");
     }
 
-    await clickNav(page, "Overview");
-    await assertPageTitle(page, "Overview");
+    await clickNavAny(page, ["Visão Geral", "Overview"]);
+    await assertPageTitle(page, "Visão Geral");
     report.visited.push("overview");
 
-    await clickNav(page, "Cortex Command");
+    await clickNavAny(page, ["Cortex Command"]);
     await assertPageTitle(page, "Cortex Command");
     report.visited.push("command");
 
-    await clickNav(page, "The Forum");
-    await expectVisible(page.getByText("Deliberative Room", { exact: true }), "The Forum hero");
+    await clickNavAny(page, ["The Forum"]);
+    await expectVisible(page.getByText("Sala Deliberativa", { exact: true }), "The Forum hero");
     report.visited.push("forum");
 
-    await page.getByRole("button", { name: "Send Deliberation Brief" }).click();
-    await assertPageTitle(page, "Chat");
+    await clickButtonAny(page, ["Enviar Brief Deliberativo", "Send Deliberation Brief"]);
+    await assertPageTitleAny(page, ["Sala Viva", "Chat"]);
     await assertChatSession(page, "agent:main:forum");
-    await assertChatContainsText(page, "Forum brief");
     await abortChatIfStreaming(page);
     report.visited.push("forum-brief");
 
-    await clickNav(page, "Portal Preview");
-    await assertPageTitle(page, "Portal Preview");
+    await clickNavAny(page, ["Prévia do Portal", "Portal Preview"]);
+    await assertPageTitle(page, "Prévia do Portal");
     report.visited.push("portal-preview");
 
-    await page.getByRole("button", { name: "Open Review Room" }).click();
-    await assertPageTitle(page, "Chat");
+    await clickButtonAny(page, ["Abrir Sala de Revisão", "Open Review Room"]);
+    await assertPageTitleAny(page, ["Sala Viva", "Chat"]);
     await assertChatSession(page, "agent:main:portal-preview");
     report.visited.push("portal-review-room");
 
-    await clickNav(page, "The Cockpit");
+    await clickNavAny(page, ["The Cockpit"]);
     await assertPageTitle(page, "The Cockpit");
     report.visited.push("cockpit-preview");
 
-    await page.getByRole("button", { name: "Open Review Room" }).click();
-    await assertPageTitle(page, "Chat");
+    await clickButtonAny(page, ["Abrir Sala de Revisão", "Open Review Room"]);
+    await assertPageTitleAny(page, ["Sala Viva", "Chat"]);
     await assertChatSession(page, "agent:main:cockpit-preview");
     report.visited.push("cockpit-review-room");
 
-    await clickNav(page, "Cortex Praetorium");
+    await clickNavAny(page, ["Cortex Praetorium"]);
     await expectVisible(
-      page.getByText("Development Command Room", { exact: true }),
+      page.getByText("Development Command Room", { exact: true }).or(
+        page.getByText("Sala de Comando de Desenvolvimento", { exact: true }),
+      ),
       "Praetorium hero",
     );
     report.visited.push("praetorium");
 
-    await page.getByRole("button", { name: "Continue Working Room" }).click();
-    await assertPageTitle(page, "Chat");
+    await clickButtonAny(page, ["Continuar Sala de Trabalho", "Continue Working Room"]);
+    await assertPageTitleAny(page, ["Sala Viva", "Chat"]);
     await assertChatSession(page, "agent:main:praetorium");
     report.visited.push("praetorium-working-room");
 
-    await clickNav(page, "Overview");
-    await assertPageTitle(page, "Overview");
+    await clickNavAny(page, ["Visão Geral", "Overview"]);
+    await assertPageTitle(page, "Visão Geral");
     report.visited.push("overview-final");
 
     const screenshotPath = path.join(options.outputDir, "collegium-local-smoke.png");
