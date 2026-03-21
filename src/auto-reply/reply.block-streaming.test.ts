@@ -307,4 +307,57 @@ describe("block streaming", () => {
       expect(onBlockReply).not.toHaveBeenCalled();
     });
   });
+
+  it("fires onAgentRunStart only after embedded execution emits a real start signal", async () => {
+    await withTempHome(async (home) => {
+      const onAgentRunStart = vi.fn();
+
+      const impl = async (params: RunEmbeddedPiAgentParams) => {
+        expect(onAgentRunStart).not.toHaveBeenCalled();
+        await Promise.resolve(
+          params.onAgentEvent?.({
+            stream: "lifecycle",
+            data: { phase: "start" },
+          }),
+        );
+        expect(onAgentRunStart).toHaveBeenCalledTimes(1);
+        return {
+          payloads: [{ text: "started" }],
+          meta: {
+            durationMs: 5,
+            agentMeta: { sessionId: "s", provider: "p", model: "m" },
+          },
+        };
+      };
+      piEmbeddedMock.runEmbeddedPiAgent.mockImplementation(impl);
+
+      const res = await getReplyFromConfig(
+        {
+          Body: "ping",
+          From: "+1005",
+          To: "+2000",
+          MessageSid: "msg-127",
+          Provider: "telegram",
+        },
+        {
+          runId: "run-start-1",
+          onAgentRunStart,
+        },
+        {
+          agents: {
+            defaults: {
+              model: "anthropic/claude-opus-4-5",
+              workspace: path.join(home, "openclaw"),
+            },
+          },
+          channels: { telegram: { allowFrom: ["*"] } },
+          session: { store: path.join(home, "sessions.json") },
+        },
+      );
+
+      expect(onAgentRunStart).toHaveBeenCalledTimes(1);
+      expect(onAgentRunStart).toHaveBeenCalledWith("run-start-1");
+      expect(res).toMatchObject({ text: "started" });
+    });
+  });
 });

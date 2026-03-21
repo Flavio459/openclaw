@@ -85,7 +85,14 @@ export async function runAgentTurnWithFallback(params: {
   const directlySentBlockKeys = new Set<string>();
 
   const runId = params.opts?.runId ?? crypto.randomUUID();
-  params.opts?.onAgentRunStart?.(runId);
+  let agentRunStartNotified = false;
+  const notifyAgentRunStarted = () => {
+    if (agentRunStartNotified) {
+      return;
+    }
+    agentRunStartNotified = true;
+    params.opts?.onAgentRunStart?.(runId);
+  };
   if (params.sessionKey) {
     registerAgentRunContext(runId, {
       sessionKey: params.sessionKey,
@@ -164,6 +171,7 @@ export async function runAgentTurnWithFallback(params: {
 
           if (isCliProvider(provider, params.followupRun.run.config)) {
             const startedAt = Date.now();
+            notifyAgentRunStarted();
             emitAgentEvent({
               runId,
               stream: "lifecycle",
@@ -338,10 +346,17 @@ export async function runAgentTurnWithFallback(params: {
                   }
                 : undefined,
             onAgentEvent: async (evt) => {
+              const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
+              if (evt.stream === "lifecycle") {
+                if (phase === "start") {
+                  notifyAgentRunStarted();
+                }
+              } else {
+                notifyAgentRunStarted();
+              }
               // Trigger typing when tools start executing.
               // Must await to ensure typing indicator starts before tool summaries are emitted.
               if (evt.stream === "tool") {
-                const phase = typeof evt.data.phase === "string" ? evt.data.phase : "";
                 if (phase === "start" || phase === "update") {
                   await params.typingSignals.signalToolStart();
                 }
