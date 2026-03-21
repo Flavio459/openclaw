@@ -88,6 +88,7 @@ Cron jobs panel notes:
 
 - `chat.send` is **non-blocking**: it acks immediately with `{ runId, status: "started" }` and the response streams via `chat` events.
 - Re-sending with the same `idempotencyKey` returns `{ status: "in_flight" }` while running, and `{ status: "ok" }` after completion.
+- `chat.history` is served from the session snapshot plus a bounded recent tail, so long sessions stay fast without losing raw audit history.
 - `chat.inject` appends an assistant note to the session transcript and broadcasts a `chat` event for UI-only updates (no agent run, no channel delivery).
 - Stop:
   - Click **Stop** (calls `chat.abort`)

@@ -51,6 +51,14 @@ OpenClaw persists sessions in two layers:
    - Stores the actual conversation + tool calls + compaction summaries
    - Used to rebuild the model context for future turns
 
+The Gateway also keeps a compact runtime memory for the chat path:
+
+- **Snapshot**: a small session summary used for fast continuation
+- **Trail**: the raw append-only event history kept for audit/debug
+- **Hot tail**: the recent messages after the last compacted event
+
+The runtime path prefers snapshot + hot tail instead of replaying the full transcript on every turn.
+
 ---
 
 ## On-disk locations
@@ -116,6 +124,12 @@ Key fields (not exhaustive):
 - `compactionCount`: how often auto-compaction completed for this session key
 - `memoryFlushAt`: timestamp for the last pre-compaction memory flush
 - `memoryFlushCompactionCount`: compaction count when the last flush ran
+- Snapshot fields used by the Forum/chat trail compactor:
+  - `runId`, `phase`, `startedAt`, `lastEventAt`
+  - `modelTelemetry`, `lastAssistantText`, `lastError`
+  - `toolCounts`, `retryCount`
+  - `lastCompactedEventSeq`, `snapshotVersion`, `snapshotUpdatedAt`
+  - `trailBytes`, `trailEventCount`
 
 The store is safe to edit, but the Gateway is the authority: it may rewrite or rehydrate entries as sessions run.
 
@@ -139,6 +153,20 @@ Notable entry types:
 - `branch_summary`: persisted summary when navigating a tree branch
 
 OpenClaw intentionally does **not** “fix up” transcripts; the Gateway uses `SessionManager` to read/write them.
+
+## Forum/chat trail compaction
+
+The Forum/chat runtime uses a compact memory model to keep long sessions fast:
+
+1. Raw events stay append-only for audit/debug.
+2. The Gateway rewrites a snapshot at safe boundaries.
+3. New `chat.history` calls load the snapshot plus a bounded recent tail.
+4. Terminal states are explicit (`final`, `error`, `stalled`), including the
+   `agent_run_started_without_events` failure path.
+
+This is intentionally narrower than full transcript compaction. It exists to
+keep the Forum/chat flow responsive without turning the Gateway into a separate
+workflow system.
 
 ---
 
