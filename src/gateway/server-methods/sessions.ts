@@ -41,6 +41,7 @@ import {
 } from "../session-utils.js";
 import { applySessionsPatchToStore } from "../sessions-patch.js";
 import { resolveSessionKeyFromResolveParams } from "../sessions-resolve.js";
+import { compactSessionTrail } from "../../config/sessions/compaction.js";
 
 export const sessionsHandlers: GatewayRequestHandlers = {
   "sessions.list": ({ params, respond }) => {
@@ -264,6 +265,20 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         inputTokens: 0,
         outputTokens: 0,
         totalTokens: 0,
+        runId: undefined,
+        phase: undefined,
+        startedAt: undefined,
+        lastEventAt: undefined,
+        modelTelemetry: undefined,
+        lastAssistantText: undefined,
+        lastError: undefined,
+        toolCounts: undefined,
+        retryCount: undefined,
+        lastCompactedEventSeq: undefined,
+        snapshotVersion: undefined,
+        snapshotUpdatedAt: undefined,
+        trailBytes: undefined,
+        trailEventCount: undefined,
       };
       store[primaryKey] = nextEntry;
       return nextEntry;
@@ -415,57 +430,29 @@ export const sessionsHandlers: GatewayRequestHandlers = {
       return;
     }
 
-    const filePath = resolveSessionTranscriptCandidates(
-      sessionId,
+    const result = await compactSessionTrail({
+      sessionKey: target.canonicalKey,
       storePath,
-      entry?.sessionFile,
-      target.agentId,
-    ).find((candidate) => fs.existsSync(candidate));
-    if (!filePath) {
-      respond(
-        true,
-        {
-          ok: true,
-          key: target.canonicalKey,
-          compacted: false,
-          reason: "no transcript",
-        },
-        undefined,
-      );
-      return;
-    }
-
-    const raw = fs.readFileSync(filePath, "utf-8");
-    const lines = raw.split(/\r?\n/).filter((l) => l.trim().length > 0);
-    if (lines.length <= maxLines) {
-      respond(
-        true,
-        {
-          ok: true,
-          key: target.canonicalKey,
-          compacted: false,
-          kept: lines.length,
-        },
-        undefined,
-      );
-      return;
-    }
-
-    const archived = archiveFileOnDisk(filePath, "bak");
-    const keptLines = lines.slice(-maxLines);
-    fs.writeFileSync(filePath, `${keptLines.join("\n")}\n`, "utf-8");
-
-    await updateSessionStore(storePath, (store) => {
-      const entryKey = compactTarget.primaryKey;
-      const entryToUpdate = store[entryKey];
-      if (!entryToUpdate) {
-        return;
-      }
-      delete entryToUpdate.inputTokens;
-      delete entryToUpdate.outputTokens;
-      delete entryToUpdate.totalTokens;
-      entryToUpdate.updatedAt = Date.now();
+      sessionFile: entry?.sessionFile,
+      force: true,
+      maxTailMessages: maxLines,
+      reason: "manual",
     });
+
+    if (!result.compacted) {
+      respond(
+        true,
+        {
+          ok: true,
+          key: target.canonicalKey,
+          compacted: false,
+          kept: result.kept,
+          reason: result.reason,
+        },
+        undefined,
+      );
+      return;
+    }
 
     respond(
       true,
@@ -473,8 +460,8 @@ export const sessionsHandlers: GatewayRequestHandlers = {
         ok: true,
         key: target.canonicalKey,
         compacted: true,
-        archived,
-        kept: keptLines.length,
+        archived: result.archived,
+        kept: result.kept,
       },
       undefined,
     );

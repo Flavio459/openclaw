@@ -6,7 +6,6 @@ import { WebSocket } from "ws";
 import { emitAgentEvent, registerAgentRunContext } from "../infra/agent-events.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import {
-  agentCommand,
   connectOk,
   getReplyFromConfig,
   installGatewayTestHooks,
@@ -53,7 +52,9 @@ describe("gateway server chat", () => {
     let webchatWs: WebSocket | undefined;
 
     try {
-      webchatWs = new WebSocket(`ws://127.0.0.1:${port}`);
+      webchatWs = new WebSocket(`ws://127.0.0.1:${port}`, {
+        origin: `http://127.0.0.1:${port}`,
+      });
       await new Promise<void>((resolve) => webchatWs?.once("open", resolve));
       await connectOk(webchatWs, {
         client: {
@@ -329,39 +330,100 @@ describe("gateway server chat", () => {
     expect(evt.payload?.errorMessage).toBe("no_assistant_payload");
   });
 
-  test("routes chat.send slash commands without agent runs", async () => {
-    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-gw-"));
+  test("emits chat error when run marks started but never emits agent events", async () => {
+    const spy = vi.mocked(getReplyFromConfig);
+    spy.mockImplementationOnce(async (_ctx, opts) => {
+      opts?.onAgentRunStart?.("idem-started-without-events-1");
+      return undefined;
+    });
+
+    const runId = "idem-started-without-events-1";
+    const eventPromise = onceMessage(
+      ws,
+      (o) =>
+        o.type === "event" &&
+        o.event === "chat" &&
+        o.payload?.runId === runId &&
+        o.payload?.state === "error",
+      8000,
+    );
+
+    const res = await rpcReq(ws, "chat.send", {
+      sessionKey: "main",
+      message: "hello",
+      idempotencyKey: runId,
+    });
+    expect(res.ok).toBe(true);
+
+    const evt = await eventPromise;
+    expect(evt.payload?.errorMessage).toBe("agent_run_started_without_events");
+  });
+
+  test("chat.history prepends a snapshot summary after compaction", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-chat-history-snapshot-"));
     try {
       testState.sessionStorePath = path.join(dir, "sessions.json");
+      const sessionId = "sess-history-snapshot";
       await writeSessionStore({
         entries: {
           main: {
-            sessionId: "sess-main",
+            sessionId,
             updatedAt: Date.now(),
+            runId: "run-snapshot",
+            phase: "final",
+            startedAt: 10,
+            lastEventAt: 20,
+            lastAssistantText: "Snapshot answer",
+            lastError: "none",
+            snapshotVersion: 1,
+            snapshotUpdatedAt: Date.now(),
+            trailBytes: 512,
+            trailEventCount: 4,
+            lastCompactedEventSeq: 2,
           },
         },
       });
 
-      const spy = vi.mocked(agentCommand);
-      const callsBefore = spy.mock.calls.length;
-      const eventPromise = onceMessage(
-        ws,
-        (o) =>
-          o.type === "event" &&
-          o.event === "chat" &&
-          o.payload?.state === "final" &&
-          o.payload?.runId === "idem-command-1",
-        8000,
+      await fs.writeFile(
+        path.join(dir, `${sessionId}.jsonl`),
+        [
+          JSON.stringify({
+            type: "session",
+            version: 3,
+            id: sessionId,
+            timestamp: new Date().toISOString(),
+            cwd: dir,
+          }),
+          JSON.stringify({
+            message: {
+              role: "user",
+              content: [{ type: "text", text: "tail user" }],
+              timestamp: 100,
+            },
+          }),
+          JSON.stringify({
+            message: {
+              role: "assistant",
+              content: [{ type: "text", text: "tail assistant" }],
+              timestamp: 110,
+            },
+          }),
+        ].join("\n"),
+        "utf-8",
       );
-      const res = await rpcReq(ws, "chat.send", {
+
+      const history = await rpcReq<{ messages?: unknown[] }>(ws, "chat.history", {
         sessionKey: "main",
-        message: "/context list",
-        idempotencyKey: "idem-command-1",
       });
-      expect(res.ok).toBe(true);
-      const evt = await eventPromise;
-      expect(evt.payload?.message?.command).toBe(true);
-      expect(spy.mock.calls.length).toBe(callsBefore);
+      expect(history.ok).toBe(true);
+      const messages = history.payload?.messages ?? [];
+      expect(messages.length).toBeGreaterThanOrEqual(3);
+      expect(messages[0]).toMatchObject({ role: "system" });
+      expect(JSON.stringify(messages[0])).toContain("Session snapshot");
+      expect(JSON.stringify(messages[0])).toContain("Phase: final");
+      expect(JSON.stringify(messages[0])).toContain("Last assistant: Snapshot answer");
+      expect(JSON.stringify(messages.slice(-2))).toContain("tail user");
+      expect(JSON.stringify(messages.slice(-1))).toContain("tail assistant");
     } finally {
       testState.sessionStorePath = undefined;
       await fs.rm(dir, { recursive: true, force: true });
@@ -381,7 +443,9 @@ describe("gateway server chat", () => {
       },
     });
 
-    const webchatWs = new WebSocket(`ws://127.0.0.1:${port}`);
+    const webchatWs = new WebSocket(`ws://127.0.0.1:${port}`, {
+      origin: `http://127.0.0.1:${port}`,
+    });
     await new Promise<void>((resolve) => webchatWs.once("open", resolve));
     await connectOk(webchatWs, {
       client: {

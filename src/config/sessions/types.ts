@@ -1,5 +1,6 @@
 import type { Skill } from "@mariozechner/pi-coding-agent";
 import crypto from "node:crypto";
+import type { RunModelTelemetry } from "../../agents/model-run-telemetry.js";
 import type { NormalizedChatType } from "../../channels/chat-type.js";
 import type { ChannelId } from "../../channels/plugins/types.js";
 import type { DeliveryContext } from "../../utils/delivery-context.js";
@@ -21,6 +22,8 @@ export type SessionOrigin = {
   accountId?: string;
   threadId?: string | number;
 };
+
+export type SessionTrailPhase = "accepted" | "started" | "delta" | "final" | "error" | "stalled";
 
 export type SessionEntry = {
   /**
@@ -76,6 +79,20 @@ export type SessionEntry = {
   compactionCount?: number;
   memoryFlushAt?: number;
   memoryFlushCompactionCount?: number;
+  runId?: string;
+  phase?: SessionTrailPhase;
+  startedAt?: number;
+  lastEventAt?: number;
+  modelTelemetry?: RunModelTelemetry;
+  lastAssistantText?: string;
+  lastError?: string;
+  toolCounts?: Record<string, number>;
+  retryCount?: number;
+  lastCompactedEventSeq?: number;
+  snapshotVersion?: number;
+  snapshotUpdatedAt?: number;
+  trailBytes?: number;
+  trailEventCount?: number;
   cliSessionIds?: Record<string, string>;
   claudeCliSessionId?: string;
   label?: string;

@@ -38,6 +38,12 @@ import {
   readSessionMessages,
   resolveSessionModelRef,
 } from "../session-utils.js";
+import {
+  appendSessionEvent,
+  compactSessionTrail,
+  loadSessionSnapshot,
+  replaySessionState,
+} from "../../config/sessions/compaction.js";
 import { formatForLog } from "../ws-log.js";
 import { injectTimestamp, timestampOptsFromConfig } from "./agent-timestamp.js";
 import { getAgentRunContext } from "../../infra/agent-events.js";
@@ -212,6 +218,30 @@ function broadcastChatError(params: {
   params.context.nodeSendToSession(params.sessionKey, "chat", payload);
 }
 
+function scheduleSessionTrailCompaction(params: {
+  context: Pick<GatewayRequestContext, "logGateway">;
+  sessionKey: string;
+  reason: "final" | "error" | "stalled";
+  maxTailMessages?: number;
+}) {
+  void (async () => {
+    const latest = loadSessionEntry(params.sessionKey);
+    if (!latest.entry?.sessionId || !latest.storePath) {
+      return;
+    }
+    await compactSessionTrail({
+      sessionKey: params.sessionKey,
+      storePath: latest.storePath,
+      sessionFile: latest.entry.sessionFile,
+      force: true,
+      maxTailMessages: params.maxTailMessages ?? 200,
+      reason: params.reason,
+    });
+  })().catch((err) => {
+    params.context.logGateway.warn(`session trail compaction failed: ${formatForLog(err)}`);
+  });
+}
+
 export const chatHandlers: GatewayRequestHandlers = {
   "chat.history": async ({ params, respond, context }) => {
     if (!validateChatHistoryParams(params)) {
@@ -239,7 +269,13 @@ export const chatHandlers: GatewayRequestHandlers = {
     const max = Math.min(hardMax, requested);
     const sliced = rawMessages.length > max ? rawMessages.slice(-max) : rawMessages;
     const sanitized = stripEnvelopeFromMessages(sliced);
-    const capped = capArrayByJsonBytes(sanitized, getMaxChatHistoryMessagesBytes()).items;
+    const cappedTail = capArrayByJsonBytes(sanitized, getMaxChatHistoryMessagesBytes()).items;
+    const snapshot = loadSessionSnapshot({
+      sessionKey,
+      entry,
+    });
+    const replayed = replaySessionState(snapshot, cappedTail);
+    const capped = replayed.messages;
     let thinkingLevel = entry?.thinkingLevel;
     if (!thinkingLevel) {
       const configured = cfg.agents?.defaults?.thinkingDefault;
@@ -398,7 +434,7 @@ export const chatHandlers: GatewayRequestHandlers = {
       }
     }
     const rawSessionKey = p.sessionKey;
-    const { cfg, entry, canonicalKey: sessionKey } = loadSessionEntry(rawSessionKey);
+    const { cfg, entry, canonicalKey: sessionKey, storePath } = loadSessionEntry(rawSessionKey);
     const timeoutMs = resolveAgentTimeoutMs({
       cfg,
       overrideMs: p.timeoutMs,
@@ -471,6 +507,20 @@ export const chatHandlers: GatewayRequestHandlers = {
         status: "started" as const,
       };
       respond(true, ackPayload, undefined, { runId: clientRunId });
+      void appendSessionEvent({
+        storePath,
+        sessionKey,
+        now,
+        createIfMissing: false,
+        event: {
+          runId: clientRunId,
+          phase: "accepted",
+          startedAt: now,
+          lastEventAt: now,
+        },
+      }).catch((err) => {
+        context.logGateway.warn(`chat snapshot update failed: ${formatForLog(err)}`);
+      });
 
       const trimmedMessage = parsedMessage.trim();
       const injectThinking = Boolean(
@@ -553,18 +603,32 @@ export const chatHandlers: GatewayRequestHandlers = {
         ctx,
         cfg,
         dispatcher,
-        replyOptions: {
-          runId: clientRunId,
-          abortSignal: abortController.signal,
-          images: parsedImages.length > 0 ? parsedImages : undefined,
-          disableBlockStreaming: true,
-          onAgentRunStart: (runId) => {
-            agentRunStarted = true;
-            const connId = typeof client?.connId === "string" ? client.connId : undefined;
-            const wantsToolEvents = hasGatewayClientCap(
-              client?.connect?.caps,
-              GATEWAY_CLIENT_CAPS.TOOL_EVENTS,
-            );
+          replyOptions: {
+            runId: clientRunId,
+            abortSignal: abortController.signal,
+            images: parsedImages.length > 0 ? parsedImages : undefined,
+            disableBlockStreaming: true,
+            onAgentRunStart: (runId) => {
+              agentRunStarted = true;
+              void appendSessionEvent({
+                storePath,
+                sessionKey,
+                now: Date.now(),
+                createIfMissing: false,
+                event: {
+                  runId,
+                  phase: "started",
+                  startedAt: now,
+                  lastEventAt: Date.now(),
+                },
+              }).catch((err) => {
+                context.logGateway.warn(`chat snapshot update failed: ${formatForLog(err)}`);
+              });
+              const connId = typeof client?.connId === "string" ? client.connId : undefined;
+              const wantsToolEvents = hasGatewayClientCap(
+                client?.connect?.caps,
+                GATEWAY_CLIENT_CAPS.TOOL_EVENTS,
+              );
             if (connId && wantsToolEvents) {
               context.registerToolEventRecipient(runId, connId);
             }
@@ -574,9 +638,72 @@ export const chatHandlers: GatewayRequestHandlers = {
       })
         .then(() => {
           if (agentRunStarted && finalReplyParts.length === 0) {
+            const hadAgentEvents = (context.agentRunSeq.get(clientRunId) ?? 0) > 0;
+            if (!hadAgentEvents) {
+              const startupError = "agent_run_started_without_events";
+              context.logGateway.warn(
+                `[chat.send] started_without_events runId=${clientRunId} sessionKey=${rawSessionKey} idempotencyKey=${clientRunId}`,
+              );
+              const error = errorShape(ErrorCodes.UNAVAILABLE, startupError);
+              context.dedupe.set(`chat:${clientRunId}`, {
+                ts: Date.now(),
+                ok: false,
+                payload: {
+                  runId: clientRunId,
+                  status: "error" as const,
+                  summary: startupError,
+                },
+                error,
+              });
+              void appendSessionEvent({
+                storePath,
+                sessionKey,
+                now: Date.now(),
+                createIfMissing: false,
+                event: {
+                  runId: clientRunId,
+                  phase: "error",
+                  lastEventAt: Date.now(),
+                  lastError: startupError,
+                },
+              }).catch((err) => {
+                context.logGateway.warn(`chat snapshot update failed: ${formatForLog(err)}`);
+              });
+              broadcastChatError({
+                context,
+                runId: clientRunId,
+                sessionKey: rawSessionKey,
+                errorMessage: startupError,
+                modelTelemetry: resolveModelTelemetry(),
+              });
+              scheduleSessionTrailCompaction({
+                context,
+                sessionKey,
+                reason: "error",
+              });
+              return;
+            }
             context.logGateway.warn(
               `[chat.send] started_without_payload runId=${clientRunId} sessionKey=${rawSessionKey} idempotencyKey=${clientRunId}`,
             );
+            void appendSessionEvent({
+              storePath,
+              sessionKey,
+              now: Date.now(),
+              createIfMissing: false,
+              event: {
+                runId: clientRunId,
+                phase: "final",
+                lastEventAt: Date.now(),
+              },
+            }).catch((err) => {
+              context.logGateway.warn(`chat snapshot update failed: ${formatForLog(err)}`);
+            });
+            scheduleSessionTrailCompaction({
+              context,
+              sessionKey,
+              reason: "final",
+            });
           }
           if (!agentRunStarted) {
             const combinedReply = finalReplyParts
@@ -600,6 +727,25 @@ export const chatHandlers: GatewayRequestHandlers = {
                   summary: noPayloadError,
                 },
                 error,
+              });
+              void appendSessionEvent({
+                storePath,
+                sessionKey,
+                now: Date.now(),
+                createIfMissing: false,
+                event: {
+                  runId: clientRunId,
+                  phase: "error",
+                  lastEventAt: Date.now(),
+                  lastError: noPayloadError,
+                },
+              }).catch((err) => {
+                context.logGateway.warn(`chat snapshot update failed: ${formatForLog(err)}`);
+              });
+              scheduleSessionTrailCompaction({
+                context,
+                sessionKey,
+                reason: "error",
               });
               broadcastChatError({
                 context,
@@ -636,12 +782,32 @@ export const chatHandlers: GatewayRequestHandlers = {
                 usage: { input: 0, output: 0, totalTokens: 0 },
               };
             }
+            void appendSessionEvent({
+              storePath,
+              sessionKey,
+              now: Date.now(),
+              createIfMissing: false,
+              event: {
+                runId: clientRunId,
+                phase: "final",
+                lastEventAt: Date.now(),
+                lastAssistantText: combinedReply,
+                modelTelemetry: resolveModelTelemetry(),
+              },
+            }).catch((err) => {
+              context.logGateway.warn(`chat snapshot update failed: ${formatForLog(err)}`);
+            });
             broadcastChatFinal({
               context,
               runId: clientRunId,
               sessionKey: rawSessionKey,
               message,
               modelTelemetry: resolveModelTelemetry(),
+            });
+            scheduleSessionTrailCompaction({
+              context,
+              sessionKey,
+              reason: "final",
             });
           }
           context.dedupe.set(`chat:${clientRunId}`, {
@@ -673,6 +839,26 @@ export const chatHandlers: GatewayRequestHandlers = {
               summary: String(err),
             },
             error,
+          });
+          void appendSessionEvent({
+            storePath,
+            sessionKey,
+            now: Date.now(),
+            createIfMissing: false,
+            event: {
+              runId: clientRunId,
+              phase: "error",
+              lastEventAt: Date.now(),
+              lastError: String(err),
+              modelTelemetry: resolveModelTelemetry(),
+            },
+          }).catch((updateErr) => {
+            context.logGateway.warn(`chat snapshot update failed: ${formatForLog(updateErr)}`);
+          });
+          scheduleSessionTrailCompaction({
+            context,
+            sessionKey,
+            reason: "error",
           });
           broadcastChatError({
             context,

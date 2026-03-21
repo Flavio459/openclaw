@@ -335,6 +335,20 @@ describe("gateway server sessions", () => {
     expect(compactedLines).toHaveLength(3);
     const filesAfterCompact = await fs.readdir(dir);
     expect(filesAfterCompact.some((f) => f.startsWith("sess-main.jsonl.bak."))).toBe(true);
+    const compactedStore = JSON.parse(await fs.readFile(storePath, "utf-8")) as Record<
+      string,
+      {
+        snapshotVersion?: number;
+        snapshotUpdatedAt?: number;
+        trailBytes?: number;
+        trailEventCount?: number;
+        lastCompactedEventSeq?: number;
+      }
+    >;
+    expect(compactedStore["agent:main:main"]?.snapshotVersion).toBe(1);
+    expect(compactedStore["agent:main:main"]?.snapshotUpdatedAt).toBeTypeOf("number");
+    expect(compactedStore["agent:main:main"]?.trailEventCount).toBe(10);
+    expect(compactedStore["agent:main:main"]?.lastCompactedEventSeq).toBe(7);
 
     const deleted = await rpcReq<{ ok: true; deleted: boolean }>(ws, "sessions.delete", {
       key: "agent:main:discord:group:dev",

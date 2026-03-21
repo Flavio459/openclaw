@@ -338,6 +338,20 @@ export async function initSessionState(params: {
     sessionEntry.compactionCount = 0;
     sessionEntry.memoryFlushCompactionCount = undefined;
     sessionEntry.memoryFlushAt = undefined;
+    sessionEntry.runId = undefined;
+    sessionEntry.phase = undefined;
+    sessionEntry.startedAt = undefined;
+    sessionEntry.lastEventAt = undefined;
+    sessionEntry.modelTelemetry = undefined;
+    sessionEntry.lastAssistantText = undefined;
+    sessionEntry.lastError = undefined;
+    sessionEntry.toolCounts = undefined;
+    sessionEntry.retryCount = undefined;
+    sessionEntry.lastCompactedEventSeq = undefined;
+    sessionEntry.snapshotVersion = undefined;
+    sessionEntry.snapshotUpdatedAt = undefined;
+    sessionEntry.trailBytes = undefined;
+    sessionEntry.trailEventCount = undefined;
     // Clear stale token metrics from previous session so /status doesn't
     // display the old session's context usage after /new or /reset.
     sessionEntry.totalTokens = undefined;
