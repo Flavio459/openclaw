@@ -12,6 +12,7 @@ import * as internalHooks from "../../hooks/internal-hooks.js";
 import { clearPluginCommands, registerPluginCommand } from "../../plugins/commands.js";
 import { resetBashChatCommandForTests } from "./bash-command.js";
 import { buildCommandContext, handleCommands } from "./commands.js";
+import type { HandleCommandsParams } from "./commands-types.js";
 import { parseInlineDirectives } from "./directive-handling.js";
 
 // Avoid expensive workspace scans during /context tests.
@@ -39,7 +40,12 @@ afterAll(async () => {
   await fs.rm(testWorkspaceDir, { recursive: true, force: true });
 });
 
-function buildParams(commandBody: string, cfg: OpenClawConfig, ctxOverrides?: Partial<MsgContext>) {
+function buildParams(
+  commandBody: string,
+  cfg: OpenClawConfig,
+  ctxOverrides?: Partial<MsgContext>,
+  skillCommands?: HandleCommandsParams["skillCommands"],
+) {
   const ctx = {
     Body: commandBody,
     CommandBody: commandBody,
@@ -74,6 +80,7 @@ function buildParams(commandBody: string, cfg: OpenClawConfig, ctxOverrides?: Pa
     model: "test-model",
     contextTokens: 0,
     isGroup: false,
+    skillCommands,
   };
 }
 
@@ -196,6 +203,27 @@ describe("handleCommands identity", () => {
     expect(result.reply?.text).toContain("User id: 12345");
     expect(result.reply?.text).toContain("Username: @TestUser");
     expect(result.reply?.text).toContain("AllowFrom: 12345");
+  });
+});
+
+describe("handleCommands command list", () => {
+  it("returns the slash command list for /commands without scanning workspaces", async () => {
+    const cfg = {
+      commands: { text: true },
+      channels: { whatsapp: { allowFrom: ["*"] } },
+    } as OpenClawConfig;
+    const params = buildParams(
+      "/commands",
+      cfg,
+      undefined,
+      [{ name: "demo_skill", skillName: "demo-skill", description: "Demo" }],
+    );
+
+    const result = await handleCommands(params);
+
+    expect(result.shouldContinue).toBe(false);
+    expect(result.reply?.text).toContain("ℹ️ Slash commands");
+    expect(result.reply?.text).toContain("/demo_skill - Demo");
   });
 });
 
