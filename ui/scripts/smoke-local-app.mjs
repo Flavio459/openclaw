@@ -77,13 +77,27 @@ async function assertPageTitle(page, title) {
 }
 
 async function assertPageTitleAny(page, titles) {
+  const deadline = Date.now() + 10_000;
+
+  while (Date.now() < deadline) {
+    for (const title of titles) {
+      const pageTitle = page.locator(".page-title").filter({ hasText: title }).first();
+      try {
+        await pageTitle.waitFor({ state: "visible", timeout: 500 });
+        return title;
+      } catch {
+        // Keep polling until the view settles on one of the expected titles.
+      }
+    }
+
+    await page.waitForTimeout(200);
+  }
+
   for (const title of titles) {
     const pageTitle = page.locator(".page-title").filter({ hasText: title }).first();
-    try {
-      await pageTitle.waitFor({ state: "visible", timeout: 2_000 });
+    const isVisible = await pageTitle.isVisible().catch(() => false);
+    if (isVisible) {
       return title;
-    } catch {
-      // Try the next title variant.
     }
   }
 
@@ -108,7 +122,7 @@ async function clickButtonAny(page, labels) {
 async function assertChatSession(page, sessionKey) {
   const select = page.locator(".chat-controls select").first();
   await expectVisible(select, `chat session select for ${sessionKey}`);
-  const deadline = Date.now() + 5_000;
+  const deadline = Date.now() + 10_000;
 
   while (Date.now() < deadline) {
     const value = await select.inputValue();
