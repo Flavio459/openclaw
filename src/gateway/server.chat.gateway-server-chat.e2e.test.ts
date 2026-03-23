@@ -3,6 +3,7 @@ import os from "node:os";
 import path from "node:path";
 import { afterAll, beforeAll, describe, expect, test, vi } from "vitest";
 import { WebSocket } from "ws";
+import { resolveSessionTranscriptPath } from "../config/sessions/paths.js";
 import { emitAgentEvent, registerAgentRunContext } from "../infra/agent-events.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import {
@@ -330,6 +331,57 @@ describe("gateway server chat", () => {
     expect(evt.payload?.errorMessage).toBe("no_assistant_payload");
   });
 
+  test("chat.send persists the user message even if the assistant never replies", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-chat-user-persist-"));
+    try {
+      testState.sessionStorePath = path.join(dir, "sessions.json");
+      const sessionId = "sess-user-persist";
+      await writeSessionStore({
+        entries: {
+          main: {
+            sessionId,
+            updatedAt: Date.now(),
+          },
+        },
+      });
+
+      const spy = vi.mocked(getReplyFromConfig);
+      spy.mockResolvedValueOnce(undefined);
+
+      const message = `persist-user-${Date.now()}`;
+      const res = await rpcReq(ws, "chat.send", {
+        sessionKey: "main",
+        message,
+        idempotencyKey: "idem-user-persist-1",
+      });
+      expect(res.ok).toBe(true);
+
+      const transcriptPath = path.join(dir, `${sessionId}.jsonl`);
+      const transcript = await fs.readFile(transcriptPath, "utf-8");
+      expect(transcript).toContain(message);
+
+      const history = await rpcReq<{ messages?: Array<{ role?: string; content?: unknown[] }> }>(
+        ws,
+        "chat.history",
+        {
+          sessionKey: "main",
+        },
+      );
+      expect(history.ok).toBe(true);
+      expect(history.payload?.messages).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            role: "user",
+            content: expect.arrayContaining([expect.objectContaining({ text: message })]),
+          }),
+        ]),
+      );
+    } finally {
+      testState.sessionStorePath = undefined;
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  });
+
   test("emits chat error when run marks started but never emits agent events", async () => {
     const spy = vi.mocked(getReplyFromConfig);
     spy.mockImplementationOnce(async (_ctx, opts) => {
@@ -424,6 +476,129 @@ describe("gateway server chat", () => {
       expect(JSON.stringify(messages[0])).toContain("Last assistant: Snapshot answer");
       expect(JSON.stringify(messages.slice(-2))).toContain("tail user");
       expect(JSON.stringify(messages.slice(-1))).toContain("tail assistant");
+    } finally {
+      testState.sessionStorePath = undefined;
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("chat.history falls back to legacy agent transcript when current session file is missing", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-chat-history-legacy-"));
+    const prevStateDir = process.env.OPENCLAW_STATE_DIR;
+    try {
+      process.env.OPENCLAW_STATE_DIR = dir;
+      testState.sessionStorePath = path.join(dir, "sessions.json");
+      const legacySessionId = "sess-history-legacy";
+
+      await writeSessionStore({
+        entries: {
+          main: {
+            sessionId: "sess-history-current",
+            updatedAt: Date.now(),
+            systemPromptReport: {
+              source: "estimate",
+              generatedAt: Date.now(),
+              sessionId: legacySessionId,
+              systemPrompt: {
+                chars: 0,
+                projectContextChars: 0,
+                nonProjectContextChars: 0,
+              },
+              injectedWorkspaceFiles: [],
+              skills: {
+                promptChars: 0,
+                entries: [],
+              },
+              tools: {
+                listChars: 0,
+                schemaChars: 0,
+                entries: [],
+              },
+            },
+          },
+        },
+      });
+
+      const legacyTranscriptPath = resolveSessionTranscriptPath(legacySessionId, "main");
+      await fs.mkdir(path.dirname(legacyTranscriptPath), { recursive: true });
+      await fs.writeFile(
+        legacyTranscriptPath,
+        [
+          JSON.stringify({
+            type: "session",
+            version: 3,
+            id: legacySessionId,
+            timestamp: new Date().toISOString(),
+            cwd: dir,
+          }),
+          JSON.stringify({
+            message: {
+              role: "assistant",
+              content: [{ type: "text", text: "legacy forum answer" }],
+              timestamp: Date.now(),
+            },
+          }),
+        ].join("\n"),
+        "utf-8",
+      );
+
+      const history = await rpcReq<{ messages?: Array<{ role?: string; content?: unknown[] }> }>(
+        ws,
+        "chat.history",
+        {
+          sessionKey: "main",
+        },
+      );
+      expect(history.ok).toBe(true);
+      expect(history.payload?.messages).toHaveLength(1);
+      expect(history.payload?.messages?.[0]).toMatchObject({
+        role: "assistant",
+        content: [{ type: "text", text: "legacy forum answer" }],
+      });
+    } finally {
+      testState.sessionStorePath = undefined;
+      if (prevStateDir === undefined) {
+        delete process.env.OPENCLAW_STATE_DIR;
+      } else {
+        process.env.OPENCLAW_STATE_DIR = prevStateDir;
+      }
+      await fs.rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test("chat.send precreates a missing transcript file for explicit sessionFile paths", async () => {
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-chat-send-precreate-"));
+    try {
+      testState.sessionStorePath = path.join(dir, "sessions.json");
+      const sessionId = "sess-send-precreate";
+      const sessionFile = path.join(dir, "nested", `${sessionId}.jsonl`);
+
+      await writeSessionStore({
+        entries: {
+          main: {
+            sessionId,
+            sessionFile,
+            updatedAt: Date.now(),
+          },
+        },
+      });
+
+      expect(await fs.stat(path.dirname(sessionFile)).catch(() => null)).toBeNull();
+
+      const res = await rpcReq(ws, "chat.send", {
+        sessionKey: "main",
+        message: "hello",
+        idempotencyKey: "idem-precreate-1",
+      });
+      expect(res.ok).toBe(true);
+
+      const transcript = await fs.readFile(sessionFile, "utf-8");
+      const [headerLine] = transcript.trim().split(/\r?\n/, 1);
+      expect(headerLine).toBeTruthy();
+      expect(JSON.parse(headerLine ?? "{}")).toMatchObject({
+        type: "session",
+        id: sessionId,
+      });
     } finally {
       testState.sessionStorePath = undefined;
       await fs.rm(dir, { recursive: true, force: true });

@@ -27,8 +27,17 @@ INPUT_PATHS=(
   "$A2UI_APP_DIR"
 )
 
+if command -v node >/dev/null 2>&1; then
+  NODE_BIN="node"
+elif command -v node.exe >/dev/null 2>&1; then
+  NODE_BIN="node.exe"
+else
+  echo "Node.js is required for A2UI bundling but was not found on PATH." >&2
+  exit 1
+fi
+
 compute_hash() {
-  ROOT_DIR="$ROOT_DIR" node --input-type=module - "${INPUT_PATHS[@]}" <<'NODE'
+  ROOT_DIR="$ROOT_DIR" "$NODE_BIN" --input-type=module - "${INPUT_PATHS[@]}" <<'NODE'
 import { createHash } from "node:crypto";
 import { promises as fs } from "node:fs";
 import path from "node:path";

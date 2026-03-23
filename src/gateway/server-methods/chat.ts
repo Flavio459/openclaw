@@ -55,6 +55,25 @@ type TranscriptAppendResult = {
   error?: string;
 };
 
+function resolveLegacyTranscriptSessionId(
+  entry:
+    | {
+        sessionId?: string;
+        systemPromptReport?: { sessionId?: string };
+      }
+    | undefined,
+): string | null {
+  const current = typeof entry?.sessionId === "string" ? entry.sessionId.trim() : "";
+  const legacy =
+    typeof entry?.systemPromptReport?.sessionId === "string"
+      ? entry.systemPromptReport.sessionId.trim()
+      : "";
+  if (!legacy || legacy === current) {
+    return null;
+  }
+  return legacy;
+}
+
 function resolveTranscriptPath(params: {
   sessionId: string;
   storePath: string | undefined;
@@ -93,8 +112,8 @@ function ensureTranscriptFile(params: { transcriptPath: string; sessionId: strin
   }
 }
 
-function appendAssistantTranscriptMessage(params: {
-  message: string;
+function appendTranscriptRecord(params: {
+  message: Record<string, unknown>;
   label?: string;
   sessionId: string;
   storePath: string | undefined;
@@ -125,14 +144,19 @@ function appendAssistantTranscriptMessage(params: {
 
   const now = Date.now();
   const messageId = randomUUID().slice(0, 8);
-  const labelPrefix = params.label ? `[${params.label}]\n\n` : "";
-  const messageBody: Record<string, unknown> = {
-    role: "assistant",
-    content: [{ type: "text", text: `${labelPrefix}${params.message}` }],
-    timestamp: now,
-    stopReason: "injected",
-    usage: { input: 0, output: 0, totalTokens: 0 },
-  };
+  const messageBody = params.label
+    ? {
+        ...params.message,
+        content: [
+          {
+            type: "text",
+            text: `[${params.label}]\n\n${String(
+              (params.message.content as Array<{ text?: string }> | undefined)?.[0]?.text ?? "",
+            )}`,
+          },
+        ],
+      }
+    : params.message;
   const transcriptEntry = {
     type: "message",
     id: messageId,
@@ -147,6 +171,88 @@ function appendAssistantTranscriptMessage(params: {
   }
 
   return { ok: true, messageId, message: transcriptEntry.message };
+}
+
+function appendUserTranscriptMessage(params: {
+  message: string;
+  images: ChatImageContent[];
+  sessionId: string;
+  storePath: string | undefined;
+  sessionFile?: string;
+  createIfMissing?: boolean;
+}): TranscriptAppendResult {
+  const content: Array<Record<string, unknown>> = [];
+  const trimmed = params.message.trim();
+  if (trimmed) {
+    content.push({ type: "text", text: trimmed });
+  }
+  for (const image of params.images) {
+    content.push({
+      type: "image",
+      source: { type: "base64", media_type: image.mimeType, data: image.data },
+    });
+  }
+
+  return appendTranscriptRecord({
+    sessionId: params.sessionId,
+    storePath: params.storePath,
+    sessionFile: params.sessionFile,
+    createIfMissing: params.createIfMissing,
+    message: {
+      role: "user",
+      content,
+      timestamp: Date.now(),
+    },
+  });
+}
+
+function appendAssistantTranscriptMessage(params: {
+  message: string;
+  label?: string;
+  sessionId: string;
+  storePath: string | undefined;
+  sessionFile?: string;
+  createIfMissing?: boolean;
+}): TranscriptAppendResult {
+  const labelPrefix = params.label ? `[${params.label}]\n\n` : "";
+  return appendTranscriptRecord({
+    sessionId: params.sessionId,
+    storePath: params.storePath,
+    sessionFile: params.sessionFile,
+    createIfMissing: params.createIfMissing,
+    label: params.label,
+    message: {
+      role: "assistant",
+      content: [{ type: "text", text: `${labelPrefix}${params.message}` }],
+      timestamp: Date.now(),
+      stopReason: "injected",
+      usage: { input: 0, output: 0, totalTokens: 0 },
+    },
+  });
+}
+
+function ensureResolvedTranscriptFile(params: {
+  sessionId?: string;
+  storePath: string | undefined;
+  sessionFile?: string;
+}): { ok: boolean; transcriptPath?: string; error?: string } {
+  const sessionId = typeof params.sessionId === "string" ? params.sessionId.trim() : "";
+  if (!sessionId) {
+    return { ok: false, error: "session id not resolved" };
+  }
+  const transcriptPath = resolveTranscriptPath({
+    sessionId,
+    storePath: params.storePath,
+    sessionFile: params.sessionFile,
+  });
+  if (!transcriptPath) {
+    return { ok: false, error: "transcript path not resolved" };
+  }
+  const ensured = ensureTranscriptFile({ transcriptPath, sessionId });
+  if (!ensured.ok) {
+    return { ok: false, error: ensured.error ?? "failed to create transcript file" };
+  }
+  return { ok: true, transcriptPath };
 }
 
 function nextChatSeq(context: { agentRunSeq: Map<string, number> }, runId: string) {
@@ -260,9 +366,23 @@ export const chatHandlers: GatewayRequestHandlers = {
       limit?: number;
     };
     const { cfg, storePath, entry } = loadSessionEntry(sessionKey);
+    const agentId = resolveSessionAgentId({ sessionKey, config: cfg });
     const sessionId = entry?.sessionId;
-    const rawMessages =
-      sessionId && storePath ? readSessionMessages(sessionId, storePath, entry?.sessionFile) : [];
+    let rawMessages =
+      sessionId && storePath
+        ? readSessionMessages(sessionId, storePath, entry?.sessionFile, agentId)
+        : [];
+    if (rawMessages.length === 0 && storePath) {
+      const legacySessionId = resolveLegacyTranscriptSessionId(entry);
+      if (legacySessionId) {
+        rawMessages = readSessionMessages(
+          legacySessionId,
+          storePath,
+          entry?.sessionFile,
+          agentId,
+        );
+      }
+    }
     const hardMax = 1000;
     const defaultLimit = 200;
     const requested = typeof limit === "number" ? limit : defaultLimit;
@@ -458,6 +578,19 @@ export const chatHandlers: GatewayRequestHandlers = {
       return;
     }
 
+    if (entry?.sessionId) {
+      const ensuredTranscript = ensureResolvedTranscriptFile({
+        sessionId: entry.sessionId,
+        storePath,
+        sessionFile: entry.sessionFile,
+      });
+      if (!ensuredTranscript.ok) {
+        context.logGateway.warn(
+          `webchat transcript precreate failed: ${ensuredTranscript.error ?? "unknown error"}`,
+        );
+      }
+    }
+
     if (stopCommand) {
       const res = abortChatRunsForSessionKey(
         {
@@ -517,10 +650,23 @@ export const chatHandlers: GatewayRequestHandlers = {
           phase: "accepted",
           startedAt: now,
           lastEventAt: now,
-        },
-      }).catch((err) => {
+          },
+        }).catch((err) => {
         context.logGateway.warn(`chat snapshot update failed: ${formatForLog(err)}`);
       });
+      const userTranscript = appendUserTranscriptMessage({
+        message: parsedMessage,
+        images: parsedImages,
+        sessionId: entry?.sessionId ?? clientRunId,
+        storePath,
+        sessionFile: entry?.sessionFile,
+        createIfMissing: true,
+      });
+      if (!userTranscript.ok) {
+        context.logGateway.warn(
+          `webchat user transcript append failed: ${userTranscript.error ?? "unknown error"}`,
+        );
+      }
 
       const trimmedMessage = parsedMessage.trim();
       const injectThinking = Boolean(
