@@ -1,3 +1,6 @@
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 import { describe, expect, it, vi } from "vitest";
 import type { OpenClawConfig } from "../config/config.js";
 
@@ -129,5 +132,63 @@ describe("resolveSandboxContext", () => {
     expect(spawn).not.toHaveBeenCalled();
 
     vi.doUnmock("node:child_process");
+  }, 15_000);
+
+  it("falls back to direct runtime when docker is unavailable", async () => {
+    vi.resetModules();
+
+    vi.doMock("./sandbox/docker.js", async (importOriginal) => {
+      const actual = await importOriginal<typeof import("./sandbox/docker.js")>();
+      return {
+        ...actual,
+        ensureSandboxContainer: vi.fn(async () => {
+          throw new Error(
+            "failed to connect to the docker API at npipe:////./pipe/dockerDesktopLinuxEngine",
+          );
+        }),
+      };
+    });
+    vi.doMock("./sandbox/browser.js", () => ({
+      ensureSandboxBrowser: vi.fn(async () => null),
+    }));
+
+    const { ensureSandboxWorkspaceForSession, resolveSandboxContext } =
+      await import("./sandbox.js");
+
+    const workspaceDir = await fs.mkdtemp(path.join(os.tmpdir(), "openclaw-sandbox-fallback-"));
+    try {
+      const cfg: OpenClawConfig = {
+        agents: {
+          defaults: {
+            sandbox: {
+              mode: "all",
+              scope: "session",
+              workspaceRoot: path.join(workspaceDir, "sandboxes"),
+            },
+          },
+          list: [{ id: "main" }],
+        },
+      };
+
+      await expect(
+        resolveSandboxContext({
+          config: cfg,
+          sessionKey: "agent:main:forum",
+          workspaceDir,
+        }),
+      ).resolves.toBeNull();
+
+      await expect(
+        ensureSandboxWorkspaceForSession({
+          config: cfg,
+          sessionKey: "agent:main:forum",
+          workspaceDir,
+        }),
+      ).resolves.toBeNull();
+    } finally {
+      vi.doUnmock("./sandbox/docker.js");
+      vi.doUnmock("./sandbox/browser.js");
+      await fs.rm(workspaceDir, { recursive: true, force: true });
+    }
   }, 15_000);
 });

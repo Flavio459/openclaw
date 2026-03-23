@@ -14,6 +14,41 @@ import { resolveSandboxRuntimeStatus } from "./runtime-status.js";
 import { resolveSandboxScopeKey, resolveSandboxWorkspaceDir } from "./shared.js";
 import { ensureSandboxWorkspace } from "./workspace.js";
 
+function formatSandboxError(error: unknown): string {
+  if (error instanceof Error && error.message.trim()) {
+    return error.message.trim();
+  }
+  if (typeof error === "string" && error.trim()) {
+    return error.trim();
+  }
+  try {
+    return JSON.stringify(error);
+  } catch {
+    return "unknown sandbox error";
+  }
+}
+
+function shouldDisableSandboxForError(error: unknown): boolean {
+  const message = formatSandboxError(error).toLowerCase();
+  return (
+    message.includes("failed to connect to the docker api") ||
+    message.includes("dockerdesktoplinuxengine") ||
+    message.includes("spawn docker") ||
+    message.includes("sandbox image not found") ||
+    message.includes("oci runtime") ||
+    message.includes('exec: "sh"') ||
+    message.includes("docker") ||
+    message.includes("npipe")
+  );
+}
+
+function logSandboxUnavailable(sessionKey: string, error: unknown) {
+  const message = formatSandboxError(error);
+  defaultRuntime.error?.(
+    `Sandbox unavailable for ${sessionKey}; falling back to direct runtime. ${message}`,
+  );
+}
+
 export async function resolveSandboxContext(params: {
   config?: OpenClawConfig;
   sessionKey?: string;
@@ -66,22 +101,39 @@ export async function resolveSandboxContext(params: {
     await fs.mkdir(workspaceDir, { recursive: true });
   }
 
-  const containerName = await ensureSandboxContainer({
-    sessionKey: rawSessionKey,
-    workspaceDir,
-    agentWorkspaceDir,
-    cfg,
-  });
+  let containerName: string;
+  try {
+    containerName = await ensureSandboxContainer({
+      sessionKey: rawSessionKey,
+      workspaceDir,
+      agentWorkspaceDir,
+      cfg,
+    });
+  } catch (error) {
+    if (shouldDisableSandboxForError(error)) {
+      logSandboxUnavailable(rawSessionKey, error);
+      return null;
+    }
+    throw error;
+  }
 
   const evaluateEnabled =
     params.config?.browser?.evaluateEnabled ?? DEFAULT_BROWSER_EVALUATE_ENABLED;
-  const browser = await ensureSandboxBrowser({
-    scopeKey,
-    workspaceDir,
-    agentWorkspaceDir,
-    cfg,
-    evaluateEnabled,
-  });
+  let browser: Awaited<ReturnType<typeof ensureSandboxBrowser>> | null = null;
+  try {
+    browser = await ensureSandboxBrowser({
+      scopeKey,
+      workspaceDir,
+      agentWorkspaceDir,
+      cfg,
+      evaluateEnabled,
+    });
+  } catch (error) {
+    const message = formatSandboxError(error);
+    defaultRuntime.error?.(
+      `Sandbox browser unavailable for ${rawSessionKey}; continuing without browser bridge. ${message}`,
+    );
+  }
 
   return {
     enabled: true,
@@ -146,6 +198,21 @@ export async function ensureSandboxWorkspaceForSession(params: {
     }
   } else {
     await fs.mkdir(workspaceDir, { recursive: true });
+  }
+
+  try {
+    await ensureSandboxContainer({
+      sessionKey: rawSessionKey,
+      workspaceDir,
+      agentWorkspaceDir,
+      cfg,
+    });
+  } catch (error) {
+    if (shouldDisableSandboxForError(error)) {
+      logSandboxUnavailable(rawSessionKey, error);
+      return null;
+    }
+    throw error;
   }
 
   return {

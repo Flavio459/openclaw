@@ -49,6 +49,7 @@ import { detectRuntimeShell } from "../shell-utils.js";
 import {
   applySkillEnvOverrides,
   applySkillEnvOverridesFromSnapshot,
+  buildWorkspaceSkillsPrompt,
   loadWorkspaceSkillEntries,
   resolveSkillsPromptForRun,
   type SkillSnapshot,
@@ -188,25 +189,37 @@ export async function compactEmbeddedPiSessionDirect(
   let restoreSkillEnv: (() => void) | undefined;
   process.chdir(effectiveWorkspace);
   try {
-    const shouldLoadSkillEntries = !params.skillsSnapshot || !params.skillsSnapshot.resolvedSkills;
+    // A persisted snapshot can point at the original workspace. Rebuild skills from the
+    // effective sandbox workspace so tool-readable paths stay inside the active root.
+    const shouldUseWorkspaceSkillEntries = effectiveWorkspace !== resolvedWorkspace;
+    const shouldLoadSkillEntries =
+      shouldUseWorkspaceSkillEntries ||
+      !params.skillsSnapshot ||
+      !params.skillsSnapshot.resolvedSkills;
     const skillEntries = shouldLoadSkillEntries
       ? loadWorkspaceSkillEntries(effectiveWorkspace)
       : [];
-    restoreSkillEnv = params.skillsSnapshot
-      ? applySkillEnvOverridesFromSnapshot({
-          snapshot: params.skillsSnapshot,
+    restoreSkillEnv =
+      shouldUseWorkspaceSkillEntries || !params.skillsSnapshot
+        ? applySkillEnvOverrides({
+            skills: skillEntries ?? [],
+            config: params.config,
+          })
+        : applySkillEnvOverridesFromSnapshot({
+            snapshot: params.skillsSnapshot,
+            config: params.config,
+          });
+    const skillsPrompt = shouldUseWorkspaceSkillEntries
+      ? buildWorkspaceSkillsPrompt(effectiveWorkspace, {
+          entries: skillEntries ?? [],
           config: params.config,
         })
-      : applySkillEnvOverrides({
-          skills: skillEntries ?? [],
+      : resolveSkillsPromptForRun({
+          skillsSnapshot: params.skillsSnapshot,
+          entries: shouldLoadSkillEntries ? skillEntries : undefined,
           config: params.config,
+          workspaceDir: effectiveWorkspace,
         });
-    const skillsPrompt = resolveSkillsPromptForRun({
-      skillsSnapshot: params.skillsSnapshot,
-      entries: shouldLoadSkillEntries ? skillEntries : undefined,
-      config: params.config,
-      workspaceDir: effectiveWorkspace,
-    });
 
     const sessionLabel = params.sessionKey ?? params.sessionId;
     const { contextFiles } = await resolveBootstrapContextForRun({

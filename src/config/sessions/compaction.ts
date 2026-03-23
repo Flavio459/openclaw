@@ -197,6 +197,20 @@ function buildSnapshotMessage(snapshot: SessionTrailSnapshot): Record<string, un
   };
 }
 
+function resolveCompactionPhase(
+  reason: "final" | "error" | "stalled" | "threshold" | "manual" | undefined,
+  fallback: SessionTrailPhase,
+): SessionTrailPhase {
+  switch (reason) {
+    case "final":
+    case "error":
+    case "stalled":
+      return reason;
+    default:
+      return fallback;
+  }
+}
+
 function deriveTrailSnapshot(params: {
   sessionKey: string;
   entry: SessionEntry;
@@ -294,10 +308,11 @@ export function loadSessionSnapshot(params: {
   entry?: SessionEntry;
   now?: number;
 }): SessionTrailSnapshot | undefined {
-  if (!params.entry) {
+  const { entry } = params;
+  if (!entry) {
     return undefined;
   }
-  return buildSnapshotFromEntry(params);
+  return buildSnapshotFromEntry({ ...params, entry });
 }
 
 export function replaySessionState(
@@ -431,7 +446,7 @@ export async function compactSessionTrail(params: {
       now,
       createIfMissing: false,
       event: {
-        phase: params.reason ?? (entry.phase ?? "final"),
+        phase: resolveCompactionPhase(params.reason, entry.phase ?? "final"),
         runId: entry.runId,
         startedAt: entry.startedAt,
         lastEventAt: entry.lastEventAt,
@@ -539,14 +554,7 @@ export async function compactSessionTrail(params: {
     }
     current[params.sessionKey] = mergeSessionEntry(existing, {
       ...snapshot,
-      phase:
-        params.reason === "final"
-          ? "final"
-          : params.reason === "error"
-            ? "error"
-            : params.reason === "stalled"
-              ? "stalled"
-              : snapshot.phase,
+      phase: resolveCompactionPhase(params.reason, snapshot.phase),
       snapshotVersion: snapshot.snapshotVersion,
       snapshotUpdatedAt: now,
       trailBytes: totalBytes,
