@@ -5,6 +5,15 @@ INSTALL_URL="${OPENCLAW_INSTALL_URL:-https://openclaw.bot/install.sh}"
 DEFAULT_PACKAGE="openclaw"
 PACKAGE_NAME="${OPENCLAW_INSTALL_PACKAGE:-$DEFAULT_PACKAGE}"
 
+extract_cli_version() {
+  local raw="$1"
+  if [[ "$raw" =~ ([0-9]+\.[0-9]+\.[0-9]+([.-][0-9A-Za-z.-]+)?) ]]; then
+    printf '%s\n' "${BASH_REMATCH[1]}"
+    return 0
+  fi
+  printf '%s\n' "$raw"
+}
+
 echo "==> Pre-flight: ensure git absent"
 if command -v git >/dev/null; then
   echo "git is present unexpectedly" >&2
@@ -37,9 +46,10 @@ if [[ -z "$CMD_PATH" ]]; then
   exit 1
 fi
 echo "==> Verify CLI installed: $CLI_NAME"
-INSTALLED_VERSION="$("$CMD_PATH" --version 2>/dev/null | head -n 1 | tr -d '\r')"
+INSTALLED_VERSION_RAW="$("$CMD_PATH" --version 2>/dev/null | head -n 1 | tr -d '\r')"
+INSTALLED_VERSION="$(extract_cli_version "$INSTALLED_VERSION_RAW")"
 
-echo "cli=$CLI_NAME installed=$INSTALLED_VERSION expected=$LATEST_VERSION"
+echo "cli=$CLI_NAME installed=$INSTALLED_VERSION expected=$LATEST_VERSION raw=$INSTALLED_VERSION_RAW"
 if [[ "$INSTALLED_VERSION" != "$LATEST_VERSION" ]]; then
   echo "ERROR: expected ${CLI_NAME}@${LATEST_VERSION}, got ${CLI_NAME}@${INSTALLED_VERSION}" >&2
   exit 1
