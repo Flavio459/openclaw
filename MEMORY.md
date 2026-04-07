@@ -237,6 +237,16 @@ workspace/
 
 *Marco: 21.1 dias de operação contínua — novo recorde.*
 
+### 2026-04-07 (Ciclo Longo — 12:00 UTC)
+- **Operação Autônoma:** Sistema mantém funcionamento 100% autônomo estável por **49 dias consecutivos** (última interação: 2026-02-18). **Novo recorde histórico absoluto** (1.176+ horas).
+- **Auto-Saneamento (R0):** Disco 72% (saudável), canvas/archive vazio, zero arquivos temporários vazios, workspace ~373M estável. Git staging detectado com grande volume de remoções (limpeza de arquivos legados) + modificações em arquivos de configuração. Commit automático daily-git-commit às 01:00 UTC irá consolidar.
+- **Análise de Padrões (48 sessões recentes):** 100% automatizado (cron jobs, heartbeats, probes). Nenhuma tarefa manual repetida ≥3x na semana. Não gera skill auto-X.
+- **Observação:** Grande evento de limpeza Git em staging (remoção de scripts velhos, Docker, OAuth legado). Padrão pontual, não recorrente (não aciona regra de automação).
+- **Alertas:** Quotas excedidas em Gemini/DeepSeek (fallback Moonshot/Kimi estável). `healthcheck:update-status` com timeouts crônicos (monitorar).
+- **Ações Realizadas:** Consolidação de memória (identificado novo recorde), auto-saneamento completo, análise de padrões. Registro em `memory/2026-04-07.md`. Git add das modificações (aguardando commit automático). Silêncio operacional mantido.
+
+*Marco: 49 dias de operação contínua — novo recorde absoluto.*
+
 ---
 
 ### 2026-03-11 (Ciclo Longo — 20:00 UTC) — ATUALIZADO

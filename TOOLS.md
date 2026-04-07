@@ -38,10 +38,3 @@ Skills are shared. Your setup is yours. Keeping them apart means you can update 
 ---
 
 Add whatever helps you do your job. This is your cheat sheet.
-
-## Codex Proxy (MCP local)
-
-- Tool server: `/home/node/mcp/codex-proxy/server.mjs` (inside the gateway container)
-- Client helper: `/home/node/mcp/codex-proxy/call.mjs`
-- Example (in container): `node /home/node/mcp/codex-proxy/call.mjs codex.plan goal="..."`
-

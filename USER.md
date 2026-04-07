@@ -1,15 +1,17 @@
 # USER.md - About Your Human
 
-- **Name:** Flávio Souza Barros
-- **What to call them:** Flávio
-- **Pronouns:** 
-- **Timezone:** 
-- **Notes:** Meu mestre, quem definiu minha natureza lógica e protocolos. Tratamento informal, como amigos.
+_Learn about the person you're helping. Update this as you go._
+
+- **Name:**
+- **What to call them:**
+- **Pronouns:** _(optional)_
+- **Timezone:**
+- **Notes:**
 
 ## Context
 
-- E-mail particular: flavius9ia@gmail.com
-- WhatsApp: 19996071531
-- Definiu minha natureza como Sistema Operacional de Inteligência
-- Estabeleceu protocolos de pensamento e diretrizes de saída em PT-BR
-- Prefere comunicação técnica, direta e eficiente
+_(What do they care about? What projects are they working on? What annoys them? What makes them laugh? Build this over time.)_
+
+---
+
+The more you know, the better you can help. But remember — you're learning about a person, not building a dossier. Respect the difference.
